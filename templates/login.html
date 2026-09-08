@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 80vh; flex-direction: column; padding: 1rem;">
+    
+    <div style="text-align: center; margin-bottom: 2rem;">
+        <span class="material-symbols-outlined" style="font-size: 3rem; vertical-align: middle;">eco</span>
+        <h1 style="display: inline-block; margin: 0; vertical-align: middle; font-size: 2rem; text-transform: uppercase; letter-spacing: 3px; font-weight: 700;">CalamanSense</h1>
+    </div>
+
+    <div class="box" style="width: 100%; max-width: 400px; padding: 2rem;">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Welcome Back</h2>
+        
+        {% if form.errors %}
+        <div style="background-color: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            <p style="margin: 0;">Your username and password didn't match. Please try again.</p>
+        </div>
+        {% endif %}
+
+        {% if next %}
+            {% if user.is_authenticated %}
+            <div style="background-color: #fef3c7; color: #92400e; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                <p style="margin: 0;">Your account doesn't have access to this page. To proceed, please login with an account that has access.</p>
+            </div>
+            {% else %}
+            <div style="background-color: #e0f2fe; color: #075985; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                <p style="margin: 0;">Please login to see this page.</p>
+            </div>
+            {% endif %}
+        {% endif %}
+
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+            
+            <div style="margin-bottom: 1.5rem;">
+                <label class="spec-label" for="id_username">Username</label>
+                <input type="text" name="username" autofocus autocapitalize="none" autocomplete="username" maxlength="150" required id="id_username" style="width: 100%;">
+            </div>
+            
+            <div style="margin-bottom: 2rem;">
+                <label class="spec-label" for="id_password">Password</label>
+                <div style="position: relative;">
+                    <input type="password" name="password" autocomplete="current-password" required id="id_password" style="width: 100%;">
+                    <span class="material-symbols-outlined" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--gray-dark); user-select: none;" onclick="togglePassword('id_password', this)">visibility</span>
+                </div>
+            </div>
+            
+            <button type="submit" style="width: 100%; justify-content: center;">Login</button>
+            <input type="hidden" name="next" value="{{ next }}">
+        </form>
+    </div>
+</div>
+{% endblock %}

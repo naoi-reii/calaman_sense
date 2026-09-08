@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div>
+        <h1>Reports</h1>
+        <p>Browse and filter through all your previous scan results.</p>
+    </div>
+</div>
+
+<div class="dashboard-panel" style="margin-bottom: 24px; padding: 18px 22px; min-height: auto;">
+    <div class="reports-filter-bar">
+        <div class="reports-filter-group">
+            <span class="spec-label" style="margin: 0; min-width: max-content;">Filter by Grade:</span>
+            <a href="?" class="dashboard-action" style="background: {% if not request.GET.grade %}var(--green){% else %}var(--white){% endif %}; color: {% if not request.GET.grade %}var(--white){% else %}var(--black){% endif %}; border-color: {% if not request.GET.grade %}var(--green){% else %}var(--border){% endif %}; padding: 8px 14px;">All</a>
+            <a href="?grade=Best Quality" class="dashboard-action" style="background: {% if request.GET.grade == 'Best Quality' %}var(--green){% else %}var(--white){% endif %}; color: {% if request.GET.grade == 'Best Quality' %}var(--white){% else %}var(--black){% endif %}; border-color: {% if request.GET.grade == 'Best Quality' %}var(--green){% else %}var(--border){% endif %}; padding: 8px 14px;">Best Quality</a>
+            <a href="?grade=Good Quality" class="dashboard-action" style="background: {% if request.GET.grade == 'Good Quality' %}var(--green){% else %}var(--white){% endif %}; color: {% if request.GET.grade == 'Good Quality' %}var(--white){% else %}var(--black){% endif %}; border-color: {% if request.GET.grade == 'Good Quality' %}var(--green){% else %}var(--border){% endif %}; padding: 8px 14px;">Good Quality</a>
+            <a href="?grade=Average" class="dashboard-action" style="background: {% if request.GET.grade == 'Average' %}var(--green){% else %}var(--white){% endif %}; color: {% if request.GET.grade == 'Average' %}var(--white){% else %}var(--black){% endif %}; border-color: {% if request.GET.grade == 'Average' %}var(--green){% else %}var(--border){% endif %}; padding: 8px 14px;">Average</a>
+            <a href="?grade=Rejected" class="dashboard-action" style="background: {% if request.GET.grade == 'Rejected' %}var(--green){% else %}var(--white){% endif %}; color: {% if request.GET.grade == 'Rejected' %}var(--white){% else %}var(--black){% endif %}; border-color: {% if request.GET.grade == 'Rejected' %}var(--green){% else %}var(--border){% endif %}; padding: 8px 14px;">Rejected</a>
+        </div>
+        <div class="reports-action-group">
+            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 500;">
+                <input type="checkbox" id="selectAll" style="cursor: pointer;"> Select All
+            </label>
+            <button type="submit" id="deleteBtn" form="deleteForm" name="action" value="delete" class="dashboard-action action-delete" style="background: #e74c3c; color: var(--white); border: none; cursor: not-allowed; padding: 8px 14px; opacity: 0.5;" onclick="return confirm('Are you sure you want to delete the selected scans?');" disabled>
+                <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 4px; vertical-align: middle;">delete</span> Delete Selected
+            </button>
+        </div>
+    </div>
+</div>
+
+<form id="deleteForm" method="POST">
+    {% csrf_token %}
+
+<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+    {% for scan in scans %}
+    <div class="dashboard-panel" style="padding: 0; overflow: hidden; min-height: auto; display: flex; flex-direction: column;">
+        <div style="padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <input type="checkbox" name="scan_ids" value="{{ scan.id }}" class="scan-checkbox" style="cursor: pointer;">
+                <div>
+                    <span class="spec-label">Scan ID</span>
+                    <h3 style="margin: 0; font-size: 1.05rem;">
+                        <a href="{% url 'report_detail' scan.id %}" style="color: var(--black); transition: color 0.2s ease;">#{{ scan.id }}</a>
+                    </h3>
+                </div>
+            </div>
+            <div style="text-align: right;">
+                <span class="spec-label">Date</span>
+                <span style="color: var(--gray-dark); font-size: 0.8rem; font-weight: 600;">{{ scan.created_at|date:"M d, Y" }}</span>
+            </div>
+        </div>
+        
+        <div style="padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+                <span class="spec-label">Grade Prediction</span>
+                <span style="color: var(--black); font-size: 0.85rem; font-weight: 600;">{{ scan.quality_grade }}</span>
+            </div>
+            <div>
+                {% if scan.quality_grade == "Best Quality" %}
+                <span class="scan-grade scan-grade--best">B</span>
+                {% elif scan.quality_grade == "Good Quality" %}
+                <span class="scan-grade scan-grade--good">G</span>
+                {% elif scan.quality_grade == "Average" %}
+                <span class="scan-grade scan-grade--average">A</span>
+                {% elif scan.quality_grade == "Rejected" %}
+                <span class="scan-grade scan-grade--rejected">R</span>
+                {% else %}
+                <span class="scan-grade">—</span>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div style="padding: 18px 22px; background-color: #fcfcfc; flex-grow: 1;">
+            {% with first_image=scan.images.first %}
+                {% if first_image %}
+                    <a href="{% url 'report_detail' scan.id %}">
+                        <img src="{{ first_image.image.url }}" alt="Scan Image" style="width: 100%; height: 220px; object-fit: contain; border-radius: 8px;">
+                    </a>
+                {% else %}
+                    <div style="height: 220px; display: flex; align-items: center; justify-content: center; background: var(--gray-light); border-radius: 8px;">
+                        <span class="material-symbols-outlined" style="color: var(--gray); font-size: 32px;">image_not_supported</span>
+                    </div>
+                {% endif %}
+            {% endwith %}
+        </div>
+
+        <div style="padding: 14px 22px; border-top: 1px solid var(--border); background-color: var(--white); text-align: center;">
+            <a href="{% url 'report_detail' scan.id %}" class="view-report" style="justify-content: center; width: 100%;">
+                View Full Report <span class="material-symbols-outlined">arrow_forward</span>
+            </a>
+        </div>
+    </div>
+    {% empty %}
+    <div class="empty-state dashboard-panel" style="grid-column: 1 / -1; min-height: auto;">
+        <span class="material-symbols-outlined">analytics</span>
+        <p>No reports found matching your criteria.</p>
+        <a href="{% url 'reports' %}">Clear filters</a>
+    </div>
+    {% endfor %}
+</div>
+</form>
+
+<script>
+function updateDeleteButtonState() {
+    const checkboxes = document.querySelectorAll('.scan-checkbox');
+    const deleteBtn = document.getElementById('deleteBtn');
+    const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
+    
+    if (anyChecked) {
+        deleteBtn.disabled = false;
+        deleteBtn.style.opacity = '1';
+        deleteBtn.style.cursor = 'pointer';
+    } else {
+        deleteBtn.disabled = true;
+        deleteBtn.style.opacity = '0.5';
+        deleteBtn.style.cursor = 'not-allowed';
+    }
+}
+
+document.getElementById('selectAll').addEventListener('change', function(e) {
+    const checkboxes = document.querySelectorAll('.scan-checkbox');
+    checkboxes.forEach(cb => cb.checked = e.target.checked);
+    updateDeleteButtonState();
+});
+
+document.querySelectorAll('.scan-checkbox').forEach(cb => {
+    cb.addEventListener('change', updateDeleteButtonState);
+});
+
+// Initialize state on page load
+updateDeleteButtonState();
+</script>
+{% endblock %}

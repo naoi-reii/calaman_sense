@@ -1,0 +1,585 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.5rem;">
+    <h1 style="color: var(--green-dark);">Settings</h1>
+</div>
+
+<style>
+    /* Local tokens for the new settings rows — reuses existing --white / --black / --gray-dark from base.html */
+    .settings-page {
+        --accent-green-bg: #D1FAE5;
+        --accent-green-fg: #059669;
+        --accent-blue-bg: #DBEAFE;
+        --accent-blue-fg: #2563EB;
+        --accent-amber-bg: #FEF3C7;
+        --accent-amber-fg: #D97706;
+        --accent-indigo-bg: #E0E7FF;
+        --accent-indigo-fg: #4F46E5;
+        --accent-red-bg: #FEE2E2;
+        --accent-red-fg: #DC2626;
+        --accent-slate-bg: #F1F5F9;
+        --accent-slate-fg: #475569;
+        --row-border: #E5E7EB;
+    }
+
+    .settings-page .box {
+        margin-bottom: 1.5rem;
+    }
+
+    .settings-page h3 {
+        margin: 0 0 1rem 0;
+        font-size: 1.1rem;
+    }
+
+    /* Profile header */
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .profile-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background-color: var(--accent-green-bg);
+        color: var(--accent-green-fg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 1.1rem;
+        flex-shrink: 0;
+    }
+
+    .profile-name {
+        margin: 0;
+        font-weight: 700;
+        color: var(--black);
+    }
+
+    .profile-meta {
+        margin: 0.15rem 0 0 0;
+        color: var(--gray-dark);
+        font-size: 0.9rem;
+    }
+
+    /* Settings rows */
+    .settings-list {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .settings-row {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.9rem 0;
+        border-bottom: 1px solid var(--row-border);
+        cursor: default;
+    }
+
+    .settings-list .settings-row:last-child {
+        border-bottom: none;
+        padding-bottom: 0;
+    }
+
+    .settings-list .settings-row:first-child {
+        padding-top: 0;
+    }
+
+    .settings-row.clickable {
+        cursor: pointer;
+    }
+
+    .row-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .row-icon .material-symbols-outlined {
+        font-size: 1.3rem;
+    }
+
+    .row-text {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .row-label {
+        margin: 0;
+        font-weight: 600;
+        color: var(--black);
+        font-size: 0.95rem;
+    }
+
+    .row-sublabel {
+        margin: 0.1rem 0 0 0;
+        color: var(--gray-dark);
+        font-size: 0.85rem;
+    }
+
+    .row-value {
+        color: var(--gray-dark);
+        font-size: 0.9rem;
+        margin-right: 0.25rem;
+        white-space: nowrap;
+    }
+
+    .row-chevron {
+        color: var(--gray-dark);
+        font-size: 1.2rem;
+        flex-shrink: 0;
+    }
+
+    /* Toggle switch */
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 42px;
+        height: 24px;
+        flex-shrink: 0;
+    }
+
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .toggle-slider {
+        position: absolute;
+        cursor: pointer;
+        inset: 0;
+        background-color: #D1D5DB;
+        border-radius: 999px;
+        transition: background-color 0.15s ease;
+    }
+
+    .toggle-slider::before {
+        content: "";
+        position: absolute;
+        height: 18px;
+        width: 18px;
+        left: 3px;
+        top: 3px;
+        background-color: var(--white);
+        border-radius: 50%;
+        transition: transform 0.15s ease;
+    }
+
+    .toggle-switch input:checked + .toggle-slider {
+        background-color: var(--accent-green-fg);
+    }
+
+    .toggle-switch input:checked + .toggle-slider::before {
+        transform: translateX(18px);
+    }
+
+    /* Mobile Responsiveness */
+    @media (max-width: 640px) {
+        .settings-page h3 {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .profile-avatar {
+            width: 48px;
+            height: 48px;
+            font-size: 1rem;
+        }
+
+        .profile-name {
+            font-size: 0.95rem;
+        }
+
+        .profile-meta {
+            font-size: 0.8rem;
+        }
+
+        .settings-row {
+            padding: 0.7rem 0;
+            gap: 0.75rem;
+        }
+
+        .row-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+        }
+
+        .row-icon .material-symbols-outlined {
+            font-size: 1.1rem;
+        }
+
+        .row-label {
+            font-size: 0.85rem;
+        }
+
+        .row-sublabel {
+            font-size: 0.75rem;
+        }
+
+        .row-value {
+            font-size: 0.8rem;
+        }
+
+        .row-chevron {
+            font-size: 1.1rem;
+        }
+
+        /* Make buttons smaller on mobile */
+        button {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.85rem;
+        }
+
+        /* Make inputs and labels smaller on mobile inside modals and forms */
+        input[type="text"], input[type="password"] {
+            padding: 0.4rem;
+            font-size: 0.85rem;
+        }
+        
+        .spec-label {
+            font-size: 0.85rem;
+        }
+
+        .modal-content {
+            padding: 1.25rem !important;
+            width: 92% !important;
+        }
+        
+        /* Modal titles */
+        .modal-content h3 {
+            font-size: 1.1rem;
+        }
+    }
+</style>
+
+<div class="settings-page">
+
+    <!-- Profile -->
+    <div class="box">
+        <div class="profile-header" style="justify-content: space-between; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div class="profile-avatar">{{ request.user.first_name|first|default:request.user.username|first|upper }}{{ request.user.last_name|first|default:""|upper }}</div>
+                <div>
+                    <p class="profile-name">{{ request.user.first_name|default:request.user.username }} {{ request.user.last_name }}</p>
+                    <p class="profile-meta">{{ request.user.username }}</p>
+                </div>
+            </div>
+            <button type="button" onclick="document.getElementById('profileModal').style.display='flex'">Edit</button>
+        </div>
+    </div>
+
+    <!-- App preferences -->
+    <div class="box">
+        <h3>App preferences</h3>
+        <div class="settings-list">
+
+            <div class="settings-row clickable">
+                <div class="row-icon" style="background-color: var(--accent-indigo-bg);">
+                    <span class="material-symbols-outlined" style="color: var(--accent-indigo-fg);">translate</span>
+                </div>
+                <div class="row-text">
+                    <p class="row-label">Language</p>
+                    <p class="row-sublabel">Filipino / English</p>
+                </div>
+                <span class="row-value">EN</span>
+                <span class="material-symbols-outlined row-chevron">chevron_right</span>
+            </div>
+
+            <div class="settings-row">
+                <div class="row-icon" style="background-color: var(--accent-blue-bg);">
+                    <span class="material-symbols-outlined" style="color: var(--accent-blue-fg);">notifications</span>
+                </div>
+                <div class="row-text">
+                    <p class="row-label">Notifications</p>
+                    <p class="row-sublabel">Batch alerts</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox" checked>
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+            <div class="settings-row">
+                <div class="row-icon" style="background-color: var(--accent-amber-bg);">
+                    <span class="material-symbols-outlined" style="color: var(--accent-amber-fg);">dark_mode</span>
+                </div>
+                <div class="row-text">
+                    <p class="row-label">Dark mode</p>
+                    <p class="row-sublabel">Follow system</p>
+                </div>
+                <label class="toggle-switch">
+                    <input type="checkbox">
+                    <span class="toggle-slider"></span>
+                </label>
+            </div>
+
+        </div>
+    </div>
+
+
+    <!-- Existing admin-only config box (kept as-is, still hidden) -->
+    <div class="box" style="display: none;">
+        <h3>Configure App Settings</h3>
+        <form method="POST" style="margin-bottom: 2rem;">
+            {% csrf_token %}
+            <div style="display: flex; gap: 1rem; align-items: flex-end;">
+                <div>
+                    <label class="spec-label" for="key">Setting Key</label>
+                    <input type="text" name="key" id="key" placeholder="e.g. confidence_threshold" required>
+                </div>
+                <div>
+                    <label class="spec-label" for="value">Value</label>
+                    <input type="text" name="value" id="value" required>
+                </div>
+                <button type="submit">Save</button>
+            </div>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Key</th>
+                    <th>Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for setting in settings %}
+                <tr>
+                    <td>{{ setting.key }}</td>
+                    <td>{{ setting.value }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2">No settings found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Security -->
+    <div class="box">
+        <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <div>
+                <p class="row-label" style="margin: 0; font-size: 1rem;">Security</p>
+                <p class="row-sublabel" style="margin: 0; margin-top: 0.25rem;">Update your account password.</p>
+            </div>
+            <button type="button" onclick="document.getElementById('passwordModal').style.display='flex'">Change</button>
+        </div>
+    </div>
+
+    <!-- About -->
+    <div class="box">
+        <h3>About CalamanSense</h3>
+        <div class="settings-list">
+
+            <div class="settings-row clickable">
+                <div class="row-icon" style="background-color: var(--accent-slate-bg);">
+                    <span class="material-symbols-outlined" style="color: var(--accent-slate-fg);">info</span>
+                </div>
+                <div class="row-text">
+                    <p class="row-label">What is CalamanSense?</p>
+                    <p class="row-sublabel">About the app and its purpose</p>
+                </div>
+                <span class="material-symbols-outlined row-chevron">chevron_right</span>
+            </div>
+
+            <div class="settings-row clickable">
+                <div class="row-icon" style="background-color: var(--accent-slate-bg);">
+                    <span class="material-symbols-outlined" style="color: var(--accent-slate-fg);">center_focus_weak</span>
+                </div>
+                <div class="row-text">
+                    <p class="row-label">How Scanning Works</p>
+                    <p class="row-sublabel">How detection and results are calculated</p>
+                </div>
+                <span class="material-symbols-outlined row-chevron">chevron_right</span>
+            </div>
+
+            <div class="settings-row clickable">
+                <div class="row-icon" style="background-color: var(--accent-slate-bg);">
+                    <span class="material-symbols-outlined" style="color: var(--accent-slate-fg);">menu_book</span>
+                </div>
+                <div class="row-text">
+                    <p class="row-label">Help / User Guide</p>
+                    <p class="row-sublabel">Tips, FAQs, and how to get support</p>
+                </div>
+                <span class="material-symbols-outlined row-chevron">chevron_right</span>
+            </div>
+
+        </div>
+    </div>
+
+</div>
+
+<div id="passwordModal" class="modal" {% if password_form.errors %}style="display: flex;"{% endif %}>
+    <div class="modal-content box" style="position: relative; width: 100%; max-width: 500px; background-color: var(--white); margin: auto;">
+        <span class="close-modal" onclick="document.getElementById('passwordModal').style.display='none'" style="color: var(--black); top: 10px; right: 20px;">&times;</span>
+        <h3 style="margin-top: 0;">Change Password</h3>
+
+        {% if password_form.errors %}
+        <div style="background-color: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+            <p style="margin: 0; font-weight: bold;">Please correct the errors below.</p>
+        </div>
+        {% endif %}
+
+        <form method="POST">
+            {% csrf_token %}
+
+            {% for field in password_form %}
+            <div style="margin-bottom: 1rem;">
+                <label class="spec-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                <div style="margin-bottom: 0.5rem; position: relative;">
+                    {{ field }}
+                    <span class="material-symbols-outlined" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--gray-dark); user-select: none;" onclick="togglePassword('{{ field.id_for_label }}', this)">visibility</span>
+                </div>
+
+                {% if field.name == 'new_password1' %}
+                <div id="password-requirements" style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem; background-color: #f9fafb; padding: 0.75rem; border-radius: 6px; border: 1px solid #e5e7eb;">
+                    <p style="margin: 0 0 0.5rem 0; font-weight: 600; color: #374151;">Password requirements:</p>
+                    <ul style="margin: 0; padding-left: 0; list-style-type: none;">
+                        <li id="req-length" style="color: #ef4444; margin-bottom: 0.25rem; display: flex; align-items: center;"><span class="material-symbols-outlined" style="font-size: 1.125rem; margin-right: 0.375rem;">close</span> At least 8 characters</li>
+                        <li id="req-numeric" style="color: #ef4444; margin-bottom: 0.25rem; display: flex; align-items: center;"><span class="material-symbols-outlined" style="font-size: 1.125rem; margin-right: 0.375rem;">close</span> Cannot be entirely numeric</li>
+                    </ul>
+                </div>
+                {% endif %}
+
+                {% if field.name == 'new_password2' %}
+                <div id="password-match" style="font-size: 0.875rem; color: #6b7280; margin-bottom: 0.5rem; display: none; padding: 0.5rem 0;">
+                    <div style="display: flex; align-items: center;">
+                        <span id="match-icon" class="material-symbols-outlined" style="font-size: 1.125rem; margin-right: 0.375rem; color: #ef4444;">close</span>
+                        <span id="match-text" style="color: #ef4444; font-weight: 500;">Passwords do not match</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if field.help_text and field.name != 'new_password1' %}
+                <small style="color: #6b7280; display: block; margin-bottom: 0.5rem;">{{ field.help_text|safe }}</small>
+                {% endif %}
+                {% for error in field.errors %}
+                <p style="color: #dc2626; font-size: 0.875rem; margin: 0.25rem 0;">{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endfor %}
+
+            <button type="submit" style="margin-top: 1rem; width: 100%;">Update Password</button>
+        </form>
+    </div>
+</div>
+
+<div id="profileModal" class="modal" style="display: none;">
+    <div class="modal-content box" style="position: relative; width: 100%; max-width: 500px; background-color: var(--white); margin: auto;">
+        <span class="close-modal" onclick="document.getElementById('profileModal').style.display='none'" style="color: var(--black); top: 10px; right: 20px;">&times;</span>
+        <h3 style="margin-top: 0;">Edit Profile</h3>
+        
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="update_profile" value="1">
+            <div style="margin-bottom: 1rem;">
+                <label class="spec-label" for="first_name">First Name</label>
+                <input type="text" name="first_name" id="first_name" value="{{ request.user.first_name }}" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label class="spec-label" for="last_name">Last Name</label>
+                <input type="text" name="last_name" id="last_name" value="{{ request.user.last_name }}" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+            </div>
+            <div style="margin-bottom: 1rem;">
+                <label class="spec-label" for="username">Username</label>
+                <input type="text" name="username" id="username" value="{{ request.user.username }}" required style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
+            </div>
+            <button type="submit" style="margin-top: 1rem; width: 100%;">Save Changes</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Close modal when clicking outside of the content box
+    window.onclick = function(event) {
+        const modal = document.getElementById('passwordModal');
+        const profileModal = document.getElementById('profileModal');
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+        if (event.target == profileModal) {
+            profileModal.style.display = "none";
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const pass1 = document.getElementById('id_new_password1');
+        const pass2 = document.getElementById('id_new_password2');
+
+        const reqLength = document.getElementById('req-length');
+        const reqNumeric = document.getElementById('req-numeric');
+        const matchDiv = document.getElementById('password-match');
+        const matchIcon = document.getElementById('match-icon');
+        const matchText = document.getElementById('match-text');
+
+        if (pass1 && pass2) {
+            function updateRequirements() {
+                const val = pass1.value;
+
+                if (val.length >= 8) {
+                    reqLength.style.color = '#10b981';
+                    reqLength.innerHTML = '<span class="material-symbols-outlined" style="font-size: 1.125rem; margin-right: 0.375rem;">check</span> At least 8 characters';
+                } else {
+                    reqLength.style.color = '#ef4444';
+                    reqLength.innerHTML = '<span class="material-symbols-outlined" style="font-size: 1.125rem; margin-right: 0.375rem;">close</span> At least 8 characters';
+                }
+
+                if (val.length > 0 && !/^\d+$/.test(val)) {
+                    reqNumeric.style.color = '#10b981';
+                    reqNumeric.innerHTML = '<span class="material-symbols-outlined" style="font-size: 1.125rem; margin-right: 0.375rem;">check</span> Cannot be entirely numeric';
+                } else {
+                    reqNumeric.style.color = '#ef4444';
+                    reqNumeric.innerHTML = '<span class="material-symbols-outlined" style="font-size: 1.125rem; margin-right: 0.375rem;">close</span> Cannot be entirely numeric';
+                }
+
+                checkMatch();
+            }
+
+            function checkMatch() {
+                if (pass2.value.length > 0) {
+                    matchDiv.style.display = 'block';
+                    if (pass1.value === pass2.value) {
+                        matchIcon.textContent = 'check';
+                        matchIcon.style.color = '#10b981';
+                        matchText.textContent = 'Passwords match';
+                        matchText.style.color = '#10b981';
+                    } else {
+                        matchIcon.textContent = 'close';
+                        matchIcon.style.color = '#ef4444';
+                        matchText.textContent = 'Passwords do not match';
+                        matchText.style.color = '#ef4444';
+                    }
+                } else {
+                    matchDiv.style.display = 'none';
+                }
+            }
+
+            pass1.addEventListener('input', updateRequirements);
+            pass2.addEventListener('input', checkMatch);
+        }
+    });
+
+    function togglePassword(fieldId, iconElement) {
+        const input = document.getElementById(fieldId);
+        if (input.type === "password") {
+            input.type = "text";
+            iconElement.textContent = "visibility_off";
+        } else {
+            input.type = "password";
+            iconElement.textContent = "visibility";
+        }
+    }
+</script>
+{% endblock %}

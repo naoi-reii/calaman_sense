@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Training Data</h1>
+
+<div class="box">
+    <h3>Upload Training Sample</h3>
+    <form method="POST" enctype="multipart/form-data" style="display: flex; gap: 1rem; align-items: flex-end;">
+        {% csrf_token %}
+        <div>
+            <label class="spec-label" for="image">Image</label>
+            <input type="file" name="image" id="image" required>
+        </div>
+        <div>
+            <label class="spec-label" for="label">Label (e.g. good, blemished)</label>
+            <input type="text" name="label" id="label" required>
+        </div>
+        <button type="submit">Upload</button>
+    </form>
+</div>
+
+<div class="box">
+    <h3>Dataset</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Image</th>
+                <th>Label</th>
+                <th>Uploaded</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for sample in samples %}
+            <tr>
+                <td>{{ sample.id }}</td>
+                <td><a href="{{ sample.image.url }}" target="_blank">View Image</a></td>
+                <td><strong>{{ sample.label }}</strong></td>
+                <td>{{ sample.uploaded_at|date:"M d, Y" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="4">No training samples uploaded yet.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1 style="color: var(--green-dark); text-align: center; margin-bottom: 1.5rem;">Upload Batch</h1>
+
+<div class="box" style="max-width: 600px; margin: 0 auto;">
+    <form method="POST" enctype="multipart/form-data" id="upload-form">
+        {% csrf_token %}
+        
+        <div style="margin-bottom: 1rem;">
+            <label class="spec-label" for="batch_name">Batch Name (Optional)</label>
+            <input type="text" name="batch_name" id="batch_name" style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 1rem;">
+            <label class="spec-label" for="supplier_name">Supplier (Optional)</label>
+            <input type="text" name="supplier_name" id="supplier_name" style="width: 100%; box-sizing: border-box;">
+        </div>
+
+        <div style="margin-bottom: 1.5rem;">
+            <label class="spec-label" for="images" style="margin-bottom: 0.5rem; display: block;">Upload Images</label>
+            <div id="dropzone" class="dropzone">
+                <span class="material-symbols-outlined drop-icon">cloud_upload</span>
+                <p><strong>Drag and drop images here</strong><br><span style="color: #666; font-size: 0.85rem;">or click to browse from your computer</span></p>
+                <input type="file" name="images" id="images" multiple required accept="image/*">
+            </div>
+            <button type="button" id="open-camera-btn" style="margin-top: 1rem; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; padding: 11px 18px; background: var(--green-light); color: var(--green-dark); border: 1px dashed var(--green); border-radius: 9px; font-weight: 700; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='var(--white)';" onmouseout="this.style.background='var(--green-light)';">
+                <span class="material-symbols-outlined" style="font-size: 18px;">photo_camera</span> Use Device Camera
+            </button>
+        </div>
+
+        <div id="image-previews" style="display: none; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1.5rem; padding-top: 1.5rem; border-top: var(--border-width) solid var(--black);"></div>
+
+        <button type="submit" id="submit-btn" style="width: 100%;">Analyze Batch</button>
+        <p id="loading-msg" style="display: none; text-align: center; text-transform: uppercase; font-weight: bold; margin-top: 1rem;">Analyzing... Please wait.</p>
+    </form>
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="modal">
+  <span class="close-modal">&times;</span>
+  <img class="modal-content" id="modalImage">
+</div>
+
+<!-- Camera Modal -->
+<div id="cameraModal" class="modal" style="z-index: 1000; align-items: center; justify-content: center;">
+  <div style="background: var(--white); padding: 1.5rem; border-radius: var(--radius); text-align: center; max-width: 90%; width: 500px;">
+    <h3 style="margin-top: 0; color: var(--green-dark);">Take Photo</h3>
+    <div style="position: relative; width: 100%; max-height: 60vh; overflow: hidden; background: #000; border-radius: 8px; margin-bottom: 1rem;">
+        <video id="camera-stream" autoplay playsinline style="width: 100%; height: auto; display: block;"></video>
+    </div>
+    <div style="display: flex; gap: 1rem; justify-content: center;">
+        <button type="button" id="capture-btn" class="dashboard-action" style="flex: 1;">
+            <span class="material-symbols-outlined">camera</span> Capture
+        </button>
+        <button type="button" id="close-camera-btn" class="dashboard-action" style="flex: 1; background: var(--gray); border-color: var(--gray);">
+            Cancel
+        </button>
+    </div>
+  </div>
+</div>
+<canvas id="camera-canvas" style="display: none;"></canvas>
+
+<script>
+    document.getElementById('upload-form').addEventListener('submit', function() {
+        document.getElementById('submit-btn').style.display = 'none';
+        document.getElementById('loading-msg').style.display = 'block';
+    });
+
+    const fileInput = document.getElementById('images');
+    const previewContainer = document.getElementById('image-previews');
+    const dropzone = document.getElementById('dropzone');
+
+    // Drag and drop visual feedback
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, highlight, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, unhighlight, false);
+    });
+
+    function highlight(e) {
+        dropzone.classList.add('dragover');
+    }
+
+    function unhighlight(e) {
+        dropzone.classList.remove('dragover');
+    }
+
+    dropzone.addEventListener('drop', handleDrop, false);
+
+    function handleDrop(e) {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        
+        if (files.length > 0) {
+            fileInput.files = files; // Assign dropped files to input
+            renderPreviews();
+        }
+    }
+    const modal = document.getElementById('imageModal');
+    const modalImg = document.getElementById('modalImage');
+    const span = document.getElementsByClassName('close-modal')[0];
+
+    fileInput.addEventListener('change', renderPreviews);
+
+    function renderPreviews() {
+        previewContainer.innerHTML = '';
+        const files = Array.from(fileInput.files);
+        
+        if (files.length > 0) {
+            previewContainer.style.display = 'flex';
+        } else {
+            previewContainer.style.display = 'none';
+        }
+
+        files.forEach((file, index) => {
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const thumbContainer = document.createElement('div');
+                    thumbContainer.style.position = 'relative';
+                    thumbContainer.style.display = 'inline-block';
+
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.classList.add('preview-thumb');
+                    img.title = "Click to preview full image";
+                    img.onclick = function() {
+                        modal.style.display = "flex";
+                        modalImg.src = this.src;
+                    }
+
+                    const removeBtn = document.createElement('button');
+                    removeBtn.innerHTML = '&times;';
+                    removeBtn.type = 'button';
+                    removeBtn.style.position = 'absolute';
+                    removeBtn.style.top = '-10px';
+                    removeBtn.style.right = '-10px';
+                    removeBtn.style.background = 'var(--white)';
+                    removeBtn.style.color = 'var(--black)';
+                    removeBtn.style.border = '2px solid var(--black)';
+                    removeBtn.style.width = '24px';
+                    removeBtn.style.height = '24px';
+                    removeBtn.style.lineHeight = '18px';
+                    removeBtn.style.padding = '0';
+                    removeBtn.style.cursor = 'pointer';
+                    removeBtn.style.fontSize = '18px';
+                    removeBtn.style.fontWeight = 'bold';
+                    
+                    removeBtn.onclick = function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // Remove file from input using DataTransfer
+                        const dt = new DataTransfer();
+                        const currentFiles = Array.from(fileInput.files);
+                        currentFiles.splice(index, 1);
+                        currentFiles.forEach(f => dt.items.add(f));
+                        fileInput.files = dt.files;
+                        renderPreviews(); // Re-render
+                    }
+
+                    thumbContainer.appendChild(img);
+                    thumbContainer.appendChild(removeBtn);
+                    previewContainer.appendChild(thumbContainer);
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+    }
+
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    modal.onclick = function(e) {
+        if (e.target === modal) {
+            modal.style.display = "none";
+        }
+    }
+
+    // Camera functionality
+    const openCameraBtn = document.getElementById('open-camera-btn');
+    const closeCameraBtn = document.getElementById('close-camera-btn');
+    const captureBtn = document.getElementById('capture-btn');
+    const cameraModal = document.getElementById('cameraModal');
+    const videoStream = document.getElementById('camera-stream');
+    const cameraCanvas = document.getElementById('camera-canvas');
+    let currentStream = null;
+
+    openCameraBtn.addEventListener('click', async function() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            currentStream = stream;
+            videoStream.srcObject = stream;
+            cameraModal.style.display = 'flex';
+        } catch (err) {
+            console.error("Error accessing camera:", err);
+            alert("Could not access camera. Please check permissions.");
+        }
+    });
+
+    function stopCamera() {
+        if (currentStream) {
+            currentStream.getTracks().forEach(track => track.stop());
+            currentStream = null;
+        }
+        cameraModal.style.display = 'none';
+    }
+
+    closeCameraBtn.addEventListener('click', stopCamera);
+
+    captureBtn.addEventListener('click', function() {
+        if (!currentStream) return;
+        
+        const context = cameraCanvas.getContext('2d');
+        cameraCanvas.width = videoStream.videoWidth;
+        cameraCanvas.height = videoStream.videoHeight;
+        context.drawImage(videoStream, 0, 0, cameraCanvas.width, cameraCanvas.height);
+        
+        cameraCanvas.toBlob(function(blob) {
+            if (!blob) return;
+            const fileName = `capture_${new Date().getTime()}.jpg`;
+            const file = new File([blob], fileName, { type: "image/jpeg" });
+            
+            const dt = new DataTransfer();
+            const currentFiles = Array.from(fileInput.files);
+            currentFiles.forEach(f => dt.items.add(f));
+            dt.items.add(file);
+            fileInput.files = dt.files;
+            
+            renderPreviews();
+            stopCamera();
+        }, 'image/jpeg', 0.95);
+    });
+</script>
+{% endblock %}

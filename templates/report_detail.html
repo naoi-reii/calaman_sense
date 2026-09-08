@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+.bounding-box-label {
+    font-size: 1rem;
+    font-weight: 600;
+    padding: 4px 10px;
+    white-space: nowrap;
+    display: inline-block;
+    line-height: 1.3;
+    border-radius: 4px;
+}
+
+.bbox-unripe { border-color: #3b82f6 !important; }
+.bbox-ripe { border-color: #22c55e !important; }
+.bbox-overripe { border-color: #ef4444 !important; }
+
+.bbox-label-unripe { background: #3b82f6; color: #fff; }
+.bbox-label-ripe { background: #22c55e; color: #fff; }
+.bbox-label-overripe { background: #ef4444; color: #fff; }
+
+.toggle-labels-btn {
+    margin-bottom: 0.75rem;
+    padding: 6px 14px;
+    border-radius: 4px;
+    border: 1px solid #555;
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    font-size: 0.85rem;
+}
+
+.toggle-labels-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* ===== Headline detection breakdown (moved up from Visual Analysis) ===== */
+
+.detection-headline {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 12px;
+
+    margin: 1.4rem 0 0.4rem;
+    padding-top: 1.2rem;
+
+    border-top: 1px solid var(--border);
+}
+
+.detection-headline-count {
+    color: var(--black);
+    font-size: 1.05rem;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.detection-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.detection-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 5px 12px;
+
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+}
+
+.detection-pill .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.detection-pill-unripe { background: var(--blue-light); color: #2f6fb8; }
+.detection-pill-unripe .dot { background: #3b82f6; }
+
+.detection-pill-ripe { background: var(--lime-light); color: #6f8710; }
+.detection-pill-ripe .dot { background: #22c55e; }
+
+.detection-pill-overripe { background: var(--red-light); color: #c23f3f; }
+.detection-pill-overripe .dot { background: #ef4444; }
+</style>
+
+<div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.5rem;">
+    <h1>Scan Report #{{ scan.id }}</h1>
+    <a href="{% url 'reports' %}">&larr; Back to Reports</a>
+</div>
+
+<div class="box">
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem;">
+        <div>
+            <span class="spec-label">Grade</span>
+            <span class="spec-value">{{ scan.quality_grade }}</span>
+        </div>
+        <div>
+            <span class="spec-label">Total Calamansi Counted</span>
+            <span class="spec-value">{{ scan.fruit_count_total }}</span>
+        </div>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
+        <div>
+            <span class="spec-label">Batch</span>
+            <span>{{ scan.batch_name|default:"-" }}</span>
+        </div>
+        <div>
+            <span class="spec-label">Supplier</span>
+            <span>{{ scan.supplier_name|default:"-" }}</span>
+        </div>
+        <div>
+            <span class="spec-label">Date</span>
+            <span>{{ scan.created_at|date:"M d, Y h:i A" }}</span>
+        </div>
+        <div>
+            <span class="spec-label">Model</span>
+            <span>{{ scan.model_version }}</span>
+        </div>
+    </div>
+
+    {% with scan_image=scan.images.first %}
+    {% if scan_image %}
+    <div class="detection-headline">
+        <span class="detection-headline-count">{{ scan_image.mock_annotations|length }} detected</span>
+
+        {% regroup scan_image.mock_annotations|dictsort:"css_class" by css_class as ripeness_groups %}
+        <div class="detection-pill-row">
+            {% for group in ripeness_groups %}
+            <span class="detection-pill detection-pill-{{ group.grouper }}">
+                <span class="dot"></span>{{ group.list|length }} {{ group.grouper|capfirst }}
+            </span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% endwith %}
+</div>
+
+<div class="grid" style="grid-template-columns: 2fr 1fr;">
+    <div class="box">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 class="spec-label" style="font-size: 0.85rem; margin-bottom: 0;">Visual Analysis</h3>
+            {% if scan.images.all %}
+            <button type="button" class="toggle-labels-btn" style="margin-bottom: 0;" onclick="toggleLabels(this)">Hide Labels</button>
+            {% endif %}
+        </div>
+        
+        {% for scan_image in scan.images.all %}
+            <div class="image-viewer">
+                <img src="{{ scan_image.image.url }}" alt="Scan Image" id="img-{{ scan_image.id }}">
+
+                <!-- Mock Overlays -->
+                {% for box in scan_image.mock_annotations %}
+                <div class="bounding-box bbox-{{ box.css_class }}" style="top: {{ box.y }}%; left: {{ box.x }}%; width: {{ box.width }}%; height: {{ box.height }}%;">
+                    <div class="bounding-box-label bbox-label-{{ box.css_class }}">{{ box.label }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        {% empty %}
+            <p>No images associated with this scan.</p>
+        {% endfor %}
+    </div>
+
+    <div>
+        <div class="box">
+            <h3 class="spec-label">Ripeness</h3>
+            <table style="margin-top: 1rem;">
+                <tr><td>Unripe</td><td>{{ scan.ripeness_unripe_pct }}%</td></tr>
+                <tr><td>Ripe</td><td>{{ scan.ripeness_ripe_pct }}%</td></tr>
+                <tr><td>Overripe</td><td>{{ scan.ripeness_overripe_pct }}%</td></tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleLabels(btn) {
+    const box = btn.closest('.box');
+    const labels = box.querySelectorAll('.bounding-box-label');
+    if (labels.length === 0) return;
+
+    const isHidden = labels[0].style.display === 'none';
+    labels.forEach(function (label) {
+        label.style.display = isHidden ? '' : 'none';
+    });
+    btn.textContent = isHidden ? 'Hide Labels' : 'Show Labels';
+}
+</script>
+{% endblock %}
