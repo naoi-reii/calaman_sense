@@ -12,6 +12,13 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet" />
     
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    <script>
+        // Apply dark mode early to prevent flickering
+        if (localStorage.getItem('darkMode') === 'enabled') {
+            document.documentElement.setAttribute('data-theme', 'dark');
+        }
+    </script>
 </head>
 <body>
     {% if user.is_authenticated %}

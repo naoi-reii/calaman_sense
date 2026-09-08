@@ -23,6 +23,22 @@
         --row-border: #E5E7EB;
     }
 
+    [data-theme="dark"] .settings-page {
+        --accent-green-bg: #064e3b;
+        --accent-green-fg: #34d399;
+        --accent-blue-bg: #1e3a8a;
+        --accent-blue-fg: #60a5fa;
+        --accent-amber-bg: #78350f;
+        --accent-amber-fg: #fbbf24;
+        --accent-indigo-bg: #312e81;
+        --accent-indigo-fg: #818cf8;
+        --accent-red-bg: #7f1d1d;
+        --accent-red-fg: #f87171;
+        --accent-slate-bg: #1e293b;
+        --accent-slate-fg: #94a3b8;
+        --row-border: #334155;
+    }
+
     .settings-page .box {
         margin-bottom: 1.5rem;
     }
@@ -284,8 +300,8 @@
         <div class="settings-list">
 
             <div class="settings-row clickable">
-                <div class="row-icon" style="background-color: var(--accent-indigo-bg);">
-                    <span class="material-symbols-outlined" style="color: var(--accent-indigo-fg);">translate</span>
+                <div class="row-icon" style="background-color: var(--accent-slate-bg);">
+                    <span class="material-symbols-outlined" style="color: var(--accent-slate-fg);">translate</span>
                 </div>
                 <div class="row-text">
                     <p class="row-label">Language</p>
@@ -296,8 +312,8 @@
             </div>
 
             <div class="settings-row">
-                <div class="row-icon" style="background-color: var(--accent-blue-bg);">
-                    <span class="material-symbols-outlined" style="color: var(--accent-blue-fg);">notifications</span>
+                <div class="row-icon" style="background-color: var(--accent-slate-bg);">
+                    <span class="material-symbols-outlined" style="color: var(--accent-slate-fg);">notifications</span>
                 </div>
                 <div class="row-text">
                     <p class="row-label">Notifications</p>
@@ -310,15 +326,15 @@
             </div>
 
             <div class="settings-row">
-                <div class="row-icon" style="background-color: var(--accent-amber-bg);">
-                    <span class="material-symbols-outlined" style="color: var(--accent-amber-fg);">dark_mode</span>
+                <div class="row-icon" style="background-color: var(--accent-slate-bg);">
+                    <span class="material-symbols-outlined" style="color: var(--accent-slate-fg);">dark_mode</span>
                 </div>
                 <div class="row-text">
                     <p class="row-label">Dark mode</p>
-                    <p class="row-sublabel">Follow system</p>
+                    <p class="row-sublabel">Toggle application theme</p>
                 </div>
                 <label class="toggle-switch">
-                    <input type="checkbox">
+                    <input type="checkbox" id="darkModeToggle">
                     <span class="toggle-slider"></span>
                 </label>
             </div>
@@ -581,5 +597,26 @@
             iconElement.textContent = "visibility";
         }
     }
+
+    // Dark Mode Toggle Logic
+    document.addEventListener('DOMContentLoaded', function() {
+        const darkModeToggle = document.getElementById('darkModeToggle');
+        if (darkModeToggle) {
+            // Set initial state based on localStorage
+            if (localStorage.getItem('darkMode') === 'enabled') {
+                darkModeToggle.checked = true;
+            }
+
+            darkModeToggle.addEventListener('change', function() {
+                if (this.checked) {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    localStorage.setItem('darkMode', 'enabled');
+                } else {
+                    document.documentElement.removeAttribute('data-theme');
+                    localStorage.setItem('darkMode', 'disabled');
+                }
+            });
+        }
+    });
 </script>
 {% endblock %}
