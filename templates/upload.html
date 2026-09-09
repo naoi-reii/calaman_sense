@@ -1,41 +1,49 @@
 {% extends 'base.html' %}
-
+{% load static %}
+{% block body_class %}overview-page upload-page{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2">
+<link rel="stylesheet" href="{% static 'css/upload.css' %}?v=inline-preview-1">
+{% endblock %}
+{% block navigation %}{% include "includes/overview_navigation.html" with active_page="upload" %}{% endblock %}
 {% block content %}
-<h1 style="color: var(--green-dark); text-align: center; margin-bottom: 1.5rem;">Upload Batch</h1>
-
-<div class="box" style="max-width: 600px; margin: 0 auto;">
-    <form method="POST" enctype="multipart/form-data" id="upload-form">
-        {% csrf_token %}
-        
-        <div style="margin-bottom: 1rem;">
-            <label class="spec-label" for="batch_name">Batch Name (Optional)</label>
-            <input type="text" name="batch_name" id="batch_name" style="width: 100%; box-sizing: border-box;">
-        </div>
-
-        <div style="margin-bottom: 1rem;">
-            <label class="spec-label" for="supplier_name">Supplier (Optional)</label>
-            <input type="text" name="supplier_name" id="supplier_name" style="width: 100%; box-sizing: border-box;">
-        </div>
-
-        <div style="margin-bottom: 1.5rem;">
-            <label class="spec-label" for="images" style="margin-bottom: 0.5rem; display: block;">Upload Images</label>
-            <div id="dropzone" class="dropzone">
-                <span class="material-symbols-outlined drop-icon">cloud_upload</span>
-                <p><strong>Drag and drop images here</strong><br><span style="color: #666; font-size: 0.85rem;">or click to browse from your computer</span></p>
-                <input type="file" name="images" id="images" multiple required accept="image/*">
+<div class="scan-heading"><h1>Scan Calamansi</h1><p>Upload an image or use your camera to analyze calamansi fruits.</p></div>
+<form method="POST" enctype="multipart/form-data" id="upload-form">
+    {% csrf_token %}
+    <div class="scan-layout">
+        <div class="scan-upload-panel">
+            <div class="scan-source-actions">
+                <button type="button" id="browse-images-btn" class="scan-source-active"><span class="material-symbols-outlined" aria-hidden="true">upload_file</span>Upload Image</button>
+                <button type="button" id="open-camera-btn"><span class="material-symbols-outlined" aria-hidden="true">photo_camera</span>Use Camera</button>
             </div>
-            <button type="button" id="open-camera-btn" style="margin-top: 1rem; width: 100%; display: flex; justify-content: center; align-items: center; gap: 8px; padding: 11px 18px; background: var(--green-light); color: var(--green-dark); border: 1px dashed var(--green); border-radius: 9px; font-weight: 700; cursor: pointer; transition: all 0.2s ease;" onmouseover="this.style.background='var(--white)';" onmouseout="this.style.background='var(--green-light)';">
-                <span class="material-symbols-outlined" style="font-size: 18px;">photo_camera</span> Use Device Camera
-            </button>
+            <div class="scan-drop-frame"><div id="dropzone" class="dropzone">
+                <span class="material-symbols-outlined drop-icon" aria-hidden="true">image</span>
+                <p>Drag and drop an image here<br>or click to browse</p>
+                <small>Supports: JPG, PNG (Max 10MB per image)</small>
+                <input type="file" name="images" id="images" multiple required accept="image/jpeg,image/png" aria-label="Upload calamansi images">
+                <div id="image-previews" class="scan-previews" style="display: none;"></div>
+            </div></div>
+            <p id="upload-error" class="scan-error" role="alert" hidden></p>
         </div>
-
-        <div id="image-previews" style="display: none; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 1.5rem; padding-top: 1.5rem; border-top: var(--border-width) solid var(--black);"></div>
-
-        <button type="submit" id="submit-btn" style="width: 100%;">Analyze Batch</button>
-        <p id="loading-msg" style="display: none; text-align: center; text-transform: uppercase; font-weight: bold; margin-top: 1rem;">Analyzing... Please wait.</p>
-    </form>
-</div>
-
+        <aside class="scan-tips"><h2>Tips for better results:</h2><ul>
+            <li>Use good lighting</li><li>Place multiple fruits</li><li>Keep the image clear</li><li>Avoid blurry photos</li><li>Include the whole fruit</li>
+        </ul></aside>
+    </div>
+    <section class="scan-samples" aria-labelledby="samples-title">
+        <div class="scan-samples-heading"><h2 id="samples-title">Sample Images</h2><button type="button" id="use-sample-btn">Use sample image</button></div>
+        <div class="scan-sample-grid">
+            <button type="button" class="scan-sample" data-sample="{% static 'images/samples/green.jpg' %}" aria-label="Use green calamansi sample"><img src="{% static 'images/samples/green.jpg' %}" alt="Fresh green calamansi"></button>
+            <button type="button" class="scan-sample" data-sample="{% static 'images/samples/mixed.jpg' %}" aria-label="Use mixed calamansi sample"><img src="{% static 'images/samples/mixed.jpg' %}" alt="Green and yellow calamansi"></button>
+            <button type="button" class="scan-sample" data-sample="{% static 'images/samples/batch.jpg' %}" aria-label="Use calamansi batch sample"><img src="{% static 'images/samples/batch.jpg' %}" alt="A basket of calamansi"></button>
+        </div>
+    </section>
+    <details class="scan-batch-details"><summary>Batch details <span>(optional)</span></summary><div class="scan-fields">
+        <div><label for="batch_name">Batch name</label><input type="text" name="batch_name" id="batch_name" maxlength="255" placeholder="e.g. Morning harvest"></div>
+        <div><label for="supplier_name">Supplier</label><input type="text" name="supplier_name" id="supplier_name" maxlength="255" placeholder="Supplier name"></div>
+    </div></details>
+    <button type="submit" id="submit-btn" class="scan-analyze">Analyze Batch <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></button>
+    <p id="loading-msg" role="status" style="display: none;">Analyzing your images. Please wait…</p>
+</form>
 <!-- Image Modal -->
 <div id="imageModal" class="modal">
   <span class="close-modal">&times;</span>
@@ -70,6 +78,39 @@
     const fileInput = document.getElementById('images');
     const previewContainer = document.getElementById('image-previews');
     const dropzone = document.getElementById('dropzone');
+    const uploadError = document.getElementById('upload-error');
+    document.getElementById('browse-images-btn').addEventListener('click', () => fileInput.click());
+
+    function selectImages(files) {
+        const selected = Array.from(files);
+        if (selected.some(file => !['image/jpeg', 'image/png'].includes(file.type) || file.size > 10 * 1024 * 1024)) {
+            uploadError.textContent = 'Please choose JPG or PNG images no larger than 10MB each.';
+            uploadError.hidden = false;
+            return false;
+        }
+        uploadError.hidden = true;
+        const transfer = new DataTransfer();
+        selected.forEach(file => transfer.items.add(file));
+        fileInput.files = transfer.files;
+        renderPreviews();
+        return true;
+    }
+
+    async function useSample(button) {
+        try {
+            const response = await fetch(button.dataset.sample);
+            if (!response.ok) throw new Error('Sample unavailable');
+            const blob = await response.blob();
+            selectImages([new File([blob], button.dataset.sample.split('/').pop(), { type: 'image/jpeg' })]);
+        } catch (error) {
+            uploadError.textContent = 'Could not load the sample. Please try again or upload an image.';
+            uploadError.hidden = false;
+        }
+    }
+    document.querySelectorAll('.scan-sample').forEach(button => {
+        button.addEventListener('click', () => useSample(button));
+    });
+    document.getElementById('use-sample-btn').addEventListener('click', () => useSample(document.querySelector('.scan-sample')));
 
     // Drag and drop visual feedback
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -104,19 +145,26 @@
         const files = dt.files;
         
         if (files.length > 0) {
-            fileInput.files = files; // Assign dropped files to input
-            renderPreviews();
+            selectImages(files);
         }
     }
     const modal = document.getElementById('imageModal');
     const modalImg = document.getElementById('modalImage');
     const span = document.getElementsByClassName('close-modal')[0];
 
-    fileInput.addEventListener('change', renderPreviews);
+    fileInput.addEventListener('change', () => {
+        if (!selectImages(fileInput.files)) {
+            fileInput.value = '';
+            renderPreviews();
+        }
+    });
 
+    let previewVersion = 0;
     function renderPreviews() {
+        const version = ++previewVersion;
         previewContainer.innerHTML = '';
         const files = Array.from(fileInput.files);
+        dropzone.classList.toggle('has-images', files.length > 0);
         
         if (files.length > 0) {
             previewContainer.style.display = 'flex';
@@ -128,12 +176,23 @@
             if (file && file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
+                    if (version !== previewVersion) return;
                     const thumbContainer = document.createElement('div');
                     thumbContainer.style.position = 'relative';
                     thumbContainer.style.display = 'inline-block';
+                    thumbContainer.style.order = index;
 
                     const img = document.createElement('img');
                     img.src = e.target.result;
+                    img.alt = file.name;
+                    img.tabIndex = 0;
+                    img.setAttribute('role', 'button');
+                    img.onkeydown = function(event) {
+                        if (event.key === 'Enter' || event.key === ' ') {
+                            event.preventDefault();
+                            img.click();
+                        }
+                    };
                     img.classList.add('preview-thumb');
                     img.title = "Click to preview full image";
                     img.onclick = function() {
@@ -144,6 +203,7 @@
                     const removeBtn = document.createElement('button');
                     removeBtn.innerHTML = '&times;';
                     removeBtn.type = 'button';
+                    removeBtn.setAttribute('aria-label', 'Remove ' + file.name);
                     removeBtn.style.position = 'absolute';
                     removeBtn.style.top = '-10px';
                     removeBtn.style.right = '-10px';
@@ -219,9 +279,16 @@
     }
 
     closeCameraBtn.addEventListener('click', stopCamera);
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') {
+            stopCamera();
+            modal.style.display = 'none';
+        }
+    });
+    window.addEventListener('pagehide', stopCamera);
 
     captureBtn.addEventListener('click', function() {
-        if (!currentStream) return;
+        if (!currentStream || !videoStream.videoWidth || !videoStream.videoHeight) return;
         
         const context = cameraCanvas.getContext('2d');
         cameraCanvas.width = videoStream.videoWidth;

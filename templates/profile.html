@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block body_class %}overview-page profile-page{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2"><link rel="stylesheet" href="{% static 'css/profile.css' %}">{% endblock %}
+{% block navigation %}{% include 'includes/overview_navigation.html' with active_page='profile' %}{% endblock %}
+{% block content %}
+<header class="profile-heading"><h1>Profile</h1><p>Manage your account information.</p></header>
+<section class="profile-card" aria-label="Profile preview">
+    <div class="profile-identity"><div class="profile-avatar" aria-hidden="true">{{ user.username|first|upper }}</div><h2>{{ user.get_full_name|default:user.username }}</h2><p>{% if user.is_staff %}Administrator{% else %}Grower{% endif %}</p><span class="profile-preview-badge">Profile preview</span></div>
+    <div class="profile-fields">
+        <div><label for="profile-name">Full Name</label><input id="profile-name" type="text" value="{{ user.get_full_name }}" placeholder="Full name not added yet" readonly></div>
+        <div><label for="profile-email">Email Address</label><input id="profile-email" type="email" value="{{ user.email }}" placeholder="Email address not added yet" readonly></div>
+        <div><label for="profile-contact">Contact Number</label><input id="profile-contact" type="tel" placeholder="Contact number coming soon" readonly></div>
+        <div><label for="profile-location">Location</label><input id="profile-location" type="text" placeholder="Location coming soon" readonly></div>
+        <button type="button" disabled aria-describedby="profile-placeholder-note">Update Profile</button>
+        <p id="profile-placeholder-note">Preview only for now. Profile editing will be available soon.</p>
+    </div>
+</section>
+{% endblock %}

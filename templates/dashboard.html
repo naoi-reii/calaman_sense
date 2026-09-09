@@ -1,174 +1,41 @@
 {% extends 'base.html' %}
-
-{% block content %}
-
-<div class="hero-banner">
-    <div class="hero-citrus" aria-hidden="true">
-        <svg width="260" height="260" viewBox="0 0 260 260" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="130" cy="130" r="118" fill="rgba(255,255,255,0.05)" />
-            <circle cx="130" cy="130" r="90" fill="none" stroke="rgba(183,217,54,0.35)" stroke-width="1.5" />
-            <g transform="translate(130,130)">
-                <g fill="rgba(244,197,66,0.28)">
-                    <path d="M0,0 L0,-72 A72,72 0 0,1 51,-51 Z"/>
-                    <path d="M0,0 L51,-51 A72,72 0 0,1 72,0 Z" fill="rgba(183,217,54,0.28)"/>
-                    <path d="M0,0 L72,0 A72,72 0 0,1 51,51 Z" fill="rgba(244,197,66,0.22)"/>
-                    <path d="M0,0 L51,51 A72,72 0 0,1 0,72 Z" fill="rgba(183,217,54,0.22)"/>
-                </g>
-                <circle r="7" fill="rgba(255,255,255,0.5)"/>
-            </g>
-        </svg>
-    </div>
-
-    <div class="hero-banner-text">
-        <span class="hero-eyebrow">{% now "F d, Y" %}</span>
-        <h1>Welcome back — {{ total_scans }} scan{{ total_scans|pluralize }} logged so far.</h1>
-        <p>
-            {% if average_grade %}Your last batch graded {{ average_grade }}.{% endif %}
-            Upload a new image set to keep the ripeness log current.
-        </p>
-    </div>
-
-    <div class="hero-banner-actions">
-        <a href="{% url 'upload' %}" class="hero-action">
-            <span class="material-symbols-outlined">add_circle</span> New Scan
-        </a>
-        <span class="hero-banner-stat"><strong>{{ total_scans }}</strong> total batches</span>
-    </div>
-</div>
-
-<div class="dashboard-stats">
-    <div class="dashboard-stat">
-        <span class="material-symbols-outlined">inventory_2</span>
-        <div>
-            <span class="spec-label">Total Calamansi Scanned</span>
-            <span class="dashboard-stat-value">{{ total_fruits }}</span>
-        </div>
-    </div>
-    <div class="dashboard-stat">
-        <span class="material-symbols-outlined">spa</span>
-        <div>
-            <span class="spec-label">Unripe (Green)</span>
-            <span class="dashboard-stat-value">{{ unripe_count }}</span>
-            <span class="dashboard-stat-sub">{{ unripe_pct }}% of batch</span>
-        </div>
-    </div>
-    <div class="dashboard-stat">
-        <span class="material-symbols-outlined">nutrition</span>
-        <div>
-            <span class="spec-label">Ripe (Yellow)</span>
-            <span class="dashboard-stat-value">{{ ripe_count }}</span>
-            <span class="dashboard-stat-sub">{{ ripe_pct }}% of batch</span>
-        </div>
-    </div>
-    <div class="dashboard-stat">
-        <span class="material-symbols-outlined">fact_check</span>
-        <div>
-            <span class="spec-label">Defect Rate</span>
-            <span class="dashboard-stat-value">{{ defect_rate }}%</span>
-        </div>
-    </div>
-</div>
-
-<div class="dashboard-section">
-    <div class="dashboard-panel">
-        <div class="panel-header">
-            <h2>Ripeness Distribution</h2>
-        </div>
-        <div class="ripeness-list">
-            <div class="ripeness-item">
-                <div>
-                    <span>Unripe (Green)</span>
-                    <strong>{{ unripe_pct }}%</strong>
-                </div>
-                <div class="progress"><div style="width:{{ unripe_pct }}%;"></div></div>
-            </div>
-            <div class="ripeness-item">
-                <div>
-                    <span>Ripe (Yellow)</span>
-                    <strong>{{ ripe_pct }}%</strong>
-                </div>
-                <div class="progress"><div style="width:{{ ripe_pct }}%;"></div></div>
-            </div>
-            <div class="ripeness-item">
-                <div>
-                    <span>Overripe</span>
-                    <strong>{{ overripe_pct }}%</strong>
-                </div>
-                <div class="progress"><div style="width:{{ overripe_pct }}%;"></div></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="dashboard-panel">
-        <div class="panel-header">
-            <h2>Quality Overview</h2>
-        </div>
-        {% if total_fruits %}
-        <span class="quality-number">{% widthratio total_good total_fruits 100 %}%</span>
-        <p>Share of fruits graded as good quality across all inspections.</p>
-        {% else %}
-        <span class="quality-number">—</span>
-        <p>Quality overview will appear once you have scans.</p>
-        {% endif %}
-        <div class="quality-meta">
-            <span>Average Grade</span>
-            <strong>{{ average_grade }}</strong>
-        </div>
-        <div class="quality-meta">
-            <span>Defect Rate</span>
-            <strong>{{ defect_rate }}%</strong>
-        </div>
-        <div class="quality-meta">
-            <span>Total Scans</span>
-            <strong>{{ total_scans }}</strong>
-        </div>
-    </div>
-</div>
-
-<div class="recent-section">
-    <div class="section-heading">
-        <h2>Recent Scans</h2>
-        <a href="{% url 'reports' %}">View All</a>
-    </div>
-
-    {% for scan in recent_scans %}
-    <div class="scan-row">
-        <div>
-            <span class="spec-label">Batch</span>
-            <strong>#{{ scan.batch_name|default:scan.id }}</strong>
-        </div>
-        <div>
-            <span class="spec-label">Supplier</span>
-            <span>{{ scan.supplier_name|default:"—" }}</span>
-        </div>
-        <div>
-            <span class="spec-label">Fruits</span>
-            <strong>{{ scan.fruit_count_total }}</strong>
-        </div>
-        <div>
-            {% if scan.quality_grade == "Best Quality" %}
-            <span class="scan-grade scan-grade--best">B</span>
-            {% elif scan.quality_grade == "Good Quality" %}
-            <span class="scan-grade scan-grade--good">G</span>
-            {% elif scan.quality_grade == "Average" %}
-            <span class="scan-grade scan-grade--average">A</span>
-            {% elif scan.quality_grade == "Rejected" %}
-            <span class="scan-grade scan-grade--rejected">R</span>
-            {% else %}
-            <span class="scan-grade">—</span>
-            {% endif %}
-        </div>
-        <a href="{% url 'report_detail' scan.id %}" class="view-report">
-            View Report <span class="material-symbols-outlined">arrow_forward</span>
-        </a>
-    </div>
-    {% empty %}
-    <div class="empty-state">
-        <span class="material-symbols-outlined">image_search</span>
-        <p>No scans yet.</p>
-        <a href="{% url 'upload' %}">Upload an image to get started</a>
-    </div>
-    {% endfor %}
-</div>
-
+{% load static %}
+{% block body_class %}overview-page{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=recent-images-3">
 {% endblock %}
+{% block navigation %}{% include "includes/overview_navigation.html" with active_page="dashboard" %}{% endblock %}
+{% block content %}
+<section class="overview-heading">
+    <div><h1>Welcome back, {{ user.first_name|default:user.username }}! <span aria-hidden="true">🌿</span></h1><p>Here's your calamansi scanning overview.</p></div>
+    <a class="overview-new-scan" href="{% url 'upload' %}"><span class="material-symbols-outlined" aria-hidden="true">add_photo_alternate</span>New Scan</a>
+</section>
+<div class="overview-stats" aria-label="Scan summary">
+    <div class="overview-stat"><strong>{{ total_scans }}</strong><span>Total Scans</span></div>
+    <div class="overview-stat"><strong>{{ total_fruits }}</strong><span>Fruits Analyzed</span></div>
+    <div class="overview-stat"><strong class="overview-quality">{{ average_grade }}</strong><span>Average Batch Grade</span></div>
+    <div class="overview-stat"><strong>{% if total_fruits %}{{ defect_rate }}%{% else %}&mdash;{% endif %}</strong><span>Defect Rate</span></div>
+</div>
+<section class="overview-recent" aria-labelledby="recent-title">
+    <div class="overview-section-heading"><h2 id="recent-title">Recent Scans</h2><a href="{% url 'reports' %}">See all <span aria-hidden="true">→</span></a></div>
+    <div class="overview-table-scroll">
+        <table class="overview-table">
+            <thead><tr><th scope="col">Image</th><th scope="col">Date &amp; Time</th><th scope="col">Total Fruits</th><th scope="col">Batch Grade</th><th scope="col">Actions</th></tr></thead>
+            <tbody>
+            {% for scan in recent_scans %}
+                <tr>
+                    <td>{% with scan_image=scan.images.last %}<a class="recent-scan-thumbnail" href="{% url 'report_detail' scan.id %}" aria-label="View image for scan {{ scan.id }}">{% if scan_image %}<img src="{{ scan_image.image.url }}" alt="Calamansi scan {{ scan.id }}" loading="lazy">{% else %}<span class="material-symbols-outlined" aria-hidden="true">image_not_supported</span>{% endif %}</a>{% endwith %}</td>
+                    <td>{{ scan.created_at|date:"M j, Y" }} <span class="scan-time">{{ scan.created_at|date:"h:i A" }}</span></td>
+                    <td>{{ scan.fruit_count_total }}</td>
+                    <td><span class="overview-grade {% if scan.quality_grade == 'Best Quality' or scan.quality_grade == 'Good Quality' %}grade-green{% elif scan.quality_grade == 'Average' %}grade-amber{% elif scan.quality_grade == 'Rejected' %}grade-red{% endif %}">{{ scan.quality_grade|default:"Pending" }}</span></td>
+                    <td><a class="overview-view" href="{% url 'report_detail' scan.id %}" aria-label="View scan {{ scan.id }}">View</a></td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="5"><div class="overview-empty"><span class="material-symbols-outlined" aria-hidden="true">photo_camera</span><h3>Your first scan starts here</h3><p>Upload calamansi images to see your batch results.</p><a href="{% url 'upload' %}">Start a new scan →</a></div></td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}
+

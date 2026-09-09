@@ -1,5 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.db.models import Avg, Count
+from django.utils import timezone
+from datetime import timedelta
 from django.contrib.auth.decorators import login_required
 from .models import Scan, ScanImage, TrainingSample, Setting
 import os
@@ -129,20 +131,64 @@ def reports_view(request):
                         pass
         return redirect('reports')
         
-    scans = Scan.objects.all().order_by('-created_at')
+    scans = Scan.objects.prefetch_related('images').order_by('-created_at')
     
     # Simple filtering
     grade = request.GET.get('grade')
     if grade:
         scans = scans.filter(quality_grade=grade)
         
-    context = {'scans': scans}
+    period = request.GET.get('period', 'all')
+    if period in ('7', '30', '90'):
+        scans = scans.filter(created_at__gte=timezone.now() - timedelta(days=int(period)))
+    else:
+        period = 'all'
+    context = {'scans': scans, 'selected_grade': grade or '', 'selected_period': period,
+               'grade_choices': Scan.QUALITY_CHOICES}
     return render(request, 'reports.html', context)
 
 @login_required
 def report_detail_view(request, id):
-    scan = get_object_or_404(Scan, id=id)
-    return render(request, 'report_detail.html', {'scan': scan})
+    scan = get_object_or_404(Scan.objects.prefetch_related('images'), id=id)
+    ripeness = [
+        {'label': 'Unripe', 'key': 'unripe', 'pct': scan.ripeness_unripe_pct},
+        {'label': 'Ripe', 'key': 'ripe', 'pct': scan.ripeness_ripe_pct},
+        {'label': 'Overripe', 'key': 'overripe', 'pct': scan.ripeness_overripe_pct},
+    ]
+    # Stored scan totals describe the last uploaded image, so count its boxes.
+    scan_images = list(scan.images.all())
+    summary_image = max(scan_images, key=lambda image: image.id) if scan_images else None
+    annotations = summary_image.mock_annotations if summary_image else []
+    counts_available = bool(annotations) or scan.fruit_count_total == 0
+    for row in ripeness:
+        row['count'] = sum(box.get('css_class') == row['key'] for box in annotations)
+    notes = []
+    if not scan.fruit_count_total:
+        notes.append('No fruits were detected. Try another scan with good lighting and the whole fruit visible.')
+    else:
+        highest = max(row['pct'] for row in ripeness)
+        dominant = [row['label'].lower() for row in ripeness if row['pct'] == highest]
+        if highest > 0:
+            if len(dominant) == 1:
+                notes.append(f"The largest ripeness group is {dominant[0]} ({highest:g}% of detected fruits).")
+            else:
+                notes.append(f"The leading ripeness groups are {' and '.join(dominant)}, each at {highest:g}%.")
+        else:
+            notes.append('Ripeness information is not available for this scan.')
+        if scan.ripeness_overripe_pct > 0:
+            notes.append('Overripe fruits were detected. Separate them for closer inspection during sorting.')
+        if scan.fruit_count_defective > 0:
+            notes.append(f'{scan.fruit_count_defective} fruit(s) were flagged as defective. Review them before packing.')
+        if scan.quality_grade == 'Rejected':
+            notes.append('This result is graded Rejected. Inspect the fruits and review the scan before proceeding.')
+    if scan.images.count() > 1:
+        notes.append('The saved totals, ripeness, and grade apply to the last uploaded image. All batch images are shown here.')
+    if scan.model_version.startswith('mock'):
+        notes.append('This scan uses demo analysis; the results are simulated.')
+    return render(request, 'report_detail.html', {
+        'scan': scan, 'ripeness': ripeness, 'result_notes': notes,
+        'counts_available': counts_available,
+    })
 
 @login_required
 def training_view(request):
@@ -190,3 +236,59 @@ def settings_view(request):
         password_form = SetPasswordForm(request.user)
         
     return render(request, 'settings.html', {'settings': settings, 'password_form': password_form})
+
+@login_required
+def reports_overview(request):
+    from datetime import date
+    from .reporting import summarize, RIPENESS
+    scans = Scan.objects.prefetch_related('images').order_by('created_at')
+    errors = []
+    dates = {}
+    for key in ('start', 'end'):
+        raw = request.GET.get(key, '')
+        try:
+            dates[key] = date.fromisoformat(raw) if raw else None
+        except ValueError:
+            dates[key] = None
+            errors.append('Please enter a valid date range.')
+    if dates['start'] and dates['end'] and dates['start'] > dates['end']:
+        errors.append('The start date must be on or before the end date.')
+    if errors:
+        scans = scans.none()
+    else:
+        if dates['start']:
+            scans = scans.filter(created_at__date__gte=dates['start'])
+        if dates['end']:
+            scans = scans.filter(created_at__date__lte=dates['end'])
+    quality = request.GET.get('quality', '')
+    if quality in dict(Scan.QUALITY_CHOICES):
+        scans = scans.filter(quality_grade=quality)
+    else:
+        quality = ''
+    ripeness = request.GET.get('ripeness', '')
+    scans = list(scans)
+    if ripeness in RIPENESS:
+        scans = [s for s in scans if getattr(s, f'ripeness_{ripeness}_pct') > 0 and getattr(s, f'ripeness_{ripeness}_pct') == max(getattr(s, f'ripeness_{key}_pct') for key in RIPENESS)]
+    else:
+        ripeness = ''
+    context = summarize(scans)
+    context.update({'errors': errors, 'start': dates['start'].isoformat() if dates['start'] else '', 'end': dates['end'].isoformat() if dates['end'] else '', 'quality': quality, 'selected_ripeness': ripeness, 'grade_choices': Scan.QUALITY_CHOICES, 'ripeness_choices': RIPENESS})
+    return render(request, 'reports_overview.html', context)
+
+@login_required
+def knowledge_hub(request):
+    from .knowledge import CATEGORIES, INTRODUCTION_URL, INTRODUCTION_SOURCE, find_articles
+    query = request.GET.get('q', '').strip()[:150]
+    category = request.GET.get('category', 'all')
+    if category not in dict(CATEGORIES):
+        category = 'all'
+    return render(request, 'knowledge_hub.html', {
+        'query': query, 'selected_category': category, 'categories': CATEGORIES,
+        'articles': find_articles(query, category), 'introduction_url': INTRODUCTION_URL,
+        'introduction_source': INTRODUCTION_SOURCE,
+    })
+
+@login_required
+def profile_view(request):
+    # Placeholder only: this page never updates account information.
+    return render(request, 'profile.html')

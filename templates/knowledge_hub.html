@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block body_class %}overview-page knowledge-page{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2"><link rel="stylesheet" href="{% static 'css/knowledge.css' %}">{% endblock %}
+{% block navigation %}{% include 'includes/overview_navigation.html' with active_page='knowledge' %}{% endblock %}
+{% block content %}
+<header class="knowledge-heading"><div><h1>Knowledge Hub</h1><p>Discover calamansi, from the tree to the harvest.</p></div>
+<form method="get" class="knowledge-search"><input type="hidden" name="category" value="{{ selected_category }}"><label for="article-search" class="knowledge-sr-only">Search calamansi articles</label><span class="material-symbols-outlined" aria-hidden="true">search</span><input id="article-search" type="search" name="q" value="{{ query }}" placeholder="Search articles…" maxlength="150"><button type="submit">Search</button></form></header>
+<nav class="knowledge-categories" aria-label="Article categories">{% for key, label in categories %}<a href="?category={{ key|urlencode }}&amp;q={{ query|urlencode }}" {% if selected_category == key %}class="selected" aria-current="page"{% endif %}>{{ label }}</a>{% endfor %}</nav>
+<section class="knowledge-intro"><span class="material-symbols-outlined" aria-hidden="true">eco</span><div><h2>What is calamansi?</h2><p>Calamansi, also known as calamondin, is a small citrus fruit with tart juice. It is commonly grown in Philippine backyards and used in drinks and food. Explore the sources below to learn about the plant, its uses, and cultivation.</p><a href="{{ introduction_url }}" target="_blank" rel="noopener noreferrer">Source: {{ introduction_source }} ↗</a></div></section>
+<p class="knowledge-results" role="status">{{ articles|length }} article{{ articles|length|pluralize }}{% if query %} matching “{{ query }}”{% endif %} · Curated calamansi reading</p>
+<div class="knowledge-grid">{% for article in articles %}<article class="knowledge-card"><img src="{% static article.image %}" alt="{{ article.image_alt }}" loading="lazy"><div class="knowledge-card-body"><span class="knowledge-topic">{{ article.category_label }}</span><h2>{{ article.title }}</h2><p>{{ article.summary }}</p><span class="knowledge-source">{{ article.source }}</span><a href="{{ article.url }}" target="_blank" rel="noopener noreferrer" aria-label="Read {{ article.title }} at {{ article.source }} (opens in a new tab)">Read article <span aria-hidden="true">↗</span></a></div></article>{% empty %}<div class="knowledge-empty"><span class="material-symbols-outlined" aria-hidden="true">search_off</span><h2>No matching articles</h2><p>Try “growing”, “fruit”, or “calamansi”, or choose another category.</p><a href="{% url 'knowledge_hub' %}">Show all articles</a></div>{% endfor %}</div>
+<p class="knowledge-footnote">Summaries link to their original sources. Photos illustrate calamansi and are not images from the linked articles. Search covers this curated collection.</p>
+{% endblock %}
+

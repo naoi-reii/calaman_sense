@@ -1,197 +1,64 @@
 {% extends 'base.html' %}
-
+{% load static %}
+{% block body_class %}overview-page result-page{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2">
+<link rel="stylesheet" href="{% static 'css/report_detail.css' %}">
+{% endblock %}
+{% block navigation %}{% include "includes/overview_navigation.html" with active_page="reports" %}{% endblock %}
 {% block content %}
-<style>
-.bounding-box-label {
-    font-size: 1rem;
-    font-weight: 600;
-    padding: 4px 10px;
-    white-space: nowrap;
-    display: inline-block;
-    line-height: 1.3;
-    border-radius: 4px;
-}
-
-.bbox-unripe { border-color: #3b82f6 !important; }
-.bbox-ripe { border-color: #22c55e !important; }
-.bbox-overripe { border-color: #ef4444 !important; }
-
-.bbox-label-unripe { background: #3b82f6; color: #fff; }
-.bbox-label-ripe { background: #22c55e; color: #fff; }
-.bbox-label-overripe { background: #ef4444; color: #fff; }
-
-.toggle-labels-btn {
-    margin-bottom: 0.75rem;
-    padding: 6px 14px;
-    border-radius: 4px;
-    border: 1px solid #555;
-    background: transparent;
-    color: inherit;
-    cursor: pointer;
-    font-size: 0.85rem;
-}
-
-.toggle-labels-btn:hover {
-    background: rgba(255, 255, 255, 0.1);
-}
-
-/* ===== Headline detection breakdown (moved up from Visual Analysis) ===== */
-
-.detection-headline {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 12px;
-
-    margin: 1.4rem 0 0.4rem;
-    padding-top: 1.2rem;
-
-    border-top: 1px solid var(--border);
-}
-
-.detection-headline-count {
-    color: var(--black);
-    font-size: 1.05rem;
-    font-weight: 700;
-    white-space: nowrap;
-}
-
-.detection-pill-row {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-}
-
-.detection-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-
-    padding: 5px 12px;
-
-    border-radius: 999px;
-    font-size: 0.8rem;
-    font-weight: 700;
-}
-
-.detection-pill .dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
-.detection-pill-unripe { background: var(--blue-light); color: #2f6fb8; }
-.detection-pill-unripe .dot { background: #3b82f6; }
-
-.detection-pill-ripe { background: var(--lime-light); color: #6f8710; }
-.detection-pill-ripe .dot { background: #22c55e; }
-
-.detection-pill-overripe { background: var(--red-light); color: #c23f3f; }
-.detection-pill-overripe .dot { background: #ef4444; }
-</style>
-
-<div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.5rem;">
-    <h1>Scan Report #{{ scan.id }}</h1>
-    <a href="{% url 'reports' %}">&larr; Back to Reports</a>
-</div>
-
-<div class="box">
-    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 2rem;">
-        <div>
-            <span class="spec-label">Grade</span>
-            <span class="spec-value">{{ scan.quality_grade }}</span>
-        </div>
-        <div>
-            <span class="spec-label">Total Calamansi Counted</span>
-            <span class="spec-value">{{ scan.fruit_count_total }}</span>
-        </div>
+<header class="result-heading">
+    <div><h1>Scan Result</h1><p>Here's the analysis of your calamansi batch.</p><div class="result-timestamp"><span class="material-symbols-outlined" aria-hidden="true">schedule</span><span>Scanned on <time datetime="{{ scan.created_at|date:'c' }}">{{ scan.created_at|date:"M j, Y · h:i A" }}</time></span></div></div>
+    <div class="result-actions">
+        <a href="{% url 'upload' %}" class="result-secondary"><span class="material-symbols-outlined" aria-hidden="true">add_photo_alternate</span>Scan Another</a>
+        <button type="button" class="result-save" onclick="window.print()"><span class="material-symbols-outlined" aria-hidden="true">print</span>Print / Save PDF</button>
     </div>
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem;">
-        <div>
-            <span class="spec-label">Batch</span>
-            <span>{{ scan.batch_name|default:"-" }}</span>
-        </div>
-        <div>
-            <span class="spec-label">Supplier</span>
-            <span>{{ scan.supplier_name|default:"-" }}</span>
-        </div>
-        <div>
-            <span class="spec-label">Date</span>
-            <span>{{ scan.created_at|date:"M d, Y h:i A" }}</span>
-        </div>
-        <div>
-            <span class="spec-label">Model</span>
-            <span>{{ scan.model_version }}</span>
-        </div>
-    </div>
-
-    {% with scan_image=scan.images.first %}
-    {% if scan_image %}
-    <div class="detection-headline">
-        <span class="detection-headline-count">{{ scan_image.mock_annotations|length }} detected</span>
-
-        {% regroup scan_image.mock_annotations|dictsort:"css_class" by css_class as ripeness_groups %}
-        <div class="detection-pill-row">
-            {% for group in ripeness_groups %}
-            <span class="detection-pill detection-pill-{{ group.grouper }}">
-                <span class="dot"></span>{{ group.list|length }} {{ group.grouper|capfirst }}
-            </span>
-            {% endfor %}
-        </div>
-    </div>
-    {% endif %}
-    {% endwith %}
-</div>
-
-<div class="grid" style="grid-template-columns: 2fr 1fr;">
-    <div class="box">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-            <h3 class="spec-label" style="font-size: 0.85rem; margin-bottom: 0;">Visual Analysis</h3>
-            {% if scan.images.all %}
-            <button type="button" class="toggle-labels-btn" style="margin-bottom: 0;" onclick="toggleLabels(this)">Hide Labels</button>
-            {% endif %}
-        </div>
-        
+</header>
+<div class="result-layout">
+    <section class="result-visual labels-visible" aria-label="Detected calamansi images">
+        <div class="result-visual-toolbar"><span>Visual Analysis</span>{% if scan.images.all %}<button type="button" id="toggle-labels" aria-pressed="true">Hide labels</button>{% endif %}</div>
         {% for scan_image in scan.images.all %}
+        <figure class="result-figure">
             <div class="image-viewer">
-                <img src="{{ scan_image.image.url }}" alt="Scan Image" id="img-{{ scan_image.id }}">
-
-                <!-- Mock Overlays -->
+                <img src="{{ scan_image.image.url }}" alt="Calamansi scan {{ forloop.counter }} with detected fruit locations">
                 {% for box in scan_image.mock_annotations %}
                 <div class="bounding-box bbox-{{ box.css_class }}" style="top: {{ box.y }}%; left: {{ box.x }}%; width: {{ box.width }}%; height: {{ box.height }}%;">
-                    <div class="bounding-box-label bbox-label-{{ box.css_class }}">{{ box.label }}</div>
+                    <span class="bounding-box-label">{{ box.label|default:box.css_class }}</span>
                 </div>
                 {% endfor %}
             </div>
-        {% empty %}
-            <p>No images associated with this scan.</p>
-        {% endfor %}
-    </div>
-
-    <div>
-        <div class="box">
-            <h3 class="spec-label">Ripeness</h3>
-            <table style="margin-top: 1rem;">
-                <tr><td>Unripe</td><td>{{ scan.ripeness_unripe_pct }}%</td></tr>
-                <tr><td>Ripe</td><td>{{ scan.ripeness_ripe_pct }}%</td></tr>
-                <tr><td>Overripe</td><td>{{ scan.ripeness_overripe_pct }}%</td></tr>
-            </table>
-        </div>
-    </div>
+            {% if scan.images.count > 1 %}<figcaption>Image {{ forloop.counter }}{% if forloop.last %} · Summary result{% endif %}</figcaption>{% endif %}
+        </figure>
+        {% empty %}<div class="result-no-image"><span class="material-symbols-outlined" aria-hidden="true">image_not_supported</span><p>No image is available for this scan.</p></div>{% endfor %}
+        <div class="result-legend" aria-label="Detection colors"><span><i class="result-dot unripe"></i>Unripe</span><span><i class="result-dot ripe"></i>Ripe</span><span><i class="result-dot overripe"></i>Overripe</span></div>
+        <p class="result-score-help">Each box shows the fruit's estimated ripeness score from color analysis, not a calibrated probability.</p>
+    </section>
+    <aside class="result-summary">
+        <section class="result-count-card"><h2>Total Fruits Detected</h2><strong class="result-total">{{ scan.fruit_count_total }}</strong>
+            <table class="result-ripeness"><caption>Ripeness breakdown</caption><tbody>{% for row in ripeness %}<tr><th scope="row"><i class="result-dot {{ row.key }}"></i>{{ row.label }}</th><td>{{ row.pct|floatformat:1 }}%</td></tr>{% endfor %}</tbody></table>
+        </section>
+        <section class="result-count-card result-ripeness-counts" aria-labelledby="ripeness-counts-title">
+            <h2 id="ripeness-counts-title">Fruit Count by Ripeness</h2>
+            <table class="result-ripeness"><caption>{% if scan.images.count > 1 %}Detected fruits in the last uploaded image{% else %}Number of detected calamansi{% endif %}</caption><tbody>
+                {% for row in ripeness %}<tr><th scope="row"><i class="result-dot {{ row.key }}"></i>{{ row.label }}</th><td>{% if counts_available %}<strong>{{ row.count }}</strong> <span class="result-count-unit">fruit{{ row.count|pluralize }}</span>{% else %}&mdash;{% endif %}</td></tr>{% endfor %}
+            </tbody></table>
+            {% if not counts_available %}<p class="result-score-help">Per-fruit detections are not available for this saved scan.</p>{% endif %}
+        </section>
+        <section class="result-grade-card"><h2>Batch Grade</h2><strong class="result-grade {% if scan.quality_grade == 'Rejected' %}result-grade-rejected{% elif scan.quality_grade == 'Average' %}result-grade-average{% endif %}">{{ scan.quality_grade|default:"Not graded" }}</strong><p>Based on the scan analysis</p></section>
+        <div class="result-saved"><span class="material-symbols-outlined" aria-hidden="true">check_circle</span>Saved to your scan history</div>
+    </aside>
 </div>
-
+<section class="result-notes" aria-labelledby="notes-title"><span class="material-symbols-outlined" aria-hidden="true">info</span><div><h2 id="notes-title">Notes</h2><ul>{% for note in result_notes %}<li>{{ note }}</li>{% endfor %}</ul></div></section>
+<a class="result-back" href="{% url 'reports' %}">← Back to reports</a>
 <script>
-function toggleLabels(btn) {
-    const box = btn.closest('.box');
-    const labels = box.querySelectorAll('.bounding-box-label');
-    if (labels.length === 0) return;
-
-    const isHidden = labels[0].style.display === 'none';
-    labels.forEach(function (label) {
-        label.style.display = isHidden ? '' : 'none';
+const labelsButton = document.getElementById('toggle-labels');
+if (labelsButton) {
+    labelsButton.addEventListener('click', () => {
+        const shown = document.querySelector('.result-visual').classList.toggle('labels-visible');
+        labelsButton.textContent = shown ? 'Hide labels' : 'Show labels';
+        labelsButton.setAttribute('aria-pressed', String(shown));
     });
-    btn.textContent = isHidden ? 'Hide Labels' : 'Show Labels';
 }
 </script>
 {% endblock %}
+

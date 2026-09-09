@@ -1,0 +1,26 @@
+
+<header class="overview-topbar">
+    <a class="overview-brand" href="{% url 'dashboard' %}"><span class="brand-fruit" aria-hidden="true">🍋</span> CalamanSense</a>
+    <a class="overview-account" href="{% url 'settings' %}">
+        <span class="account-avatar" aria-hidden="true">{{ user.username|first|upper }}</span>
+        <span><strong>{{ user.get_full_name|default:user.username }}</strong><small>{% if user.is_staff %}Administrator{% else %}Grower{% endif %}</small></span>
+        <span class="material-symbols-outlined" aria-hidden="true">unfold_more</span>
+    </a>
+</header>
+<aside class="overview-sidebar" aria-label="Main navigation">
+    <nav>
+        <a {% if active_page == "dashboard" %}class="is-active" aria-current="page"{% endif %} href="{% url 'dashboard' %}"><span class="material-symbols-outlined" aria-hidden="true">home</span>Dashboard</a>
+        <a {% if active_page == "upload" %}class="is-active" aria-current="page"{% endif %} href="{% url 'upload' %}"><span class="material-symbols-outlined" aria-hidden="true">add_circle</span>New Scan</a>
+        <a {% if active_page == "history" %}class="is-active" aria-current="page"{% endif %} href="{% url 'reports' %}"><span class="material-symbols-outlined" aria-hidden="true">history</span>Scan History</a>
+        <a {% if active_page == "reports" %}class="is-active" aria-current="page"{% endif %} href="{% url 'reports_overview' %}"><span class="material-symbols-outlined" aria-hidden="true">description</span>Reports</a>
+        <a {% if active_page == "knowledge" %}class="is-active" aria-current="page"{% endif %} href="{% url 'knowledge_hub' %}"><span class="material-symbols-outlined" aria-hidden="true">menu_book</span>Knowledge Hub</a>
+        {# <a {% if active_page == "profile" %}class="is-active" aria-current="page"{% endif %} href="{% url 'profile' %}"><span class="material-symbols-outlined" aria-hidden="true">person</span>Profile</a> #}
+        {# <a href="{% url 'training' %}"><span class="material-symbols-outlined" aria-hidden="true">model_training</span>Model Training</a> #}
+    </nav>
+    <div class="overview-sidebar-bottom">
+        <a {% if active_page == "settings" %}class="is-active" aria-current="page"{% endif %} href="{% url 'settings' %}"><span class="material-symbols-outlined" aria-hidden="true">settings</span>Settings</a>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit"><span class="material-symbols-outlined" aria-hidden="true">logout</span>Log Out</button></form>
+    </div>
+</aside>
+
+

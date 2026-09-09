@@ -1,134 +1,61 @@
 {% extends 'base.html' %}
-
+{% load static %}
+{% block body_class %}overview-page history-page{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2">
+<link rel="stylesheet" href="{% static 'css/history.css' %}">
+{% endblock %}
+{% block navigation %}{% include "includes/overview_navigation.html" with active_page="history" %}{% endblock %}
 {% block content %}
-<div class="dashboard-header">
-    <div>
-        <h1>Reports</h1>
-        <p>Browse and filter through all your previous scan results.</p>
+<header class="history-heading">
+    <div><h1>Scan History</h1><p>View and manage your past scans.</p></div>
+    <div class="history-actions-wrapper" style="display: flex; align-items: center; gap: 12px;">
+        <span id="selection-status" role="status" style="font-size: 13px; color: var(--gray);">0 scans selected</span>
+        <button type="submit" form="deleteForm" id="deleteBtn" name="action" value="delete" disabled class="delete-selected-btn"><span class="material-symbols-outlined" aria-hidden="true" style="font-size: 18px;">delete</span>Delete selected</button>
+        <form method="get" class="history-filters">
+            <select name="grade" aria-label="Filter by batch grade"><option value="">All grades</option>{% for value, label in grade_choices %}<option value="{{ value }}" {% if selected_grade == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+            <select name="period" aria-label="Filter by date"><option value="all" {% if selected_period == 'all' %}selected{% endif %}>All time</option><option value="7" {% if selected_period == '7' %}selected{% endif %}>Last 7 days</option><option value="30" {% if selected_period == '30' %}selected{% endif %}>Last 30 days</option><option value="90" {% if selected_period == '90' %}selected{% endif %}>Last 90 days</option></select>
+            <button type="submit">Apply</button>
+        </form>
     </div>
-</div>
-
-<div class="dashboard-panel" style="margin-bottom: 24px; padding: 18px 22px; min-height: auto;">
-    <div class="reports-filter-bar">
-        <div class="reports-filter-group">
-            <span class="spec-label" style="margin: 0; min-width: max-content;">Filter by Grade:</span>
-            <a href="?" class="dashboard-action" style="background: {% if not request.GET.grade %}var(--green){% else %}var(--white){% endif %}; color: {% if not request.GET.grade %}var(--white){% else %}var(--black){% endif %}; border-color: {% if not request.GET.grade %}var(--green){% else %}var(--border){% endif %}; padding: 8px 14px;">All</a>
-            <a href="?grade=Best Quality" class="dashboard-action" style="background: {% if request.GET.grade == 'Best Quality' %}var(--green){% else %}var(--white){% endif %}; color: {% if request.GET.grade == 'Best Quality' %}var(--white){% else %}var(--black){% endif %}; border-color: {% if request.GET.grade == 'Best Quality' %}var(--green){% else %}var(--border){% endif %}; padding: 8px 14px;">Best Quality</a>
-            <a href="?grade=Good Quality" class="dashboard-action" style="background: {% if request.GET.grade == 'Good Quality' %}var(--green){% else %}var(--white){% endif %}; color: {% if request.GET.grade == 'Good Quality' %}var(--white){% else %}var(--black){% endif %}; border-color: {% if request.GET.grade == 'Good Quality' %}var(--green){% else %}var(--border){% endif %}; padding: 8px 14px;">Good Quality</a>
-            <a href="?grade=Average" class="dashboard-action" style="background: {% if request.GET.grade == 'Average' %}var(--green){% else %}var(--white){% endif %}; color: {% if request.GET.grade == 'Average' %}var(--white){% else %}var(--black){% endif %}; border-color: {% if request.GET.grade == 'Average' %}var(--green){% else %}var(--border){% endif %}; padding: 8px 14px;">Average</a>
-            <a href="?grade=Rejected" class="dashboard-action" style="background: {% if request.GET.grade == 'Rejected' %}var(--green){% else %}var(--white){% endif %}; color: {% if request.GET.grade == 'Rejected' %}var(--white){% else %}var(--black){% endif %}; border-color: {% if request.GET.grade == 'Rejected' %}var(--green){% else %}var(--border){% endif %}; padding: 8px 14px;">Rejected</a>
-        </div>
-        <div class="reports-action-group">
-            <label style="display: flex; align-items: center; gap: 6px; cursor: pointer; font-size: 0.9rem; font-weight: 500;">
-                <input type="checkbox" id="selectAll" style="cursor: pointer;"> Select All
-            </label>
-            <button type="submit" id="deleteBtn" form="deleteForm" name="action" value="delete" class="dashboard-action action-delete" style="background: #e74c3c; color: var(--white); border: none; cursor: not-allowed; padding: 8px 14px; opacity: 0.5;" onclick="return confirm('Are you sure you want to delete the selected scans?');" disabled>
-                <span class="material-symbols-outlined" style="font-size: 18px; margin-right: 4px; vertical-align: middle;">delete</span> Delete Selected
-            </button>
-        </div>
-    </div>
-</div>
-
-<form id="deleteForm" method="POST">
+</header>
+<section class="history-panel" aria-label="Past scans">
+<form method="post" id="deleteForm">
     {% csrf_token %}
-
-<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
-    {% for scan in scans %}
-    <div class="dashboard-panel" style="padding: 0; overflow: hidden; min-height: auto; display: flex; flex-direction: column;">
-        <div style="padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <input type="checkbox" name="scan_ids" value="{{ scan.id }}" class="scan-checkbox" style="cursor: pointer;">
-                <div>
-                    <span class="spec-label">Scan ID</span>
-                    <h3 style="margin: 0; font-size: 1.05rem;">
-                        <a href="{% url 'report_detail' scan.id %}" style="color: var(--black); transition: color 0.2s ease;">#{{ scan.id }}</a>
-                    </h3>
-                </div>
-            </div>
-            <div style="text-align: right;">
-                <span class="spec-label">Date</span>
-                <span style="color: var(--gray-dark); font-size: 0.8rem; font-weight: 600;">{{ scan.created_at|date:"M d, Y" }}</span>
-            </div>
-        </div>
-        
-        <div style="padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-            <div>
-                <span class="spec-label">Grade Prediction</span>
-                <span style="color: var(--black); font-size: 0.85rem; font-weight: 600;">{{ scan.quality_grade }}</span>
-            </div>
-            <div>
-                {% if scan.quality_grade == "Best Quality" %}
-                <span class="scan-grade scan-grade--best">B</span>
-                {% elif scan.quality_grade == "Good Quality" %}
-                <span class="scan-grade scan-grade--good">G</span>
-                {% elif scan.quality_grade == "Average" %}
-                <span class="scan-grade scan-grade--average">A</span>
-                {% elif scan.quality_grade == "Rejected" %}
-                <span class="scan-grade scan-grade--rejected">R</span>
-                {% else %}
-                <span class="scan-grade">—</span>
-                {% endif %}
-            </div>
-        </div>
-        
-        <div style="padding: 18px 22px; background-color: #fcfcfc; flex-grow: 1;">
-            {% with first_image=scan.images.first %}
-                {% if first_image %}
-                    <a href="{% url 'report_detail' scan.id %}">
-                        <img src="{{ first_image.image.url }}" alt="Scan Image" style="width: 100%; height: 220px; object-fit: contain; border-radius: 8px;">
-                    </a>
-                {% else %}
-                    <div style="height: 220px; display: flex; align-items: center; justify-content: center; background: var(--gray-light); border-radius: 8px;">
-                        <span class="material-symbols-outlined" style="color: var(--gray); font-size: 32px;">image_not_supported</span>
-                    </div>
-                {% endif %}
-            {% endwith %}
-        </div>
-
-        <div style="padding: 14px 22px; border-top: 1px solid var(--border); background-color: var(--white); text-align: center;">
-            <a href="{% url 'report_detail' scan.id %}" class="view-report" style="justify-content: center; width: 100%;">
-                View Full Report <span class="material-symbols-outlined">arrow_forward</span>
-            </a>
-        </div>
-    </div>
-    {% empty %}
-    <div class="empty-state dashboard-panel" style="grid-column: 1 / -1; min-height: auto;">
-        <span class="material-symbols-outlined">analytics</span>
-        <p>No reports found matching your criteria.</p>
-        <a href="{% url 'reports' %}">Clear filters</a>
-    </div>
-    {% endfor %}
-</div>
+    <div class="history-table-scroll"><table class="history-table">
+        <thead><tr><th scope="col" class="history-select"><input type="checkbox" id="selectAll" aria-label="Select all displayed scans"></th><th scope="col">Image</th><th scope="col">Date &amp; Time</th><th scope="col">Total Fruits</th><th scope="col">Batch Grade</th><th scope="col">Actions</th></tr></thead>
+        <tbody>{% for scan in scans %}
+            <tr><td><input type="checkbox" name="scan_ids" value="{{ scan.id }}" class="scan-checkbox" aria-label="Select scan {{ scan.id }}"></td>
+                <td>{% with scan_image=scan.images.last %}<a class="history-thumbnail" href="{% url 'report_detail' scan.id %}" aria-label="View scan {{ scan.id }}">{% if scan_image %}<img src="{{ scan_image.image.url }}" alt="Calamansi scan {{ scan.id }}" loading="lazy">{% else %}<span class="material-symbols-outlined" aria-hidden="true">image_not_supported</span>{% endif %}</a>{% endwith %}</td>
+                <td><time datetime="{{ scan.created_at|date:'c' }}">{{ scan.created_at|date:"M j, Y" }}<span class="history-time">{{ scan.created_at|date:"h:i A" }}</span></time></td>
+                <td class="history-total">{{ scan.fruit_count_total }}</td>
+                <td><span class="overview-grade {% if scan.quality_grade == 'Best Quality' or scan.quality_grade == 'Good Quality' %}grade-green{% elif scan.quality_grade == 'Average' %}grade-amber{% elif scan.quality_grade == 'Rejected' %}grade-red{% endif %}">{{ scan.quality_grade|default:"Pending" }}</span></td>
+                <td><a href="{% url 'report_detail' scan.id %}" class="overview-view" aria-label="View report for scan {{ scan.id }}">View</a></td>
+            </tr>
+        {% empty %}<tr><td colspan="6"><div class="history-empty"><span class="material-symbols-outlined" aria-hidden="true">history</span><h2>No scans found</h2><p>{% if selected_grade or selected_period != 'all' %}Try a different grade or date range.{% else %}Your calamansi scans will appear here.{% endif %}</p><a href="{% url 'reports' %}">Clear filters</a><a href="{% url 'upload' %}">New Scan →</a></div></td></tr>{% endfor %}</tbody>
+    </table></div>
+    <!-- Bottom management moved to header -->
 </form>
-
+</section>
 <script>
-function updateDeleteButtonState() {
-    const checkboxes = document.querySelectorAll('.scan-checkbox');
-    const deleteBtn = document.getElementById('deleteBtn');
-    const anyChecked = Array.from(checkboxes).some(cb => cb.checked);
-    
-    if (anyChecked) {
-        deleteBtn.disabled = false;
-        deleteBtn.style.opacity = '1';
-        deleteBtn.style.cursor = 'pointer';
-    } else {
-        deleteBtn.disabled = true;
-        deleteBtn.style.opacity = '0.5';
-        deleteBtn.style.cursor = 'not-allowed';
-    }
+const selectAll = document.getElementById('selectAll');
+const scanCheckboxes = Array.from(document.querySelectorAll('.scan-checkbox'));
+const deleteButton = document.getElementById('deleteBtn');
+function updateSelection() {
+    const selected = scanCheckboxes.filter(box => box.checked).length;
+    deleteButton.disabled = selected === 0;
+    selectAll.disabled = scanCheckboxes.length === 0;
+    selectAll.checked = selected > 0 && selected === scanCheckboxes.length;
+    selectAll.indeterminate = selected > 0 && selected < scanCheckboxes.length;
+    document.getElementById('selection-status').textContent = `${selected} scan${selected === 1 ? '' : 's'} selected`;
 }
-
-document.getElementById('selectAll').addEventListener('change', function(e) {
-    const checkboxes = document.querySelectorAll('.scan-checkbox');
-    checkboxes.forEach(cb => cb.checked = e.target.checked);
-    updateDeleteButtonState();
+selectAll.addEventListener('change', () => { scanCheckboxes.forEach(box => box.checked = selectAll.checked); updateSelection(); });
+scanCheckboxes.forEach(box => box.addEventListener('change', updateSelection));
+document.getElementById('deleteForm').addEventListener('submit', event => {
+    if (deleteButton.disabled || !confirm('Delete the selected scans? This cannot be undone.')) event.preventDefault();
 });
-
-document.querySelectorAll('.scan-checkbox').forEach(cb => {
-    cb.addEventListener('change', updateDeleteButtonState);
-});
-
-// Initialize state on page load
-updateDeleteButtonState();
+document.querySelectorAll('.history-filters select').forEach(select => select.addEventListener('change', () => select.form.requestSubmit()));
+updateSelection();
 </script>
 {% endblock %}
+

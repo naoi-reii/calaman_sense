@@ -19,8 +19,10 @@
             document.documentElement.setAttribute('data-theme', 'dark');
         }
     </script>
+    {% block extra_css %}{% endblock %}
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
+    {% block navigation %}
     {% if user.is_authenticated %}
     <header class="nav-bar">
         <div class="logo">
@@ -35,7 +37,7 @@
         <nav class="nav-links">
             <a href="{% url 'dashboard' %}"><span class="material-symbols-outlined">dashboard</span> Dashboard</a>
             <a href="{% url 'upload' %}"><span class="material-symbols-outlined">upload_file</span> Upload</a>
-            <a href="{% url 'reports' %}"><span class="material-symbols-outlined">analytics</span> Reports</a>
+            <a href="{% url 'reports_overview' %}"><span class="material-symbols-outlined">analytics</span> Reports</a>
             <a href="{% url 'settings' %}"><span class="material-symbols-outlined">settings</span> Settings</a>
             <form method="post" action="{% url 'logout' %}" style="display: inline;">
                 {% csrf_token %}
@@ -47,6 +49,7 @@
     </header>
     {% endif %}
 
+    {% endblock %}
     <main class="container">
         {% block content %}{% endblock %}
     </main>
@@ -83,3 +86,4 @@
     </script>
 </body>
 </html>
+
