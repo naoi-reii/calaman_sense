@@ -9,13 +9,16 @@ import sys
 
 # Ensure services is in path so we can import it
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth.forms import SetPasswordForm
+from django.contrib.auth import update_session_auth_hash, login
+from django.contrib.auth.forms import SetPasswordForm, UserCreationForm
 from services.analysis import get_analysis_provider
 
 @login_required
 def dashboard(request):
-    scans = Scan.objects.all()
+    if request.user.is_superuser:
+        scans = Scan.objects.all()
+    else:
+        scans = Scan.objects.filter(created_by=request.user)
     total_scans = scans.count()
     
     # Calculate Average Grade
@@ -120,7 +123,10 @@ def reports_view(request):
     if request.method == 'POST' and request.POST.get('action') == 'delete':
         scan_ids = request.POST.getlist('scan_ids')
         if scan_ids:
-            Scan.objects.filter(id__in=scan_ids).delete()
+            if request.user.is_superuser:
+                Scan.objects.filter(id__in=scan_ids).delete()
+            else:
+                Scan.objects.filter(id__in=scan_ids, created_by=request.user).delete()
             if not Scan.objects.exists():
                 from django.db import connection
                 with connection.cursor() as cursor:
@@ -131,7 +137,10 @@ def reports_view(request):
                         pass
         return redirect('reports')
         
-    scans = Scan.objects.prefetch_related('images').order_by('-created_at')
+    if request.user.is_superuser:
+        scans = Scan.objects.prefetch_related('images').order_by('-created_at')
+    else:
+        scans = Scan.objects.filter(created_by=request.user).prefetch_related('images').order_by('-created_at')
     
     # Simple filtering
     grade = request.GET.get('grade')
@@ -149,7 +158,10 @@ def reports_view(request):
 
 @login_required
 def report_detail_view(request, id):
-    scan = get_object_or_404(Scan.objects.prefetch_related('images'), id=id)
+    if request.user.is_superuser:
+        scan = get_object_or_404(Scan.objects.prefetch_related('images'), id=id)
+    else:
+        scan = get_object_or_404(Scan.objects.filter(created_by=request.user).prefetch_related('images'), id=id)
     ripeness = [
         {'label': 'Unripe', 'key': 'unripe', 'pct': scan.ripeness_unripe_pct},
         {'label': 'Ripe', 'key': 'ripe', 'pct': scan.ripeness_ripe_pct},
@@ -192,7 +204,10 @@ def report_detail_view(request, id):
 
 @login_required
 def training_view(request):
-    samples = TrainingSample.objects.all().order_by('-uploaded_at')
+    if request.user.is_superuser:
+        samples = TrainingSample.objects.all().order_by('-uploaded_at')
+    else:
+        samples = TrainingSample.objects.filter(uploaded_by=request.user).order_by('-uploaded_at')
     if request.method == 'POST':
         image = request.FILES.get('image')
         label = request.POST.get('label')
@@ -241,7 +256,10 @@ def settings_view(request):
 def reports_overview(request):
     from datetime import date
     from .reporting import summarize, RIPENESS
-    scans = Scan.objects.prefetch_related('images').order_by('created_at')
+    if request.user.is_superuser:
+        scans = Scan.objects.prefetch_related('images').order_by('created_at')
+    else:
+        scans = Scan.objects.filter(created_by=request.user).prefetch_related('images').order_by('created_at')
     errors = []
     dates = {}
     for key in ('start', 'end'):
@@ -292,3 +310,18 @@ def knowledge_hub(request):
 def profile_view(request):
     # Placeholder only: this page never updates account information.
     return render(request, 'profile.html')
+
+def register_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('dashboard')
+    else:
+        form = UserCreationForm()
+        
+    return render(request, 'register.html', {'form': form})

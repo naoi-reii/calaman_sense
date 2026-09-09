@@ -47,6 +47,9 @@
             
             <button type="submit" style="width: 100%; justify-content: center;">Login</button>
             <input type="hidden" name="next" value="{{ next }}">
+            <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem;">
+                Don't have an account? <a href="{% url 'register' %}" style="color: var(--accent-green-fg); text-decoration: none; font-weight: 600;">Register here</a>
+            </p>
         </form>
     </div>
 </div>
