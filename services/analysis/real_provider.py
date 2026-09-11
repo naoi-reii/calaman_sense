@@ -10,30 +10,82 @@ class RealAnalysisProvider(AnalysisProvider):
         # It will download automatically on first run
         self.model = YOLO('yolov8s.pt')
 
+    def _is_valid_fruit_crop(self, crop, x1, y1, x2, y2, img_width, img_height):
+        """
+        Validates if a bounding box crop represents a Calamansi fruit rather than
+        a sheet of paper, table surface, camera frame, or background shadow.
+        """
+        w_px = x2 - x1
+        h_px = y2 - y1
+        if w_px <= 0 or h_px <= 0:
+            return False
+
+        box_area = w_px * h_px
+        img_area = img_width * img_height
+
+        # Rule 1: Area Filtering - Reject boxes taking > 35% of total image
+        if (box_area / img_area) > 0.35:
+            return False
+
+        # Rule 2: Frame Span Filtering - Reject boxes covering > 60% of width or height
+        if (w_px / img_width) > 0.60 or (h_px / img_height) > 0.60:
+            return False
+
+        # Rule 3: Aspect Ratio Filtering - Calamansi fruits are roundish/elliptical
+        aspect_ratio = float(w_px) / float(h_px)
+        if aspect_ratio > 3.2 or aspect_ratio < 0.31:
+            return False
+
+        # Rule 4: Citrus Color & Saturation Validation in HSV
+        if crop is None or crop.size == 0:
+            return False
+
+        hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
+        
+        # Calamansi spectrum: Green (unripe), Lime (ripe), Yellow/Orange (overripe)
+        # H: 10-90, S: 30-255, V: 35-255
+        lower_citrus = np.array([10, 30, 35])
+        upper_citrus = np.array([90, 255, 255])
+        
+        citrus_mask = cv2.inRange(hsv, lower_citrus, upper_citrus)
+        citrus_pixels = cv2.countNonZero(citrus_mask)
+        total_pixels = w_px * h_px
+
+        citrus_ratio = citrus_pixels / float(total_pixels)
+        
+        # White paper, gray background, dark borders have S < 30 or H outside citrus range.
+        # Require at least 12% of crop pixels to have citrus color saturation.
+        if citrus_ratio < 0.12:
+            return False
+
+        return True
+
     def analyze(self, image_path: str) -> ScanAnalysisResult:
         # Load image with OpenCV for processing
         img = cv2.imread(image_path)
+        if img is None:
+            raise ValueError(f"Could not load image at {image_path}")
+
         img_height, img_width = img.shape[:2]
 
-        # 1. Run YOLOv8 Detection
-        # We use a very low confidence threshold since dark green calamansi don't perfectly match COCO classes
-        results = self.model(image_path, conf=0.05, verbose=False)
-
-        # There's only one image, so we take the first result
+        # 1. Run YOLOv8 Detection with conf=0.15
+        results = self.model(image_path, conf=0.15, verbose=False)
         result = results[0]
         yolo_boxes = result.boxes
 
-        # We will store the boxes here
-        xyxy_boxes = []
-
+        raw_boxes = []
         if len(yolo_boxes) > 0:
             for box in yolo_boxes:
-                xyxy_boxes.append(box.xyxy[0].cpu().numpy())
-        else:
-            # YOLO FAILED.
-            # Fallback to OpenCV Watershed Algorithm.
-            # This is the gold-standard algorithm for separating and counting touching objects!
+                # Exclude known COCO non-fruit background categories if present
+                cls_id = int(box.cls[0].cpu().numpy()) if hasattr(box, 'cls') and len(box.cls) > 0 else -1
+                # COCO background classes: 56 (chair), 57 (couch), 59 (bed), 60 (dining table), 62 (tv), 63 (laptop), 73 (book)
+                if cls_id in [56, 57, 59, 60, 62, 63, 73]:
+                    continue
+                xyxy = box.xyxy[0].cpu().numpy()
+                raw_boxes.append(xyxy)
 
+        # 2. Fallback to OpenCV Watershed if YOLO found no candidates
+        if len(raw_boxes) == 0:
             # Convert to Grayscale
             gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
@@ -81,9 +133,43 @@ class RealAnalysisProvider(AnalysisProvider):
 
                     # Filter out tiny artifacts (must be at least 20x20 pixels)
                     if w > 20 and h > 20:
-                        xyxy_boxes.append(np.array([x, y, x+w, y+h]))
+                        raw_boxes.append(np.array([x, y, x+w, y+h]))
 
-        total_fruits = len(xyxy_boxes)
+        # 3. Filter boxes using Fruit Crop Validation
+        valid_boxes = []
+        for box in raw_boxes:
+            x1, y1, x2, y2 = int(box[0]), int(box[1]), int(box[2]), int(box[3])
+            # Clamp coordinates
+            x1, y1 = max(0, x1), max(0, y1)
+            x2, y2 = min(img_width, x2), min(img_height, y2)
+
+            crop = img[y1:y2, x1:x2]
+            if self._is_valid_fruit_crop(crop, x1, y1, x2, y2, img_width, img_height):
+                valid_boxes.append(np.array([x1, y1, x2, y2]))
+
+        # 4. Non-Maximum Suppression (NMS) to eliminate duplicate/nested boxes
+        final_boxes = []
+        if len(valid_boxes) > 0:
+            # Sort by area ascending so we prefer tight fruit boxes over large outer containers
+            valid_boxes.sort(key=lambda b: (b[2]-b[0]) * (b[3]-b[1]))
+            for box in valid_boxes:
+                keep = True
+                bx1, by1, bx2, by2 = box
+                b_area = (bx2 - bx1) * (by2 - by1)
+                for existing in final_boxes:
+                    ex1, ey1, ex2, ey2 = existing
+                    # Calculate intersection
+                    ix1, iy1 = max(bx1, ex1), max(by1, ey1)
+                    ix2, iy2 = min(bx2, ex2), min(by2, ey2)
+                    if ix1 < ix2 and iy1 < iy2:
+                        i_area = (ix2 - ix1) * (iy2 - iy1)
+                        if i_area / float(b_area) > 0.60:
+                            keep = False
+                            break
+                if keep:
+                    final_boxes.append(box)
+
+        total_fruits = len(final_boxes)
         annotations = []
 
         # Stats tracking
@@ -91,7 +177,7 @@ class RealAnalysisProvider(AnalysisProvider):
         ripe_count = 0
         overripe_count = 0
 
-        for box_xyxy in xyxy_boxes:
+        for box_xyxy in final_boxes:
             # Unpack the box
             x1, y1, x2, y2 = box_xyxy
 
