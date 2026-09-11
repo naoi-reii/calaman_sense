@@ -1,4 +1,4 @@
-﻿/* Quality scores are advisory heuristics on a small central image, not a fruit detector. */
+/* Quality scores are advisory heuristics on a small central image, not a fruit detector. */
 function measureCameraQuality(data, width, height) {
     const gray = new Float32Array(width * height);
     let brightness = 0;
@@ -58,14 +58,20 @@ function measureCameraQuality(data, width, height) {
     }
     function checkQuality() {
         if (!video.videoWidth || video.readyState < 2) return;
-        capture.disabled = false;
         const side = Math.min(video.videoWidth, video.videoHeight) * .8;
         sampleContext.drawImage(video, (video.videoWidth-side)/2, (video.videoHeight-side)/2, side, side, 0, 0, 160, 160);
         const score = measureCameraQuality(sampleContext.getImageData(0,0,160,160).data,160,160);
         quality = quality ? {brightness: quality.brightness*.65+score.brightness*.35, sharpness: quality.sharpness*.65+score.sharpness*.35} : score;
-        if (quality.brightness < 55) message('Too dark (madilim). Move to better light or turn on flash.', true);
-        else if (quality.sharpness < 65) message('Looks blurry. Hold steady, clean the lens, or adjust the distance.', true);
-        else message('Lighting and sharpness look good. Ready to capture.');
+        if (quality.brightness < 55) {
+            message('Too dark (madilim). Move to better light or turn on flash.', true);
+            capture.disabled = true;
+        } else if (quality.sharpness < 65) {
+            message('Looks blurry. Hold steady, clean the lens, or adjust the distance.', true);
+            capture.disabled = false;
+        } else {
+            message('Lighting and sharpness look good. Ready to capture.');
+            capture.disabled = false;
+        }
     }
     async function start() {
         const token = ++version;
