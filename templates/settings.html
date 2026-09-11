@@ -264,7 +264,6 @@
                     <p class="row-sublabel">Filipino / English</p>
                 </div>
                 <form method="post" class="language-form">{% csrf_token %}<label class="language-label" for="language-choice">{% ui 'Choose language' 'Pumili ng wika' %}</label><select name="language" id="language-choice"><option value="en" {% if request.COOKIES.calamansense_language != 'fil' %}selected{% endif %}>English</option><option value="fil" {% if request.COOKIES.calamansense_language == 'fil' %}selected{% endif %}>Filipino</option></select><button type="submit">{% ui 'Save' 'I-save' %}</button></form>
-                <span class="material-symbols-outlined row-chevron">chevron_right</span>
             </div>
 
             <div class="settings-row">
