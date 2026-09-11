@@ -15,3 +15,39 @@
 .profile-fields button:disabled { opacity:.6; cursor:not-allowed; }
 .profile-fields > p { font-size:12px; color:var(--gray); text-align:center; line-height:1.5; margin:0; }
 @media(max-width:900px) { .profile-card { grid-template-columns:1fr; gap:22px; padding:24px; } .profile-identity { padding:0; } }
+
+.mobile-profile-menu { display: none; }
+@media (max-width: 760px) {
+ .profile-page { padding-top: 0; }
+ .profile-page .overview-topbar { display: none; }
+ .profile-page .container { max-width: 520px; margin: 0 auto; padding: max(26px, env(safe-area-inset-top)) 20px 24px; }
+ .profile-heading { margin-bottom: 16px; }
+ .profile-heading h1 { font-size: 22px; }
+ .profile-heading p, .profile-preview-badge, .profile-fields { display: none; }
+ .profile-card { display: block; padding: 0; border: 0; background: transparent; box-shadow: none; }
+ .profile-avatar { width: 86px; height: 86px; margin-bottom: 12px; font-size: 35px; border: 4px solid var(--white); box-shadow: 0 0 0 1px var(--border); }
+ .profile-identity h2 { font-size: 19px; color: var(--black); }
+ .profile-identity p { font-size: 14px; font-weight: 600; margin: 6px 0 26px; }
+ .mobile-profile-menu { display: block; }
+ .mobile-profile-rows { border: 1px solid var(--border); border-radius: 10px; background: var(--white); overflow: hidden; }
+ .mobile-profile-rows details, .profile-menu-link { border-bottom: 1px solid var(--border); }
+ .mobile-profile-rows details:last-child { border-bottom: 0; }
+ .mobile-profile-rows summary, .profile-menu-link { display: flex; align-items: center; gap: 12px; min-height: 55px; padding: 12px 14px; font-size: 14px; color: var(--gray-dark); text-decoration: none; cursor: pointer; list-style: none; }
+ .mobile-profile-rows summary::-webkit-details-marker { display: none; }
+ .mobile-profile-rows .material-symbols-outlined { font-size: 23px; flex-shrink: 0; }
+ .profile-chevron { margin-left: auto; color: var(--gray); }
+ .mobile-profile-rows details[open] .profile-chevron { transform: rotate(90deg); }
+ .profile-menu-content { padding: 0 16px 16px; font-size: 13px; line-height: 1.6; color: var(--gray-dark); }
+ .profile-menu-content p { margin: 8px 0 14px; }
+ .profile-menu-content a { color: var(--green-dark); font-weight: 600; display: inline-block; padding: 7px 0; }
+ .profile-menu-content dt { font-size: 11px; color: var(--gray); }
+ .profile-menu-content dd { margin: 0 0 9px; overflow-wrap: anywhere; }
+ .mobile-profile-logout { margin-top: 18px; }
+ .mobile-profile-logout button { width: 100%; min-height: 49px; border: 1px solid #f6d4cf; border-radius: 8px; background: #fff0ed; color: #c33228; font-size: 15px; font-weight: 700; }
+ .mobile-profile-logout button:hover { background: #ffe1da; }
+ .mobile-profile-rows summary:focus-visible { outline: 2px solid var(--green); outline-offset: -3px; }
+}
+.profile-avatar { overflow:hidden; }.profile-avatar img { width:100%; height:100%; object-fit:cover; }.profile-avatar img[hidden] { display:none; }
+.profile-edit-form { min-width:0; }.profile-edit-form h2 { font-size:19px; margin-bottom:18px; }
+.profile-edit-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }.profile-edit-field label { display:block; font-size:13px; font-weight:600; margin-bottom:6px; }.profile-edit-field input:not([type=checkbox]) { width:100%; min-height:44px; }.profile-edit-field small { display:block; color:var(--gray); margin-top:7px; font-size:11px; }.profile-photo-field { grid-column:1/-1; }.profile-edit-form > button { width:100%; margin-top:20px; min-height:46px; background:#086839; color:white; }.profile-security-link { display:block; margin-top:12px; color:var(--green-dark); font-size:13px; }.profile-save-success { background:var(--green-light); color:var(--green-dark); padding:12px; border-radius:8px; }.profile-edit-form .errorlist { color:#bc3027; font-size:12px; padding-left:18px; }
+@media(max-width:760px) { .profile-edit-form { margin:20px 0; padding:18px; background:var(--white); border:1px solid var(--border); border-radius:12px; }.profile-edit-grid { grid-template-columns:1fr; }.profile-edit-field input:not([type=checkbox]) { font-size:16px; }.profile-photo-field { grid-column:auto; } }

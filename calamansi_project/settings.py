@@ -7,7 +7,9 @@ SECRET_KEY = 'django-insecure-dummy-key-for-phase1'
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.ngrok.io', '.ngrok-free.app']
+
+CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.app', 'https://*.ngrok.io']
 
 INSTALLED_APPS = [
     'django.contrib.admin',

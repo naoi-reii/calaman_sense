@@ -1,0 +1,20 @@
+﻿{% load static ui_language %}
+<section class="mobile-home" aria-label="Home">
+    <header class="mobile-home-greeting"><a class="mobile-home-avatar" href="{% url 'profile' %}" aria-label="Your profile">{% if user.profile.photo %}<img src="{{ user.profile.photo.url }}" alt="">{% else %}{{ user.first_name|default:user.username|first|upper }}{% endif %}</a><div><p id="mobile-greeting">Hello,</p><h1>{{ user.first_name|default:user.username }}!</h1></div></header>
+    <section class="mobile-home-banner"><div><h2>Check your calamansi</h2><p>Scan. Analyze. Get Results.</p></div><img src="{% static 'images/samples/green.jpg' %}" alt="Fresh green calamansi"></section>
+    <div class="mobile-home-scan-actions"><a class="mobile-scan-primary" href="{% url 'upload' %}#open-camera-btn"><span class="material-symbols-outlined" aria-hidden="true">photo_camera</span>{% ui 'Scan Calamansi' 'I-scan ang Kalamansi' %}</a><a class="mobile-scan-secondary" href="{% url 'upload' %}#browse-images-btn"><span class="material-symbols-outlined" aria-hidden="true">add_photo_alternate</span>{% ui 'Upload Photo' 'Mag-upload ng Larawan' %}</a></div>
+    <section class="mobile-home-quick"><h2>{% ui 'Quick Actions' 'Mga Mabilisang Gawain' %}</h2><div class="mobile-home-grid">
+        <a href="{% url 'upload' %}#open-camera-btn"><span class="material-symbols-outlined" aria-hidden="true">qr_code_scanner</span><span>Scan<br>Fruits</span></a>
+        <a href="{% url 'reports' %}"><span class="material-symbols-outlined" aria-hidden="true">history</span><span>View<br>{% ui 'History' 'Kasaysayan' %}</span></a>
+        <a href="{% url 'knowledge_hub' %}"><span class="material-symbols-outlined" aria-hidden="true">menu_book</span><span>Knowledge<br>Hub</span></a>
+        <a href="{% url 'reports_overview' %}"><span class="material-symbols-outlined" aria-hidden="true">assignment</span><span>{% ui 'Reports' 'Mga Ulat' %}</span></a>
+    </div></section>
+</section>
+<script>
+(() => {
+    const hour = new Date().getHours();
+    document.getElementById('mobile-greeting').textContent = hour < 12 ? 'Good morning,' : hour < 18 ? 'Good afternoon,' : 'Good evening,';
+})();
+</script>
+
+

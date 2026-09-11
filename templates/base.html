@@ -1,6 +1,6 @@
-{% load static %}
+﻿{% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="{% if request.COOKIES.calamansense_language == 'fil' %}fil{% else %}en{% endif %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -86,4 +86,5 @@
     </script>
 </body>
 </html>
+
 

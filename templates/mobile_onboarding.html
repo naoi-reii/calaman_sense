@@ -1,0 +1,23 @@
+{% load static %}
+<section class="mobile-onboarding" id="mobile-onboarding" aria-label="Welcome to CalamanSense" hidden>
+    <header class="onboarding-brand"><span class="onboarding-fruit" aria-hidden="true"><i></i></span><strong>CalamanSense</strong></header>
+    <div class="onboarding-slides" aria-live="polite">
+        <section class="onboarding-slide onboarding-intro" data-slide="0" aria-labelledby="intro-title">
+            <div class="onboarding-copy"><h2 id="intro-title" tabindex="-1">Know your calamansi<br>better.</h2><p>Scan, analyze, and get instant<br>results for smarter decisions.</p></div>
+            <div class="onboarding-orchard"><img src="{% static 'images/mobile-opening.png' %}" alt="Fresh calamansi growing among green leaves"></div>
+        </section>
+        <section class="onboarding-slide" data-slide="1" aria-labelledby="scan-title" hidden>
+            <div class="onboarding-art scan-art" aria-hidden="true"><div class="art-halo"></div><div class="scan-phone"><div class="phone-camera"></div><img src="{% static 'images/samples/green.jpg' %}" alt=""><span class="scan-corners"></span><span class="phone-home"></span></div><span class="illustrated-fruit"><i></i></span></div>
+            <div class="onboarding-copy"><h2 id="scan-title" tabindex="-1">Scan with ease.</h2><p>Use your camera or upload<br>a photo to analyze multiple<br>calamansi fruits at once.</p></div>
+        </section>
+        <section class="onboarding-slide" data-slide="2" aria-labelledby="insight-title" hidden>
+            <div class="onboarding-art insights-art" aria-hidden="true"><div class="art-halo"></div><div class="insights-chart"><i></i><i></i><i></i></div><span class="illustrated-fruit"><i></i></span></div>
+            <div class="onboarding-copy"><h2 id="insight-title" tabindex="-1">Get useful insights.</h2><p>Know the ripeness, quality,<br>and estimated shelf life<br>in seconds.</p></div>
+        </section>
+    </div>
+    <footer class="onboarding-controls">
+        <nav class="onboarding-dots" aria-label="Introduction pages"><button type="button" data-page="0" aria-label="Page 1: Know your calamansi" aria-current="step"></button><button type="button" data-page="1" aria-label="Page 2: Scan with ease"></button><button type="button" data-page="2" aria-label="Page 3: Get useful insights"></button></nav>
+        <button type="button" class="onboarding-next" id="onboarding-next">Next</button>
+        <button type="button" class="onboarding-skip" id="onboarding-skip">Skip</button>
+    </footer>
+</section>

@@ -1,12 +1,12 @@
-{% extends 'base.html' %}
-{% load static %}
-{% block body_class %}overview-page{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2">{% endblock %}
+﻿{% extends 'base.html' %}
+{% load static ui_language %}
+{% block body_class %}overview-page mobile-settings-page{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2"><link rel="stylesheet" href="{% static 'css/settings.css' %}">{% endblock %}
 {% block navigation %}{% include 'includes/overview_navigation.html' with active_page='settings' %}{% endblock %}
 
 {% block content %}
 <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.5rem;">
-    <h1>Settings</h1>
+    <h1>{% ui 'Settings' 'Mga Setting' %}</h1>
 </div>
 
 <style>
@@ -294,13 +294,13 @@
                     <p class="profile-meta">{{ request.user.username }}</p>
                 </div>
             </div>
-            <button type="button" onclick="document.getElementById('profileModal').style.display='flex'">Edit</button>
+            <button type="button" onclick="document.getElementById('profileModal').style.display='flex'">{% ui 'Edit' 'I-edit' %}</button>
         </div>
     </div>
 
     <!-- App preferences -->
     <div class="box">
-        <h3>App preferences</h3>
+        <h3>{% ui 'App preferences' 'Mga kagustuhan' %}</h3>
         <div class="settings-list">
 
             <div class="settings-row clickable">
@@ -308,25 +308,11 @@
                     <span class="material-symbols-outlined" style="color: var(--accent-slate-fg);">translate</span>
                 </div>
                 <div class="row-text">
-                    <p class="row-label">Language</p>
+                    <p class="row-label">{% ui 'Language' 'Wika' %}</p>
                     <p class="row-sublabel">Filipino / English</p>
                 </div>
-                <span class="row-value">EN</span>
+                <form method="post" class="language-form">{% csrf_token %}<label class="language-label" for="language-choice">{% ui 'Choose language' 'Pumili ng wika' %}</label><select name="language" id="language-choice"><option value="en" {% if request.COOKIES.calamansense_language != 'fil' %}selected{% endif %}>English</option><option value="fil" {% if request.COOKIES.calamansense_language == 'fil' %}selected{% endif %}>Filipino</option></select><button type="submit">{% ui 'Save' 'I-save' %}</button></form>
                 <span class="material-symbols-outlined row-chevron">chevron_right</span>
-            </div>
-
-            <div class="settings-row">
-                <div class="row-icon" style="background-color: var(--accent-slate-bg);">
-                    <span class="material-symbols-outlined" style="color: var(--accent-slate-fg);">notifications</span>
-                </div>
-                <div class="row-text">
-                    <p class="row-label">Notifications</p>
-                    <p class="row-sublabel">Batch alerts</p>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" checked>
-                    <span class="toggle-slider"></span>
-                </label>
             </div>
 
             <div class="settings-row">
@@ -334,8 +320,8 @@
                     <span class="material-symbols-outlined" style="color: var(--accent-slate-fg);">dark_mode</span>
                 </div>
                 <div class="row-text">
-                    <p class="row-label">Dark mode</p>
-                    <p class="row-sublabel">Toggle application theme</p>
+                    <p class="row-label">{% ui 'Dark mode' 'Madilim na tema' %}</p>
+                    <p class="row-sublabel">{% ui 'Toggle application theme' 'Baguhin ang tema ng app' %}</p>
                 </div>
                 <label class="toggle-switch">
                     <input type="checkbox" id="darkModeToggle">
@@ -391,60 +377,20 @@
     <div class="box">
         <div style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
             <div>
-                <p class="row-label" style="margin: 0; font-size: 1rem;">Security</p>
-                <p class="row-sublabel" style="margin: 0; margin-top: 0.25rem;">Update your account password.</p>
+                <p class="row-label" style="margin: 0; font-size: 1rem;">{% ui 'Security' 'Seguridad' %}</p>
+                <p class="row-sublabel" style="margin: 0; margin-top: 0.25rem;">{% ui 'Update your account password.' 'Palitan ang password ng iyong account.' %}</p>
             </div>
-            <button type="button" onclick="document.getElementById('passwordModal').style.display='flex'">Change</button>
+            <button type="button" onclick="document.getElementById('passwordModal').style.display='flex'">{% ui 'Change' 'Palitan' %}</button>
         </div>
     </div>
 
-    <!-- About -->
-    <div class="box">
-        <h3>About CalamanSense</h3>
-        <div class="settings-list">
-
-            <div class="settings-row clickable">
-                <div class="row-icon" style="background-color: var(--accent-slate-bg);">
-                    <span class="material-symbols-outlined" style="color: var(--accent-slate-fg);">info</span>
-                </div>
-                <div class="row-text">
-                    <p class="row-label">What is CalamanSense?</p>
-                    <p class="row-sublabel">About the app and its purpose</p>
-                </div>
-                <span class="material-symbols-outlined row-chevron">chevron_right</span>
-            </div>
-
-            <div class="settings-row clickable">
-                <div class="row-icon" style="background-color: var(--accent-slate-bg);">
-                    <span class="material-symbols-outlined" style="color: var(--accent-slate-fg);">center_focus_weak</span>
-                </div>
-                <div class="row-text">
-                    <p class="row-label">How Scanning Works</p>
-                    <p class="row-sublabel">How detection and results are calculated</p>
-                </div>
-                <span class="material-symbols-outlined row-chevron">chevron_right</span>
-            </div>
-
-            <div class="settings-row clickable">
-                <div class="row-icon" style="background-color: var(--accent-slate-bg);">
-                    <span class="material-symbols-outlined" style="color: var(--accent-slate-fg);">menu_book</span>
-                </div>
-                <div class="row-text">
-                    <p class="row-label">Help / User Guide</p>
-                    <p class="row-sublabel">Tips, FAQs, and how to get support</p>
-                </div>
-                <span class="material-symbols-outlined row-chevron">chevron_right</span>
-            </div>
-
-        </div>
-    </div>
-
+{% include 'includes/settings_guides.html' %}
 </div>
 
 <div id="passwordModal" class="modal" {% if password_form.errors %}style="display: flex;"{% endif %}>
     <div class="modal-content box" style="position: relative; width: 100%; max-width: 500px; background-color: var(--white); margin: auto;">
         <span class="close-modal" onclick="document.getElementById('passwordModal').style.display='none'" style="color: var(--black); top: 10px; right: 20px;">&times;</span>
-        <h3 style="margin-top: 0;">Change Password</h3>
+        <h3 style="margin-top: 0;">{% ui 'Change Password' 'Palitan ang Password' %}</h3>
 
         {% if password_form.errors %}
         <div style="background-color: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
@@ -491,7 +437,7 @@
             </div>
             {% endfor %}
 
-            <button type="submit" style="margin-top: 1rem; width: 100%;">Update Password</button>
+            <button type="submit" style="margin-top: 1rem; width: 100%;">{% ui 'Update Password' 'I-update ang Password' %}</button>
         </form>
     </div>
 </div>
@@ -499,24 +445,24 @@
 <div id="profileModal" class="modal" style="display: none;">
     <div class="modal-content box" style="position: relative; width: 100%; max-width: 500px; background-color: var(--white); margin: auto;">
         <span class="close-modal" onclick="document.getElementById('profileModal').style.display='none'" style="color: var(--black); top: 10px; right: 20px;">&times;</span>
-        <h3 style="margin-top: 0;">Edit Profile</h3>
+        <h3 style="margin-top: 0;">{% ui 'Edit Profile' 'I-edit ang Profile' %}</h3>
         
         <form method="POST">
             {% csrf_token %}
             <input type="hidden" name="update_profile" value="1">
             <div style="margin-bottom: 1rem;">
-                <label class="spec-label" for="first_name">First Name</label>
+                <label class="spec-label" for="first_name">{% ui 'First Name' 'Pangalan' %}</label>
                 <input type="text" name="first_name" id="first_name" value="{{ request.user.first_name }}" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
             </div>
             <div style="margin-bottom: 1rem;">
-                <label class="spec-label" for="last_name">Last Name</label>
+                <label class="spec-label" for="last_name">{% ui 'Last Name' 'Apelyido' %}</label>
                 <input type="text" name="last_name" id="last_name" value="{{ request.user.last_name }}" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
             </div>
             <div style="margin-bottom: 1rem;">
-                <label class="spec-label" for="username">Username</label>
+                <label class="spec-label" for="username">{% ui 'Username' 'Username' %}</label>
                 <input type="text" name="username" id="username" value="{{ request.user.username }}" required style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
             </div>
-            <button type="submit" style="margin-top: 1rem; width: 100%;">Save Changes</button>
+            <button type="submit" style="margin-top: 1rem; width: 100%;">{% ui 'Save Changes' 'I-save ang mga Pagbabago' %}</button>
         </form>
     </div>
 </div>
@@ -624,3 +570,5 @@
     });
 </script>
 {% endblock %}
+
+

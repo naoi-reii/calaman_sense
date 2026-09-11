@@ -1,56 +1,16 @@
-{% extends 'base.html' %}
-
-{% block content %}
-<div style="display: flex; justify-content: center; align-items: center; min-height: 80vh; flex-direction: column; padding: 1rem;">
-    
-    <div style="text-align: center; margin-bottom: 2rem;">
-        <span class="material-symbols-outlined" style="font-size: 3rem; vertical-align: middle;">eco</span>
-        <h1 style="display: inline-block; margin: 0; vertical-align: middle; font-size: 2rem; text-transform: uppercase; letter-spacing: 3px; font-weight: 700;">CalamanSense</h1>
-    </div>
-
-    <div class="box" style="width: 100%; max-width: 400px; padding: 2rem;">
-        <h2 style="text-align: center; margin-bottom: 2rem;">Welcome Back</h2>
-        
-        {% if form.errors %}
-        <div style="background-color: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-            <p style="margin: 0;">Your username and password didn't match. Please try again.</p>
-        </div>
-        {% endif %}
-
-        {% if next %}
-            {% if user.is_authenticated %}
-            <div style="background-color: #fef3c7; color: #92400e; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                <p style="margin: 0;">Your account doesn't have access to this page. To proceed, please login with an account that has access.</p>
-            </div>
-            {% else %}
-            <div style="background-color: #e0f2fe; color: #075985; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
-                <p style="margin: 0;">Please login to see this page.</p>
-            </div>
-            {% endif %}
-        {% endif %}
-
-        <form method="post" action="{% url 'login' %}">
-            {% csrf_token %}
-            
-            <div style="margin-bottom: 1.5rem;">
-                <label class="spec-label" for="id_username">Username</label>
-                <input type="text" name="username" autofocus autocapitalize="none" autocomplete="username" maxlength="150" required id="id_username" style="width: 100%;">
-            </div>
-            
-            <div style="margin-bottom: 2rem;">
-                <label class="spec-label" for="id_password">Password</label>
-                <div style="position: relative;">
-                    <input type="password" name="password" autocomplete="current-password" required id="id_password" style="width: 100%;">
-                    <span class="material-symbols-outlined" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer; color: var(--gray-dark); user-select: none;" onclick="togglePassword('id_password', this)">visibility</span>
-                </div>
-            </div>
-            
-            <button type="submit" style="width: 100%; justify-content: center;">Login</button>
-            <input type="hidden" name="next" value="{{ next }}">
-            <p style="text-align: center; margin-top: 1.5rem; font-size: 0.9rem;">
-                Don't have an account? <a href="{% url 'register' %}" style="color: var(--accent-green-fg); text-decoration: none; font-weight: 600;">Register here</a>
-            </p>
-        </form>
-    </div>
-</div>
+{% extends 'auth_base.html' %}
+{% block auth_form %}
+<header class="auth-heading"><h2>Welcome Back!</h2><p>Sign in to continue to CalamanSense</p></header>
+{% if form.errors %}<div class="auth-error" role="alert">Your username and password didn't match. Please try again.</div>{% endif %}
+{% if next %}<div class="auth-notice">{% if user.is_authenticated %}Please sign in with an account that has access to this page.{% else %}Please sign in to see this page.{% endif %}</div>{% endif %}
+<form method="post" action="{% url 'login' %}">
+    {% csrf_token %}
+    <div class="auth-field"><label for="id_username">Username</label><input type="text" name="username" id="id_username" value="{{ form.username.value|default_if_none:'' }}" placeholder="Enter your username" autocomplete="username" autocapitalize="none" maxlength="150" required autofocus></div>
+    <div class="auth-field"><label for="id_password">Password</label><div class="auth-password"><input type="password" name="password" id="id_password" placeholder="Enter your password" autocomplete="current-password" required><button type="button" data-password="id_password" aria-label="Show password" aria-pressed="false"><span class="material-symbols-outlined" aria-hidden="true">visibility</span></button></div></div>
+    <input type="hidden" name="next" value="{{ next }}">
+    <button class="auth-submit" type="submit">Sign in</button>
+</form>
 {% endblock %}
+{% block auth_switch %}Don't have an account? <a href="{% url 'register' %}">Sign up</a>{% endblock %}
+
+{% block opening_screen %}{% include 'mobile_opening.html' %}{% endblock %}

@@ -1,11 +1,13 @@
-{% extends 'base.html' %}
+﻿{% extends 'base.html' %}
 {% load static %}
-{% block body_class %}overview-page{% endblock %}
+{% block body_class %}overview-page home-page{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=recent-images-3">
 {% endblock %}
 {% block navigation %}{% include "includes/overview_navigation.html" with active_page="dashboard" %}{% endblock %}
 {% block content %}
+{% include 'includes/mobile_home.html' %}
+<div class="desktop-home">
 <section class="overview-heading">
     <div><h1>Welcome back, {{ user.first_name|default:user.username }}! <span aria-hidden="true">🌿</span></h1><p>Here's your calamansi scanning overview.</p></div>
     <a class="overview-new-scan" href="{% url 'upload' %}"><span class="material-symbols-outlined" aria-hidden="true">add_photo_alternate</span>New Scan</a>
@@ -37,5 +39,7 @@
         </table>
     </div>
 </section>
+</div>
 {% endblock %}
+
 

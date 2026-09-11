@@ -1,0 +1,38 @@
+﻿.language-form { display:flex; flex-wrap:wrap; align-items:center; gap:7px; }
+.language-label { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
+.settings-guides { background:var(--white); border:1px solid var(--border); border-radius:14px; overflow:hidden; margin-bottom:24px; }
+.settings-guide-hero { padding:25px; background:var(--green-light); }
+.settings-guide-hero > span { font-size:35px; color:var(--green-dark); }
+.settings-guide-hero h2 { font-size:23px; margin:8px 0; }
+.settings-guide-hero p { color:var(--gray-dark); font-size:14px; }
+.settings-guides summary { display:flex; align-items:center; gap:12px; padding:20px; cursor:pointer; list-style:none; font-weight:600; border-top:1px solid var(--border); }
+.settings-guides summary::-webkit-details-marker { display:none; }
+.settings-guides summary::after { content:'+'; margin-left:auto; }
+.settings-guides details[open] summary::after { content:'−'; }
+.settings-guides summary > span { color:var(--green-dark); }
+.guide-content { padding:0 22px 22px; color:var(--gray-dark); font-size:14px; line-height:1.7; }
+.guide-content h3 { font-size:15px; margin:16px 0 6px; }
+.guide-content p { margin:8px 0 15px; }
+.guide-content li { margin-bottom:12px; }
+.guide-content a { color:var(--green-dark); font-weight:600; }
+.guide-chips { display:flex; gap:8px; }
+.guide-chips span { padding:5px 12px; border-radius:20px; background:var(--green-light); color:var(--green-dark); }
+.settings-guides summary:focus-visible { outline:2px solid var(--green); outline-offset:-3px; }
+@media(max-width:760px) {
+ .mobile-settings-page { padding-top:0; }
+ .mobile-settings-page .overview-topbar { display:none; }
+ .mobile-settings-page .container { max-width:520px; margin:0 auto; padding:max(24px, env(safe-area-inset-top)) 18px 24px; }
+ .mobile-settings-page .container > div > h1 { font-size:23px; }
+ .mobile-settings-page .settings-page .box { padding:18px; border-radius:12px; }
+ .mobile-settings-page .settings-row { flex-wrap:wrap; gap:10px; }
+ .mobile-settings-page .row-text { min-width:120px; }
+ .mobile-settings-page .language-form { width:100%; padding-left:0; }
+ .language-form select { flex:1; min-height:44px; }
+ .language-form button { min-height:44px; }
+ .mobile-settings-page .profile-header { gap:10px; flex-wrap:wrap; }
+ .mobile-settings-page .modal { padding:16px; overflow-y:auto; }
+ .mobile-settings-page .modal-content { max-height:85svh; overflow-y:auto; }
+ .mobile-settings-page .modal input { max-width:100%; }
+ .settings-guides summary { padding:17px 15px; font-size:14px; }
+ .settings-guide-hero { padding:20px; }
+}

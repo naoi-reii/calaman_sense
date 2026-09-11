@@ -1,0 +1,10 @@
+<div id="cameraModal" class="camera-modal" role="dialog" aria-modal="true" aria-labelledby="camera-title" hidden>
+ <div class="camera-screen">
+  <header class="camera-header"><button type="button" id="close-camera-btn" aria-label="Close camera"><span class="material-symbols-outlined">close</span></button><h2 id="camera-title">Scan Calamansi</h2><button type="button" id="switch-camera-btn" aria-label="Switch camera"><span class="material-symbols-outlined">flip_camera_ios</span></button></header>
+  <div class="camera-viewfinder"><video id="camera-stream" autoplay playsinline muted></video><div class="camera-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
+  <p class="camera-instruction">Position the fruits within the frame</p>
+  <p id="camera-quality" class="camera-quality" role="status" aria-live="polite">Starting camera...</p>
+  <div class="camera-controls"><button type="button" id="camera-gallery"><span class="material-symbols-outlined">photo_library</span>Gallery</button><button type="button" id="capture-btn" aria-label="Capture photo" disabled></button><button type="button" id="camera-flash" aria-pressed="false" disabled><span class="material-symbols-outlined">flash_off</span><span id="flash-label">Flash unavailable</span></button></div>
+ </div>
+</div>
+<canvas id="camera-canvas" hidden></canvas>

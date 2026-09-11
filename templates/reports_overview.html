@@ -1,41 +1,57 @@
-{% extends 'base.html' %}
-{% load static %}
+﻿{% extends 'base.html' %}
+{% load static ui_language %}
 {% block body_class %}overview-page analytics-page{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2"><link rel="stylesheet" href="{% static 'css/analytics.css' %}">{% endblock %}
 {% block navigation %}{% include 'includes/overview_navigation.html' with active_page='reports' %}{% endblock %}
 {% block content %}
-<header class="analytics-heading"><div><h1>Reports</h1><p>Analyze trends and insights from all your scans.</p></div><button type="button" onclick="window.print()" class="analytics-print">Print / Save PDF</button></header>
-<form method="get" class="analytics-filters">
-    <label>From<input type="date" name="start" value="{{ start }}"></label><label>To<input type="date" name="end" value="{{ end }}"></label>
-    <label>Quality<select name="quality"><option value="">All qualities</option>{% for value, label in grade_choices %}<option value="{{ value }}" {% if quality == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label>
-    <label>Dominant ripeness<select name="ripeness"><option value="">All ripeness</option>{% for key in ripeness_choices %}<option value="{{ key }}" {% if selected_ripeness == key %}selected{% endif %}>{{ key|capfirst }}</option>{% endfor %}</select></label>
-    <button type="submit">Apply filters</button><a href="{% url 'reports_overview' %}">Reset</a>
-</form>
+<header class="mobile-reports-heading"><a href="{% url 'dashboard' %}" aria-label="Back to home"><span class="material-symbols-outlined" aria-hidden="true">chevron_left</span></a><h1>{% ui 'Reports' 'Mga Ulat' %}</h1><a class="mobile-report-pdf" href="{% url 'reports_overview' %}?{{ request.GET.urlencode }}&amp;download=pdf" download="calamansense-reports.pdf" aria-label="Save reports as PDF"><span class="material-symbols-outlined" aria-hidden="true">download</span><span>PDF</span></a></header><div class="mobile-report-tabs" aria-label="Report view"><button type="button" data-report-tab="overview" aria-pressed="true">{% ui 'Overview' 'Pangkalahatan' %}</button><button type="button" data-report-tab="trends" aria-pressed="false">{% ui 'Trends' 'Mga Trend' %}</button></div><header class="analytics-heading"><div><h1>{% ui 'Reports' 'Mga Ulat' %}</h1><p>Analyze trends and insights from all your scans.</p></div><a href="{% url 'reports_overview' %}?{{ request.GET.urlencode }}&amp;download=pdf" download="calamansense-reports.pdf" class="analytics-print">Save PDF</a></header>
+<form method="get" class="report-filter-panel"><header><span class="material-symbols-outlined" aria-hidden="true">filter_alt</span><div><h2>Filter Reports</h2><p>Choose a time period and grade to view your scans.</p></div></header><div class="report-filter-controls"><fieldset><legend class="knowledge-sr-only">Time period</legend>{% for value,label in period_choices %}<label><input type="radio" name="period" value="{{ value }}" {% if selected_period == value %}checked{% endif %}><span>{{ label }}</span></label>{% endfor %}</fieldset><label class="report-grade-select">Grade<select name="quality"><option value="">All Grades</option>{% for value,label in grade_choices %}<option value="{{ value }}" {% if quality == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></label><button type="submit">Show Results &rarr;</button></div></form>
 {% for error in errors %}<p class="analytics-error" role="alert">{{ error }}</p>{% endfor %}
-<p class="analytics-scope">{% if start or end or quality or selected_ripeness %}Showing matching scans{% else %}Showing all saved scans{% endif %}. Ripeness filters select scans where that category has the highest percentage, including ties.</p>
+<p class="analytics-scope">{% if start or end or quality or selected_ripeness %}Showing matching scans{% else %}Showing all saved scans{% endif %}. Totals count observations across scans, not unique fruits. Repeated photos of the same sample are separate observations.</p>
 <div class="overview-stats">
-    <div class="overview-stat"><strong>{{ total_scans }}</strong><span>Total Scans</span></div><div class="overview-stat"><strong>{{ total_fruits }}</strong><span>Fruits Analyzed</span></div><div class="overview-stat"><strong class="overview-quality">{{ average_grade }}</strong><span>Average Grade</span></div><div class="overview-stat"><strong>{% if total_fruits %}{{ defect_rate }}%{% else %}&mdash;{% endif %}</strong><span>Defect Rate</span></div>
+    <div class="overview-stat"><strong>{{ total_scans }}</strong><span>{% ui 'Total Scans' 'Kabuuang Scan' %}</span></div><div class="overview-stat"><strong>{{ total_fruits }}</strong><span>{% ui 'Fruits Analyzed' 'Mga Bungang Nasuri' %}</span></div><div class="overview-stat"><strong class="overview-quality">{{ average_grade }}</strong><span>{% ui 'Average Grade' 'Karaniwang Grado' %}</span></div><div class="overview-stat"><strong>{% if total_fruits %}{{ defect_rate }}%{% else %}&mdash;{% endif %}</strong><span>Defect Rate</span></div>
 </div>
-<div class="analytics-charts">
-    <section class="analytics-card"><h2>Ripeness Distribution</h2>{% if has_distribution %}
-        <div class="distribution-layout"><div class="analytics-donut" role="img" aria-label="Ripeness distribution: {% for row in distribution %}{{ row.label }} {{ row.pct }} percent. {% endfor %}" style="background: conic-gradient({% for row in distribution %}{{ row.color }} {{ row.start }}% {{ row.end }}%{% if not forloop.last %}, {% endif %}{% endfor %});"><div><strong>{{ total_fruits }}</strong><span>Fruits analyzed</span></div></div>
-        <ul class="distribution-legend">{% for row in distribution %}<li><span><i style="background: {{ row.color }}"></i>{{ row.label }}</span><strong>{{ row.pct }}%</strong></li>{% endfor %}</ul></div>
+{{ distribution|json_script:"report-distribution-data" }}<div class="analytics-charts">
+    <section class="analytics-card report-distribution"><h2>{% ui 'Ripeness Distribution' 'Distribusyon ng Pagkahinog' %}</h2>{% if has_distribution %}
+        <div class="distribution-layout"><div class="analytics-donut" id="interactive-donut" tabindex="0" role="img" aria-label="Ripeness distribution: {% for row in distribution %}{{ row.label }} {{ row.pct }} percent. {% endfor %}" style="background: conic-gradient({% for row in distribution %}{{ row.color }} {{ row.start }}% {{ row.end }}%{% if not forloop.last %}, {% endif %}{% endfor %});"><div><strong>{{ total_fruits }}</strong><span>Fruits analyzed</span></div></div>
+        <ul class="distribution-legend">{% for row in distribution %}<li tabindex="0" data-chart-tip="{{ row.label }}: {{ row.pct }}%"><span><i style="background: {{ row.color }}"></i>{{ row.label }}</span><strong>{{ row.pct }}%</strong></li>{% endfor %}</ul></div>
         <p class="analytics-help">Weighted by fruit count using each scan's saved ripeness percentages.</p>
         {% else %}<div class="analytics-empty">No ripeness data for this selection.</div>{% endif %}
     </section>
-    <section class="analytics-card"><h2>Scan Trends <span>Number of scans</span></h2>{% if trend %}
+    <section class="analytics-card report-grades"><h2>Grade Distribution</h2><div class="report-grade-chart">{% for row in grade_distribution %}<button type="button" data-chart-tip="{{ row.label }}: {{ row.count }} scans ({{ row.pct }}% of scans)"><strong>{{ row.count }}</strong><div class="grade-bar-track"><span style="height:{{ row.pct }}%;background:{{ row.color }}"></span></div><small>{{ row.label }}</small></button>{% endfor %}</div><p class="analytics-help">Percentage of scans in the selected period.</p></section><section class="analytics-card report-trends"><h2>Scan Trends <span>Number of scans</span></h2>{% if trend %}
         <svg class="analytics-trend" viewBox="0 0 500 210" role="img" aria-label="Scan counts over time. Exact values are available in the trend data table below.">
             <line x1="35" y1="35" x2="465" y2="35" class="chart-grid"/><line x1="35" y1="105" x2="465" y2="105" class="chart-grid"/><line x1="35" y1="175" x2="465" y2="175" class="chart-grid"/>
             <text x="25" y="39" text-anchor="end">{{ trend_max }}</text><text x="25" y="179" text-anchor="end">0</text>
             <polyline points="{{ trend_points }}" fill="none" stroke="#279447" stroke-width="3" stroke-linejoin="round"/>
-            {% for point in trend %}<circle cx="{{ point.x }}" cy="{{ point.y }}" r="3.5" fill="white" stroke="#279447" stroke-width="2"><title>{{ point.date }}: {{ point.count }} scans</title></circle>{% endfor %}
+            {% for point in trend %}<circle tabindex="0" data-chart-tip="{{ point.date }}: {{ point.count }} scans ({{ point.pct }}% of selected scans)" cx="{{ point.x }}" cy="{{ point.y }}" r="3.5" fill="white" stroke="#279447" stroke-width="2"><title>{{ point.date }}: {{ point.count }} scans</title></circle>{% endfor %}
             <text x="35" y="202">{{ trend.0.date }}</text>{% if trend|length > 1 %}{% with last=trend|last %}<text x="465" y="202" text-anchor="end">{{ last.date }}</text>{% endwith %}{% endif %}
         </svg>
         <details class="trend-data"><summary>View trend data</summary><div><table><thead><tr><th>Date / period</th><th>Scans</th></tr></thead><tbody>{% for point in trend %}<tr><td>{{ point.date }}</td><td>{{ point.count }}</td></tr>{% endfor %}</tbody></table></div></details>
         {% else %}<div class="analytics-empty">No scans match these filters. Try a wider date range.</div>{% endif %}
     </section>
 </div>
+<section class="report-recent"><header><h2>Recent Scans</h2><a href="{% url 'reports' %}">View history &rarr;</a></header><div class="report-recent-scroll"><table><thead><tr><th>Image</th><th>Date &amp; Time</th><th>Batch Name</th><th>Total Fruits</th><th>Ripeness Summary</th><th>Grade</th><th>Action</th></tr></thead><tbody>{% for scan in recent_activity %}<tr><td data-label="Image">{% with photo=scan.images.last %}{% if photo %}<img src="{{ photo.image.url }}" alt="Scan {{ scan.id }}" loading="lazy">{% else %}&mdash;{% endif %}{% endwith %}</td><td data-label="Date">{{ scan.created_at|date:"M j, Y" }}<br>{{ scan.created_at|date:"h:i A" }}</td><td data-label="Batch">{{ scan.batch_name|default:"—" }}</td><td data-label="Fruits">{{ scan.fruit_count_total }}</td><td data-label="Ripeness"><div class="recent-ripeness"><span style="width:{{ scan.ripeness_unripe_pct }}%;background:#279447" tabindex="0" data-chart-tip="Unripe: {{ scan.ripeness_unripe_pct|floatformat:1 }}%"></span><span style="width:{{ scan.ripeness_ripe_pct }}%;background:#e9b507" tabindex="0" data-chart-tip="Ripe: {{ scan.ripeness_ripe_pct|floatformat:1 }}%"></span><span style="width:{{ scan.ripeness_overripe_pct }}%;background:#ef5350" tabindex="0" data-chart-tip="Overripe: {{ scan.ripeness_overripe_pct|floatformat:1 }}%"></span></div></td><td data-label="Grade"><strong class="report-grade-pill">{{ scan.quality_grade|default:"Pending" }}</strong></td><td><a href="{% url 'report_detail' scan.id %}">View</a></td></tr>{% empty %}<tr><td colspan="7">No scans match these filters.</td></tr>{% endfor %}</tbody></table></div></section>
+<div id="report-chart-tooltip" role="status" hidden></div><script src="{% static 'js/report-charts.js' %}" defer></script>
+<script>
+(() => {
+ const page = document.querySelector('.analytics-page');
+ const buttons = document.querySelectorAll('[data-report-tab]');
+ page.dataset.reportTab = 'overview';
+ buttons.forEach(button => button.addEventListener('click', () => {
+  page.dataset.reportTab = button.dataset.reportTab;
+  buttons.forEach(tab => tab.setAttribute('aria-pressed', String(tab === button)));
+ }));
+})();
+</script>
 {% if multi_image %}<p class="analytics-scope">For scans with multiple images, saved totals and grades currently represent the last uploaded image.</p>{% endif %}
 {% if demo_scans %}<p class="analytics-scope">Includes {{ demo_scans }} scan{{ demo_scans|pluralize }} with simulated demo results.</p>{% endif %}
 {% endblock %}
+
+
+
+
+
+
+
+
 

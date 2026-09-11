@@ -1,5 +1,5 @@
-{% extends 'base.html' %}
-{% load static %}
+﻿{% extends 'base.html' %}
+{% load static ui_language %}
 {% block body_class %}overview-page upload-page{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2">
@@ -7,16 +7,17 @@
 {% endblock %}
 {% block navigation %}{% include "includes/overview_navigation.html" with active_page="upload" %}{% endblock %}
 {% block content %}
-<div class="scan-heading"><h1>Scan Calamansi</h1><p>Upload an image or use your camera to analyze calamansi fruits.</p></div>
-<form method="POST" enctype="multipart/form-data" id="upload-form">
+{% if upload_errors %}<section class="upload-server-feedback" role="alert"><h2>Some images could not be analyzed</h2><ul>{% for error in upload_errors %}<li>{{ error }}</li>{% endfor %}</ul>{% if successful_scans %}<p>The following scans were saved successfully. Only retry the failed photos.</p><ul>{% for saved in successful_scans %}<li><a href="{% url 'report_detail' saved.id %}">View saved scan #{{ saved.id }}</a></li>{% endfor %}</ul>{% endif %}</section>{% endif %}
+<header class="mobile-select-heading"><a href="{% url 'dashboard' %}" aria-label="Back to home"><span class="material-symbols-outlined" aria-hidden="true">chevron_left</span></a><h1>{% ui 'Select Image' 'Pumili ng Larawan' %}</h1></header><div class="scan-heading"><h1>{% ui 'Scan Calamansi' 'I-scan ang Kalamansi' %}</h1><p>Each image is saved as a separate scan with its own counts, ripeness, and grade.</p></div>
+<p class="scan-separate-help">Each photo creates its own result. Multiple photos appear as separate scans in History; they are not combined into one batch.</p><form method="POST" enctype="multipart/form-data" id="upload-form">
     {% csrf_token %}
     <div class="scan-layout">
         <div class="scan-upload-panel">
             <div class="scan-source-actions">
-                <button type="button" id="browse-images-btn" class="scan-source-active"><span class="material-symbols-outlined" aria-hidden="true">upload_file</span>Upload Image</button>
-                <button type="button" id="open-camera-btn"><span class="material-symbols-outlined" aria-hidden="true">photo_camera</span>Use Camera</button>
+                <button type="button" id="browse-images-btn" class="scan-source-active"><span class="material-symbols-outlined" aria-hidden="true">upload_file</span><span class="desktop-source-label">Upload Image</span><span class="mobile-source-label">{% ui 'Choose from Gallery' 'Pumili mula sa Gallery' %}</span></button>
+                <button type="button" id="open-camera-btn"><span class="material-symbols-outlined" aria-hidden="true">photo_camera</span><span class="desktop-source-label">Use Camera</span><span class="mobile-source-label">{% ui 'Take Photo' 'Kumuha ng Larawan' %}</span></button>
             </div>
-            <div class="scan-drop-frame"><div id="dropzone" class="dropzone">
+            <div id="desktop-camera-slot"></div><h2 class="mobile-selected-title">Selected Photos <span id="selected-count" aria-live="polite"></span></h2><p class="mobile-selection-empty" id="selection-empty">Take a photo or choose images from your gallery to preview them here.</p><div class="scan-drop-frame"><div id="dropzone" class="dropzone">
                 <span class="material-symbols-outlined drop-icon" aria-hidden="true">image</span>
                 <p>Drag and drop an image here<br>or click to browse</p>
                 <small>Supports: JPG, PNG (Max 10MB per image)</small>
@@ -25,23 +26,19 @@
             </div></div>
             <p id="upload-error" class="scan-error" role="alert" hidden></p>
         </div>
-        <aside class="scan-tips"><h2>Tips for better results:</h2><ul>
+        <div class="camera-side-column"><aside class="scan-tips"><h2>Tips for better results:</h2><ul>
             <li>Use good lighting</li><li>Place multiple fruits</li><li>Keep the image clear</li><li>Avoid blurry photos</li><li>Include the whole fruit</li>
-        </ul></aside>
+        <li>Clean the camera lens before scanning</li></ul></aside>
+<section class="camera-examples"><h2>Sample Camera View</h2><div class="camera-example-grid">
+<figure><div><img src="{% static 'images/samples/batch.jpg' %}" alt="Well-lit calamansi batch"><span class="example-good" aria-label="Good">&#10003;</span></div><figcaption>Good Example</figcaption></figure>
+<figure><div><img class="example-dark" src="{% static 'images/samples/batch.jpg' %}" alt="Example of poor lighting"><span aria-label="Avoid">&times;</span></div><figcaption>Poor Lighting</figcaption></figure>
+<figure><div><img class="example-blur" src="{% static 'images/samples/batch.jpg' %}" alt="Example of a blurry image"><span aria-label="Avoid">&times;</span></div><figcaption>Blurry Image</figcaption></figure>
+<figure><div><img class="example-crop" src="{% static 'images/samples/batch.jpg' %}" alt="Example of fruits cut off by the frame"><span aria-label="Avoid">&times;</span></div><figcaption>Incomplete View</figcaption></figure>
+</div></section></div>
     </div>
-    <section class="scan-samples" aria-labelledby="samples-title">
-        <div class="scan-samples-heading"><h2 id="samples-title">Sample Images</h2><button type="button" id="use-sample-btn">Use sample image</button></div>
-        <div class="scan-sample-grid">
-            <button type="button" class="scan-sample" data-sample="{% static 'images/samples/green.jpg' %}" aria-label="Use green calamansi sample"><img src="{% static 'images/samples/green.jpg' %}" alt="Fresh green calamansi"></button>
-            <button type="button" class="scan-sample" data-sample="{% static 'images/samples/mixed.jpg' %}" aria-label="Use mixed calamansi sample"><img src="{% static 'images/samples/mixed.jpg' %}" alt="Green and yellow calamansi"></button>
-            <button type="button" class="scan-sample" data-sample="{% static 'images/samples/batch.jpg' %}" aria-label="Use calamansi batch sample"><img src="{% static 'images/samples/batch.jpg' %}" alt="A basket of calamansi"></button>
-        </div>
-    </section>
-    <details class="scan-batch-details"><summary>Batch details <span>(optional)</span></summary><div class="scan-fields">
-        <div><label for="batch_name">Batch name</label><input type="text" name="batch_name" id="batch_name" maxlength="255" placeholder="e.g. Morning harvest"></div>
-        <div><label for="supplier_name">Supplier</label><input type="text" name="supplier_name" id="supplier_name" maxlength="255" placeholder="Supplier name"></div>
-    </div></details>
-    <button type="submit" id="submit-btn" class="scan-analyze">Analyze Batch <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></button>
+
+    <section class="scan-name-panel" aria-labelledby="scan-name-title"><label id="scan-name-title" for="batch_name">Batch / sample name <span>(optional)</span></label><input type="text" name="batch_name" id="batch_name" maxlength="255" value="{{ request.POST.batch_name }}" placeholder="e.g. Sample A - morning light" aria-describedby="scan-name-help"><p id="scan-name-help">Use the same name for photos of the same sample. Each photo still gets a separate result. Leave blank to use its scan number.</p></section>
+    <button type="submit" id="submit-btn" class="scan-analyze" disabled><span class="desktop-source-label">Analyze Images</span><span class="mobile-source-label">{% ui 'Upload' 'I-upload' %}</span> <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></button>
     <p id="loading-msg" role="status" style="display: none;">Analyzing your images. Please wait…</p>
 </form>
 <!-- Image Modal -->
@@ -50,27 +47,12 @@
   <img class="modal-content" id="modalImage">
 </div>
 
-<!-- Camera Modal -->
-<div id="cameraModal" class="modal" style="z-index: 1000; align-items: center; justify-content: center;">
-  <div style="background: var(--white); padding: 1.5rem; border-radius: var(--radius); text-align: center; max-width: 90%; width: 500px;">
-    <h3 style="margin-top: 0; color: var(--green-dark);">Take Photo</h3>
-    <div style="position: relative; width: 100%; max-height: 60vh; overflow: hidden; background: #000; border-radius: 8px; margin-bottom: 1rem;">
-        <video id="camera-stream" autoplay playsinline style="width: 100%; height: auto; display: block;"></video>
-    </div>
-    <div style="display: flex; gap: 1rem; justify-content: center;">
-        <button type="button" id="capture-btn" class="dashboard-action" style="flex: 1;">
-            <span class="material-symbols-outlined">camera</span> Capture
-        </button>
-        <button type="button" id="close-camera-btn" class="dashboard-action" style="flex: 1; background: var(--gray); border-color: var(--gray);">
-            Cancel
-        </button>
-    </div>
-  </div>
-</div>
-<canvas id="camera-canvas" style="display: none;"></canvas>
+{% include 'includes/camera.html' %}
 
 <script>
-    document.getElementById('upload-form').addEventListener('submit', function() {
+    document.getElementById('upload-form').addEventListener('submit', function(event) {
+        if (this.dataset.submitting) { event.preventDefault(); return; }
+        this.dataset.submitting = 'true';
         document.getElementById('submit-btn').style.display = 'none';
         document.getElementById('loading-msg').style.display = 'block';
     });
@@ -95,22 +77,6 @@
         renderPreviews();
         return true;
     }
-
-    async function useSample(button) {
-        try {
-            const response = await fetch(button.dataset.sample);
-            if (!response.ok) throw new Error('Sample unavailable');
-            const blob = await response.blob();
-            selectImages([new File([blob], button.dataset.sample.split('/').pop(), { type: 'image/jpeg' })]);
-        } catch (error) {
-            uploadError.textContent = 'Could not load the sample. Please try again or upload an image.';
-            uploadError.hidden = false;
-        }
-    }
-    document.querySelectorAll('.scan-sample').forEach(button => {
-        button.addEventListener('click', () => useSample(button));
-    });
-    document.getElementById('use-sample-btn').addEventListener('click', () => useSample(document.querySelector('.scan-sample')));
 
     // Drag and drop visual feedback
     ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -164,6 +130,9 @@
         const version = ++previewVersion;
         previewContainer.innerHTML = '';
         const files = Array.from(fileInput.files);
+        document.getElementById('submit-btn').disabled = files.length === 0;
+        document.getElementById('selected-count').textContent = files.length ? '(' + files.length + ')' : '';
+        document.getElementById('selection-empty').hidden = files.length > 0;
         dropzone.classList.toggle('has-images', files.length > 0);
         
         if (files.length > 0) {
@@ -249,66 +218,15 @@
         }
     }
 
-    // Camera functionality
-    const openCameraBtn = document.getElementById('open-camera-btn');
-    const closeCameraBtn = document.getElementById('close-camera-btn');
-    const captureBtn = document.getElementById('capture-btn');
-    const cameraModal = document.getElementById('cameraModal');
-    const videoStream = document.getElementById('camera-stream');
-    const cameraCanvas = document.getElementById('camera-canvas');
-    let currentStream = null;
-
-    openCameraBtn.addEventListener('click', async function() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-            currentStream = stream;
-            videoStream.srcObject = stream;
-            cameraModal.style.display = 'flex';
-        } catch (err) {
-            console.error("Error accessing camera:", err);
-            alert("Could not access camera. Please check permissions.");
-        }
-    });
-
-    function stopCamera() {
-        if (currentStream) {
-            currentStream.getTracks().forEach(track => track.stop());
-            currentStream = null;
-        }
-        cameraModal.style.display = 'none';
-    }
-
-    closeCameraBtn.addEventListener('click', stopCamera);
-    document.addEventListener('keydown', event => {
-        if (event.key === 'Escape') {
-            stopCamera();
-            modal.style.display = 'none';
-        }
-    });
-    window.addEventListener('pagehide', stopCamera);
-
-    captureBtn.addEventListener('click', function() {
-        if (!currentStream || !videoStream.videoWidth || !videoStream.videoHeight) return;
-        
-        const context = cameraCanvas.getContext('2d');
-        cameraCanvas.width = videoStream.videoWidth;
-        cameraCanvas.height = videoStream.videoHeight;
-        context.drawImage(videoStream, 0, 0, cameraCanvas.width, cameraCanvas.height);
-        
-        cameraCanvas.toBlob(function(blob) {
-            if (!blob) return;
-            const fileName = `capture_${new Date().getTime()}.jpg`;
-            const file = new File([blob], fileName, { type: "image/jpeg" });
-            
-            const dt = new DataTransfer();
-            const currentFiles = Array.from(fileInput.files);
-            currentFiles.forEach(f => dt.items.add(f));
-            dt.items.add(file);
-            fileInput.files = dt.files;
-            
-            renderPreviews();
-            stopCamera();
-        }, 'image/jpeg', 0.95);
-    });
 </script>
+<script src="{% static 'js/camera.js' %}"></script>
 {% endblock %}
+
+
+
+
+
+
+
+
+

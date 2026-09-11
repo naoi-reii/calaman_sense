@@ -1,5 +1,5 @@
-{% extends 'base.html' %}
-{% load static %}
+﻿{% extends 'base.html' %}
+{% load static ui_language %}
 {% block body_class %}overview-page result-page{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2">
@@ -7,24 +7,26 @@
 {% endblock %}
 {% block navigation %}{% include "includes/overview_navigation.html" with active_page="reports" %}{% endblock %}
 {% block content %}
-<header class="result-heading">
-    <div><h1>Scan Result</h1><p>Here's the analysis of your calamansi batch.</p><div class="result-timestamp"><span class="material-symbols-outlined" aria-hidden="true">schedule</span><span>Scanned on <time datetime="{{ scan.created_at|date:'c' }}">{{ scan.created_at|date:"M j, Y · h:i A" }}</time></span></div></div>
+<header class="mobile-result-heading"><a href="{% url 'reports' %}" aria-label="Back to scan history"><span class="material-symbols-outlined" aria-hidden="true">chevron_left</span></a><h1>{% ui 'Scan Result' 'Resulta ng Scan' %}</h1></header><header class="result-heading">
+    <div><h1>{% ui 'Scan Result' 'Resulta ng Scan' %}</h1><p>Here's the analysis of your calamansi batch.</p><div class="result-timestamp"><span class="material-symbols-outlined" aria-hidden="true">schedule</span><span>Scanned on <time datetime="{{ scan.created_at|date:'c' }}">{{ scan.created_at|date:"M j, Y · h:i A" }}</time></span></div></div>
     <div class="result-actions">
         <a href="{% url 'upload' %}" class="result-secondary"><span class="material-symbols-outlined" aria-hidden="true">add_photo_alternate</span>Scan Another</a>
-        <button type="button" class="result-save" onclick="window.print()"><span class="material-symbols-outlined" aria-hidden="true">print</span>Print / Save PDF</button>
+        <a class="result-save" href="{% url 'report_detail' scan.id %}?download=pdf" download="calamansense-scan-{{ scan.id }}.pdf"><span class="material-symbols-outlined" aria-hidden="true">download</span>Save PDF</a>
     </div>
 </header>
-<div class="result-layout">
+
+<p class="result-sample-name"><strong>Batch / sample:</strong> {% if scan.batch_name %}{{ scan.batch_name }}{% else %}Scan #{{ scan.id }}{% endif %}</p><div class="result-layout">
     <section class="result-visual labels-visible" aria-label="Detected calamansi images">
-        <div class="result-visual-toolbar"><span>Visual Analysis</span>{% if scan.images.all %}<button type="button" id="toggle-labels" aria-pressed="true">Hide labels</button>{% endif %}</div>
+        <div class="result-visual-toolbar"><span>Visual Analysis</span><div id="fruit-filters" aria-label="Highlight ripeness"><button type="button" data-filter="all" aria-pressed="true"><i class="filter-dot dot-all" aria-hidden="true"></i>All</button><button type="button" data-filter="unripe" aria-pressed="false"><i class="filter-dot dot-unripe" aria-hidden="true"></i>Unripe</button><button type="button" data-filter="ripe" aria-pressed="false"><i class="filter-dot dot-ripe" aria-hidden="true"></i>Ripe</button><button type="button" data-filter="overripe" aria-pressed="false"><i class="filter-dot dot-overripe" aria-hidden="true"></i>Overripe</button></div>{% if scan.images.all %}<button type="button" id="toggle-labels" aria-pressed="true">Hide labels</button>{% endif %}</div>
+        <p id="fruit-filter-status" role="status" class="fruit-filter-help"></p>
         {% for scan_image in scan.images.all %}
-        <figure class="result-figure">
+        <figure class="result-figure" data-image-id="{{ scan_image.id }}">{{ scan_image.mock_annotations|json_script }}{{ scan_image.label_corrections|json_script }}
             <div class="image-viewer">
                 <img src="{{ scan_image.image.url }}" alt="Calamansi scan {{ forloop.counter }} with detected fruit locations">
                 {% for box in scan_image.mock_annotations %}
-                <div class="bounding-box bbox-{{ box.css_class }}" style="top: {{ box.y }}%; left: {{ box.x }}%; width: {{ box.width }}%; height: {{ box.height }}%;">
+                <button type="button" aria-label="Inspect fruit {{ forloop.counter }}: {{ box.label|default:box.css_class }}" data-fruit-index="{{ forloop.counter0 }}" class="bounding-box bbox-{{ box.css_class }}" style="top: {{ box.y }}%; left: {{ box.x }}%; width: {{ box.width }}%; height: {{ box.height }}%;">
                     <span class="bounding-box-label">{{ box.label|default:box.css_class }}</span>
-                </div>
+                </button>
                 {% endfor %}
             </div>
             {% if scan.images.count > 1 %}<figcaption>Image {{ forloop.counter }}{% if forloop.last %} · Summary result{% endif %}</figcaption>{% endif %}
@@ -34,9 +36,10 @@
         <p class="result-score-help">Each box shows the fruit's estimated ripeness score from color analysis, not a calibrated probability.</p>
     </section>
     <aside class="result-summary">
-        <section class="result-count-card"><h2>Total Fruits Detected</h2><strong class="result-total">{{ scan.fruit_count_total }}</strong>
-            <table class="result-ripeness"><caption>Ripeness breakdown</caption><tbody>{% for row in ripeness %}<tr><th scope="row"><i class="result-dot {{ row.key }}"></i>{{ row.label }}</th><td>{{ row.pct|floatformat:1 }}%</td></tr>{% endfor %}</tbody></table>
+        <section class="result-count-card"><h2>{% ui 'Total Fruits Detected' 'Kabuuang Bungang Natukoy' %}</h2><strong class="result-total">{{ scan.fruit_count_total }}</strong>
+            <table class="result-ripeness"><caption>Ripeness breakdown</caption><tbody>{% for row in ripeness %}<tr><th scope="row"><i class="result-dot {{ row.key }}"></i>{{ row.label }}</th><td class="mobile-result-count">{% if counts_available %}<strong>{{ row.count }}</strong>{% else %}&mdash;{% endif %}</td><td>{{ row.pct|floatformat:1 }}%</td></tr>{% endfor %}</tbody></table>
         </section>
+        <div class="mobile-result-count-help">{% if not counts_available %}Per-fruit detections are not available for this saved scan.{% elif scan.images.count > 1 %}Counts and percentages summarize the last uploaded image.{% endif %}</div>
         <section class="result-count-card result-ripeness-counts" aria-labelledby="ripeness-counts-title">
             <h2 id="ripeness-counts-title">Fruit Count by Ripeness</h2>
             <table class="result-ripeness"><caption>{% if scan.images.count > 1 %}Detected fruits in the last uploaded image{% else %}Number of detected calamansi{% endif %}</caption><tbody>
@@ -44,12 +47,15 @@
             </tbody></table>
             {% if not counts_available %}<p class="result-score-help">Per-fruit detections are not available for this saved scan.</p>{% endif %}
         </section>
-        <section class="result-grade-card"><h2>Batch Grade</h2><strong class="result-grade {% if scan.quality_grade == 'Rejected' %}result-grade-rejected{% elif scan.quality_grade == 'Average' %}result-grade-average{% endif %}">{{ scan.quality_grade|default:"Not graded" }}</strong><p>Based on the scan analysis</p></section>
+        <section class="result-grade-card"><h2>{% ui 'Batch Grade' 'Grado ng Batch' %}</h2><strong class="result-grade {% if scan.quality_grade == 'Rejected' %}result-grade-rejected{% elif scan.quality_grade == 'Average' %}result-grade-average{% endif %}">{{ scan.quality_grade|default:"Not graded" }}</strong><p>Based on the scan analysis</p></section>
         <div class="result-saved"><span class="material-symbols-outlined" aria-hidden="true">check_circle</span>Saved to your scan history</div>
     </aside>
 </div>
 <section class="result-notes" aria-labelledby="notes-title"><span class="material-symbols-outlined" aria-hidden="true">info</span><div><h2 id="notes-title">Notes</h2><ul>{% for note in result_notes %}<li>{{ note }}</li>{% endfor %}</ul></div></section>
 <a class="result-back" href="{% url 'reports' %}">← Back to reports</a>
+<div class="mobile-result-actions"><a class="mobile-pdf-save" href="{% url 'report_detail' scan.id %}?download=pdf" download="calamansense-scan-{{ scan.id }}.pdf"><span class="material-symbols-outlined" aria-hidden="true">download</span>{% ui 'Save PDF' 'I-save bilang PDF' %}</a><a href="{% url 'upload' %}#open-camera-btn">{% ui 'New Scan' 'Bagong Scan' %}</a></div>
+<dialog id="fruit-inspector" aria-labelledby="inspector-title"><button type="button" id="inspector-close" aria-label="Close inspector">&times;</button><h2 id="inspector-title">Fruit Inspector</h2><div class="fruit-zoom-stage"><canvas id="fruit-zoom" width="480" height="360" role="img" aria-label="Enlarged selected fruit"></canvas><span id="fruit-number" class="fruit-number"></span><button type="button" id="fruit-prev" class="fruit-photo-arrow" aria-label="Previous fruit">&lt;</button><button type="button" id="fruit-next" class="fruit-photo-arrow" aria-label="Next fruit">&gt;</button></div><p id="inspector-position"></p><p id="inspector-original"></p><p>Original score is a color-based estimate, not a calibrated probability. A manual label has no new model score.</p><label for="fruit-label">Reviewed ripeness</label><select id="fruit-label"><option value="unripe">Unripe</option><option value="ripe">Ripe</option><option value="overripe">Overripe</option></select><div class="inspector-actions"><button type="button" id="fruit-save">Save correction</button><button type="button" id="fruit-reset">Restore original</button></div><p id="inspector-status" role="status"></p><form hidden>{% csrf_token %}</form></dialog>
+<script src="{% static 'js/fruit-inspector.js' %}" defer></script>
 <script>
 const labelsButton = document.getElementById('toggle-labels');
 if (labelsButton) {
@@ -61,4 +67,11 @@ if (labelsButton) {
 }
 </script>
 {% endblock %}
+
+
+
+
+
+
+
 

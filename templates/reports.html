@@ -1,5 +1,5 @@
-{% extends 'base.html' %}
-{% load static %}
+﻿{% extends 'base.html' %}
+{% load static ui_language %}
 {% block body_class %}overview-page history-page{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2">
@@ -7,23 +7,32 @@
 {% endblock %}
 {% block navigation %}{% include "includes/overview_navigation.html" with active_page="history" %}{% endblock %}
 {% block content %}
-<header class="history-heading">
+<header class="mobile-history-heading"><a href="{% url 'dashboard' %}" aria-label="Back to home"><span class="material-symbols-outlined" aria-hidden="true">chevron_left</span></a><h1>{% ui 'History' 'Kasaysayan' %}</h1></header><header class="history-heading">
     <div><h1>Scan History</h1><p>View and manage your past scans.</p></div>
     <div class="history-actions-wrapper" style="display: flex; align-items: center; gap: 12px;">
         <span id="selection-status" role="status" style="font-size: 13px; color: var(--gray);">0 scans selected</span>
         <button type="submit" form="deleteForm" id="deleteBtn" name="action" value="delete" disabled class="delete-selected-btn"><span class="material-symbols-outlined" aria-hidden="true" style="font-size: 18px;">delete</span>Delete selected</button>
         <form method="get" class="history-filters">
-            <select name="grade" aria-label="Filter by batch grade"><option value="">All grades</option>{% for value, label in grade_choices %}<option value="{{ value }}" {% if selected_grade == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
-            <select name="period" aria-label="Filter by date"><option value="all" {% if selected_period == 'all' %}selected{% endif %}>All time</option><option value="7" {% if selected_period == '7' %}selected{% endif %}>Last 7 days</option><option value="30" {% if selected_period == '30' %}selected{% endif %}>Last 30 days</option><option value="90" {% if selected_period == '90' %}selected{% endif %}>Last 90 days</option></select>
-            <button type="submit">Apply</button>
+            <select name="grade" aria-label="Filter by batch grade"><option value="">{% ui 'All grades' 'Lahat ng grado' %}</option>{% for value, label in grade_choices %}<option value="{{ value }}" {% if selected_grade == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+            <select name="period" aria-label="Filter by date"><option value="all" {% if selected_period == 'all' %}selected{% endif %}>{% ui 'All time' 'Lahat ng panahon' %}</option><option value="7" {% if selected_period == '7' %}selected{% endif %}>{% ui 'Last 7 days' 'Huling 7 araw' %}</option><option value="30" {% if selected_period == '30' %}selected{% endif %}>{% ui 'Last 30 days' 'Huling 30 araw' %}</option><option value="90" {% if selected_period == '90' %}selected{% endif %}>{% ui 'Last 90 days' 'Huling 90 araw' %}</option></select>
+            <button type="submit">{% ui 'Apply' 'Ilapat' %}</button>
         </form>
     </div>
 </header>
+<form method="post" id="mobile-delete-form">{% csrf_token %}<input type="hidden" name="action" value="delete"><div class="mobile-history-selection"><span id="mobile-selection-count" role="status">0 selected</span><button type="button" id="mobile-selection-start">Select</button><button type="button" id="mobile-selection-cancel" hidden>Cancel</button><button type="submit" id="mobile-selection-delete" hidden disabled>Delete</button></div></form><div class="history-export-controls"><span>Select scans to compare or export</span><button type="button" id="compare-scans-btn">Compare 2 Scans</button><button type="button" data-export="pdf">Export PDF</button><button type="button" data-export="csv">Export CSV</button><p id="export-status" role="status"></p></div><section class="mobile-history-list" aria-label="Scan history">
+{% for scan in scans %}
+<div class="mobile-history-item"><a class="mobile-history-card" href="{% url 'report_detail' scan.id %}" aria-label="View scan from {{ scan.created_at|date:'M j, Y h:i A' }}, {{ scan.quality_grade|default:'Pending' }}">
+ {% with scan_image=scan.images.last %}<div class="mobile-history-photo">{% if scan_image %}<img src="{{ scan_image.image.url }}" alt="Calamansi scan" loading="lazy">{% else %}<span class="material-symbols-outlined" aria-hidden="true">image_not_supported</span>{% endif %}</div>{% endwith %}
+ <div class="mobile-history-info"><time datetime="{{ scan.created_at|date:'c' }}">{{ scan.created_at|date:"M j, Y" }}<span>{{ scan.created_at|date:"h:i A" }}</span></time><strong>{{ scan.fruit_count_total }} fruit{{ scan.fruit_count_total|pluralize }}</strong></div>
+ <span class="mobile-history-grade {% if scan.quality_grade == 'Best Quality' or scan.quality_grade == 'Good Quality' %}grade-green{% elif scan.quality_grade == 'Average' %}grade-amber{% elif scan.quality_grade == 'Rejected' %}grade-red{% endif %}">{{ scan.quality_grade|default:"Pending" }}</span>
+</a><label class="mobile-history-check"><input type="checkbox" form="mobile-delete-form" name="scan_ids" value="{{ scan.id }}" aria-label="Select scan {{ scan.id }} for deletion"></label></div>
+{% empty %}<div class="history-empty"><span class="material-symbols-outlined" aria-hidden="true">history</span><h2>No scans found</h2><p>{% if selected_grade or selected_period != 'all' %}Try a different grade or date filter.{% else %}Your calamansi scans will appear here.{% endif %}</p><a href="{% url 'reports' %}">Clear filters</a><a href="{% url 'upload' %}">{% ui 'New Scan' 'Bagong Scan' %}</a></div>{% endfor %}
+</section>
 <section class="history-panel" aria-label="Past scans">
 <form method="post" id="deleteForm">
     {% csrf_token %}
     <div class="history-table-scroll"><table class="history-table">
-        <thead><tr><th scope="col" class="history-select"><input type="checkbox" id="selectAll" aria-label="Select all displayed scans"></th><th scope="col">Image</th><th scope="col">Date &amp; Time</th><th scope="col">Total Fruits</th><th scope="col">Batch Grade</th><th scope="col">Actions</th></tr></thead>
+        <thead><tr><th scope="col" class="history-select"><input type="checkbox" id="selectAll" aria-label="Select all displayed scans"></th><th scope="col">Image</th><th scope="col">Date &amp; Time</th><th scope="col">Total Fruits</th><th scope="col">{% ui 'Batch Grade' 'Grado ng Batch' %}</th><th scope="col">Actions</th></tr></thead>
         <tbody>{% for scan in scans %}
             <tr><td><input type="checkbox" name="scan_ids" value="{{ scan.id }}" class="scan-checkbox" aria-label="Select scan {{ scan.id }}"></td>
                 <td>{% with scan_image=scan.images.last %}<a class="history-thumbnail" href="{% url 'report_detail' scan.id %}" aria-label="View scan {{ scan.id }}">{% if scan_image %}<img src="{{ scan_image.image.url }}" alt="Calamansi scan {{ scan.id }}" loading="lazy">{% else %}<span class="material-symbols-outlined" aria-hidden="true">image_not_supported</span>{% endif %}</a>{% endwith %}</td>
@@ -57,5 +66,34 @@ document.getElementById('deleteForm').addEventListener('submit', event => {
 document.querySelectorAll('.history-filters select').forEach(select => select.addEventListener('change', () => select.form.requestSubmit()));
 updateSelection();
 </script>
-{% endblock %}
+<script src="{% static 'js/mobile-history.js' %}" defer></script>
+<script>
+document.querySelectorAll('[data-export]').forEach(button => button.addEventListener('click', () => {
+ const mobile = matchMedia('(max-width:760px)').matches;
+ const boxes = document.querySelectorAll(mobile ? '.mobile-history-check input:checked' : '.scan-checkbox:checked');
+ const status = document.getElementById('export-status');
+ if (!boxes.length) { status.textContent = 'Select at least one scan first.'; return; }
+ if (boxes.length > 500) { status.textContent = 'Select up to 500 scans per export.'; return; }
+ const url = new URL('{% url "reports_overview" %}', location.origin);
+ url.searchParams.set('download', button.dataset.export);
+ boxes.forEach(box => url.searchParams.append('scan_ids', box.value));
+ status.textContent = 'Preparing your download...';
+ location.assign(url.href);
+}));
+</script>
+<script>
+document.getElementById('compare-scans-btn').addEventListener('click', () => {
+ const mobile = matchMedia('(max-width:760px)').matches;
+ const selected = document.querySelectorAll(mobile ? '.mobile-history-check input:checked' : '.scan-checkbox:checked');
+ if (selected.length !== 2) { document.getElementById('export-status').textContent = 'Select exactly two different scans to compare.'; return; }
+ const url = new URL('{% url "compare_scans" %}', location.origin);
+ selected.forEach(box => url.searchParams.append('scan_ids', box.value));
+ location.assign(url.href);
+});
+</script>{% endblock %}
+
+
+
+
+
 

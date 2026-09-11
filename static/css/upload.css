@@ -52,3 +52,167 @@
 .upload-page .dropzone .preview-thumb { display: block; width: 100%; height: 280px; max-height: 55vh; object-fit: contain; border: 0; border-radius: 6px; background: var(--white); }
 .upload-page .dropzone .preview-thumb:hover { transform: none; }
 .upload-page .dropzone .scan-previews button { z-index: 2; }
+.camera-modal[hidden] { display: none; }
+.camera-modal { position: fixed; inset: 0; z-index: 1200; display: flex; align-items: center; justify-content: center; background: #000b; overflow-y: auto; }
+.camera-screen { width: 440px; max-width: 100%; background: #1b1d1b; color: white; border-radius: 18px; padding: 16px 16px 32px; }
+.camera-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.camera-header h2 { color: #fff; font-size: 18px; margin: 0; }
+.camera-screen button { background: transparent; border: 0; color: #fff; min-width: 44px; min-height: 44px; padding: 8px; }
+.camera-screen button:disabled { opacity: .4; cursor: default; }
+.camera-screen button:focus-visible { outline: 2px solid #c6e7a4; outline-offset: 3px; }
+.camera-viewfinder { position: relative; width: 100%; aspect-ratio: 1; border-radius: 15px; overflow: hidden; background: #080a08; }
+.camera-viewfinder video { width: 100%; height: 100%; object-fit: contain; display: block; }
+.camera-frame { position: absolute; inset: 15%; pointer-events: none; }
+.camera-frame i { position: absolute; width: 35px; height: 35px; border: solid #fff; border-width: 0; filter: drop-shadow(0 1px 2px #0008); }
+.camera-frame i:nth-child(1) { top: 0; left: 0; border-top-width: 4px; border-left-width: 4px; border-radius: 9px 0 0; }
+.camera-frame i:nth-child(2) { top: 0; right: 0; border-top-width: 4px; border-right-width: 4px; border-radius: 0 9px 0 0; }
+.camera-frame i:nth-child(3) { bottom: 0; left: 0; border-bottom-width: 4px; border-left-width: 4px; border-radius: 0 0 0 9px; }
+.camera-frame i:nth-child(4) { bottom: 0; right: 0; border-bottom-width: 4px; border-right-width: 4px; border-radius: 0 0 9px; }
+.camera-instruction { text-align: center; color: #fff; font-size: 14px; margin: 24px 0 12px; }
+.camera-quality { min-height: 44px; text-align: center; color: #c4dfb4; font-size: 13px; line-height: 1.5; margin: 0 10px 16px; }
+.camera-quality.is-warning { color: #ffe08b; }
+.camera-controls { display: grid; grid-template-columns: 1fr 1fr 1fr; align-items: center; justify-items: center; gap: 18px; }
+.camera-controls button:not(#capture-btn) { display: flex; flex-direction: column; align-items: center; gap: 6px; font-size: 12px; }
+.camera-controls .material-symbols-outlined { font-size: 27px; }
+.camera-screen #capture-btn { width: 76px; height: 76px; border: 4px solid white; border-radius: 50%; padding: 4px; background: #fff; background-clip: content-box; }
+.camera-open { overflow: hidden; }
+@media (max-width: 760px) {
+ .camera-modal { background: #1b1d1b; align-items: stretch; }
+ .camera-screen { width: 100%; min-height: 100svh; border-radius: 0; padding: max(16px, env(safe-area-inset-top)) 12px max(28px, env(safe-area-inset-bottom)); display: flex; flex-direction: column; }
+ .camera-viewfinder { max-height: 52svh; flex-shrink: 0; }
+ .camera-controls { margin: auto 0 4svh; padding-top: 10px; }
+}
+
+/* Review selected images on mobile before explicitly uploading. */
+.mobile-select-heading, .mobile-source-label, .mobile-selected-title, .mobile-selection-empty { display: none; }
+.scan-analyze:disabled { opacity: .5; cursor: not-allowed; }
+@media (max-width: 760px) {
+ .upload-page { padding-top: 0; background: var(--white); }
+ .upload-page .overview-topbar, .upload-page .mobile-bottom-nav { display: none; }
+ .upload-page .container { max-width: 520px; margin: 0 auto; padding: max(24px, env(safe-area-inset-top)) 22px 30px; }
+ .mobile-select-heading { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; margin-bottom: 24px; }
+ .mobile-select-heading a { display: grid; place-items: center; min-height: 44px; color: var(--black); }
+ .mobile-select-heading h1 { font-size: 20px; text-align: center; margin: 0; }
+ .upload-page .scan-heading, .upload-page .scan-tips, .upload-page .scan-samples, .upload-page .scan-batch-details, .upload-page .desktop-source-label { display: none; }
+ .upload-page .mobile-source-label { display: inline; }
+ .upload-page #upload-form { display: flex; flex-direction: column; min-height: calc(100svh - 145px); padding-bottom: env(safe-area-inset-bottom); }
+ .upload-page .scan-layout { display: block; }
+ .upload-page .scan-source-actions { display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px; }
+ .upload-page .scan-source-actions button { display: flex; align-items: center; justify-content: flex-start; gap: 14px; width: 100%; min-height: 62px; padding: 12px 16px; border: 0; border-radius: 9px; background: var(--green-light); color: var(--green-dark); font-size: 15px; font-weight: 600; }
+ .upload-page #open-camera-btn { order: -1; }
+ .upload-page .scan-source-actions .material-symbols-outlined { display: grid; place-items: center; width: 38px; height: 38px; background: #cce4ce80; border-radius: 9px; font-size: 28px; font-variation-settings: 'FILL' 1; }
+ .mobile-selected-title { display: block; font-size: 17px; margin: 0 0 14px; }
+ #selected-count { font-size: 14px; color: var(--gray-dark); font-weight: 400; }
+ .mobile-selection-empty { display: block; color: var(--gray-dark); background: var(--background); border: 1px dashed var(--border); border-radius: 9px; padding: 32px 20px; font-size: 14px; line-height: 1.6; text-align: center; }
+ .mobile-selection-empty[hidden] { display: none; }
+ .upload-page .scan-drop-frame, .upload-page .dropzone, .upload-page .dropzone.has-images { padding: 0; border: 0; background: transparent; min-height: 0; box-shadow: none; }
+ .upload-page .dropzone > .drop-icon, .upload-page .dropzone > p, .upload-page .dropzone > small { display: none; }
+ .upload-page .dropzone > input[type='file'] { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+ .upload-page .dropzone .scan-previews { display: grid !important; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 13px; margin: 0 0 22px; }
+ .upload-page .dropzone .scan-previews > div { width: 100%; min-width: 0; }
+ .upload-page .dropzone .preview-thumb { height: auto; aspect-ratio: 1; width: 100%; object-fit: cover; border: 1px solid var(--border); border-radius: 9px; cursor: zoom-in; }
+ .upload-page .dropzone .scan-previews button { top: -7px !important; right: -5px !important; width: 28px !important; height: 28px !important; }
+ .upload-page #submit-btn { position: static; width: 100%; min-height: 54px; margin-top: auto; border-radius: 8px; font-size: 18px; }
+ .upload-page #submit-btn > .material-symbols-outlined { display: none; }
+ .upload-page #loading-msg { text-align: center; margin-top: auto; color: var(--green-dark); padding: 16px; }
+ .upload-page #upload-error { margin-bottom: 20px; }
+}
+
+.camera-side-column { min-width:0; }
+.camera-examples { margin-top:18px; padding:18px; background:var(--white); border:1px solid var(--border); border-radius:10px; }
+.camera-examples h2 { font-size:15px; margin:0 0 14px; }
+.camera-example-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px 12px; }
+.camera-example-grid figure { margin:0; min-width:0; }
+.camera-example-grid figure > div { position:relative; aspect-ratio:1.65; overflow:hidden; border-radius:7px; background:#172518; }
+.camera-example-grid img { width:100%; height:100%; object-fit:cover; }
+.camera-example-grid figcaption { font-size:11px; text-align:center; margin-top:7px; color:var(--gray-dark); }
+.camera-example-grid figure span { position:absolute; top:5px; right:5px; display:grid; place-items:center; width:22px; height:22px; border-radius:50%; background:#f35b61; color:white; font-size:19px; font-weight:700; }
+.camera-example-grid figure span.example-good { background:#14965f; font-size:16px; }
+.example-dark { filter:brightness(.3); }.example-blur { filter:blur(5px); transform:scale(1.08); }.example-crop { transform:scale(2.7); }
+@media(min-width:761px) {
+ .upload-page .scan-layout { grid-template-columns:minmax(0,1.8fr) minmax(250px,1fr); gap:20px; align-items:start; }
+ .upload-page .scan-source-actions { display:flex; gap:0; border:1px solid var(--border); border-radius:9px; overflow:hidden; margin-bottom:12px; }
+ .upload-page .scan-source-actions button { flex:1; border-radius:0; min-height:46px; }
+ .upload-page #open-camera-btn { order:-1; }
+ .desktop-camera-active .scan-drop-frame, .desktop-camera-active .scan-batch-details, .desktop-camera-active .scan-samples, .desktop-camera-active #submit-btn { display:none; }
+ #desktop-camera-slot .camera-modal { position:static; background:transparent; display:block; overflow:visible; }
+ #desktop-camera-slot .camera-modal[hidden] { display:none; }
+ #desktop-camera-slot .camera-screen { position:relative; width:100%; max-width:none; padding:10px; background:var(--white); border:1px solid var(--border); border-radius:12px; box-shadow:0 3px 12px #173c2010; color:var(--black); }
+ #desktop-camera-slot .camera-header { position:absolute; top:22px; left:22px; right:22px; z-index:2; margin:0; padding:4px; border-radius:9px; background:#17251dcc; }
+ #desktop-camera-slot .camera-header h2 { font-size:13px; }
+ #desktop-camera-slot .camera-viewfinder { aspect-ratio:1.5; border-radius:9px; }
+ #desktop-camera-slot .camera-frame { inset:20% 5% 8%; }
+ #desktop-camera-slot .camera-instruction { color:var(--gray-dark); margin:13px 0 6px; font-size:12px; }
+ #desktop-camera-slot .camera-quality { color:var(--green-dark); font-size:12px; min-height:18px; margin:0 0 8px; }
+ #desktop-camera-slot .camera-quality.is-warning { color:#a16400; }
+ #desktop-camera-slot .camera-controls { padding:8px 10px; }
+ #desktop-camera-slot .camera-controls button { color:var(--green-dark); }
+ #desktop-camera-slot #capture-btn { width:65px; height:65px; background-color:#086839; border-color:#086839; box-shadow:inset 0 0 0 3px white; }
+ #desktop-camera-slot #capture-btn::after { content:'photo_camera'; font-family:'Material Symbols Outlined'; font-size:28px; color:white; }
+}
+@media(max-width:760px) { .camera-examples { display:none; } }
+
+/* Match the upload panel height to the adjacent guidance column. */
+@media(min-width:761px) {
+ .upload-page .scan-layout { align-items:stretch; }
+ .upload-page .scan-upload-panel { display:flex; flex-direction:column; min-width:0; }
+ .upload-page .scan-source-actions { flex-shrink:0; }
+ .upload-page .scan-drop-frame { flex:1; display:flex; min-height:360px; }
+ .upload-page .scan-drop-frame .dropzone { width:100%; flex:1; min-height:340px; }
+ .upload-page .dropzone .scan-previews { display:grid!important; grid-template-columns:repeat(2,minmax(0,1fr)); align-content:center; }
+ .upload-page .dropzone .scan-previews:empty { display:none!important; }
+ .upload-page .dropzone .scan-previews > div { width:100%; max-width:none; }
+ .upload-page .dropzone .preview-thumb { height:220px; object-fit:contain; }
+ .desktop-camera-active .scan-drop-frame { display:none; }
+ .upload-page .scan-upload-panel > .scan-error[hidden] { display:none; }
+ .upload-page .scan-upload-panel > .scan-error:not([hidden]) { margin:10px 0 0; }
+}
+.scan-tips li::before { content:'\2713'; }
+
+/* Clearly distinguish the selected camera/upload source. */
+@media (min-width: 761px) {
+ .upload-page .scan-source-actions button.scan-source-active {
+  background: #086839;
+  color: #fff;
+  border-color: #086839;
+  font-weight: 700;
+  box-shadow: inset 0 -3px 0 #044b28;
+ }
+ .upload-page .scan-source-actions button.scan-source-active .material-symbols-outlined { color: #fff; }
+ .upload-page .scan-source-actions button:not(.scan-source-active):hover { background: var(--green-light); color: var(--green-dark); }
+ .upload-page .scan-source-actions button.scan-source-active:hover { background: #07532e; }
+ .upload-page .scan-source-actions button:focus-visible { outline: 3px solid #b4df91; outline-offset: -4px; }
+}
+
+/* Give a single selected photo the full upload preview area. */
+@media (min-width: 761px) {
+ .upload-page .dropzone .scan-previews:has(> div:only-child) {
+  grid-template-columns: minmax(0, 1fr);
+ }
+ .upload-page .dropzone .scan-previews > div:only-child .preview-thumb {
+  height: auto;
+  min-height: 340px;
+  max-height: 65vh;
+  width: 100%;
+  object-fit: contain;
+ }
+ .upload-page .dropzone .scan-previews > div:not(:only-child) .preview-thumb {
+  height: 300px;
+  max-height: 55vh;
+ }
+}
+.scan-separate-help { color:var(--gray-dark); font-size:13px; line-height:1.5; margin:0 0 18px; }
+.upload-server-feedback { margin-bottom:20px; padding:18px; background:#fff4ed; color:#813b1a; border:1px solid #efc6ad; border-radius:10px; font-size:14px; line-height:1.6; }
+.upload-server-feedback h2 { font-size:17px; margin:0 0 8px; }.upload-server-feedback a { color:#086839; font-weight:700; }
+
+.scan-name-panel { max-width:650px; padding:18px; margin:20px 0; border:1px solid var(--border); border-radius:10px; background:var(--white); }
+.scan-name-panel label { display:block; margin-bottom:8px; font-size:14px; font-weight:600; }
+.scan-name-panel label span,.scan-supplier-details summary span { color:var(--gray); font-weight:400; font-size:12px; }
+.scan-name-panel input { width:100%; min-height:44px; }
+.scan-name-panel p { font-size:12px; line-height:1.6; color:var(--gray-dark); margin:9px 0 0; }
+.scan-supplier-details { margin-top:14px; font-size:13px; }
+.scan-supplier-details summary { cursor:pointer; color:var(--green-dark); padding:6px 0; }
+.scan-supplier-details label { margin-top:12px; }
+.desktop-camera-active .scan-name-panel { display:none; }
+@media(max-width:760px) { .scan-name-panel { padding:15px; margin:18px 0; }.scan-name-panel input { font-size:16px; } }
+@media(min-width:761px) { #switch-camera-btn,#camera-flash { display:none!important; } }

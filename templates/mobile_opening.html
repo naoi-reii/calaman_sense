@@ -1,0 +1,79 @@
+{% load static %}
+{% if not form.errors %}
+<div class="mobile-opening" id="mobile-opening" hidden>
+    <img class="mobile-opening-photo" src="{% static 'images/mobile-opening.png' %}" alt="" fetchpriority="high">
+    <div class="mobile-opening-identity">
+        <svg class="mobile-opening-logo" viewBox="0 0 100 110" aria-hidden="true">
+            <defs><linearGradient id="fruit-green" x2="1" y2="1"><stop stop-color="#94c952"/><stop offset="1" stop-color="#297b38"/></linearGradient><linearGradient id="fruit-gold" x2="1" y2="1"><stop stop-color="#ffe783"/><stop offset="1" stop-color="#edb72c"/></linearGradient></defs>
+            <path d="M47 35C22 24 12 45 12 66c0 24 15 36 35 35 23-1 34-18 31-38-2-17-16-31-31-28Z" fill="url(#fruit-green)" stroke="white" stroke-width="3"/>
+            <path d="M46 40C39 23 42 13 51 5M47 23C27 25 22 14 24 10c17-4 26 2 23 13ZM49 18C50 6 66 4 71 8c-2 13-14 17-22 10Z" fill="#a6d86f" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            <circle cx="65" cy="52" r="23" fill="url(#fruit-gold)" stroke="white" stroke-width="3"/>
+            <path d="M59 34c-5 1-8 5-9 9" fill="none" stroke="#fff6cf" stroke-width="4" stroke-linecap="round"/>
+        </svg>
+        <h1>CalamanSense</h1>
+        <p>Smart Calamansi<br>Quality Assessment</p>
+    </div>
+    <div class="mobile-opening-footer"><p>For farmers. For better harvests.<br>A smarter tomorrow.</p><button type="button" id="opening-continue">Tap to continue <span aria-hidden="true">&rarr;</span></button></div>
+</div>
+{% include 'mobile_onboarding.html' %}
+<script>
+(() => {
+    const opening = document.getElementById('mobile-opening');
+    const onboarding = document.getElementById('mobile-onboarding');
+    const card = document.querySelector('.auth-card');
+    const mobile = window.matchMedia('(max-width: 760px)');
+    const slides = Array.from(onboarding.querySelectorAll('[data-slide]'));
+    const dots = Array.from(onboarding.querySelectorAll('[data-page]'));
+    const next = document.getElementById('onboarding-next');
+    const skip = document.getElementById('onboarding-skip');
+    let page = 0;
+    let openingSeen = false;
+    let onboardingSeen = false;
+    try {
+        openingSeen = sessionStorage.getItem('calamansense-opening-seen') === '1';
+        onboardingSeen = sessionStorage.getItem('calamansense-onboarding-seen') === '1';
+    } catch (_) {}
+    if (!mobile.matches || onboardingSeen) return;
+    card.inert = true;
+    document.body.classList.add('opening-active');
+    function remember(key) { try { sessionStorage.setItem(key, '1'); } catch (_) {} }
+    function showPage(index) {
+        page = index;
+        slides.forEach((slide, i) => { slide.hidden = i !== page; });
+        dots.forEach((dot, i) => { if (i === page) dot.setAttribute('aria-current', 'step'); else dot.removeAttribute('aria-current'); });
+        next.textContent = page === 2 ? 'Get Started' : 'Next';
+        skip.hidden = page === 2;
+        slides[page].querySelector('h2').focus({preventScroll: true});
+    }
+    function showOnboarding() {
+        opening.hidden = true;
+        onboarding.hidden = false;
+        remember('calamansense-opening-seen');
+        showPage(0);
+    }
+    function dismiss(completed) {
+        opening.hidden = true;
+        onboarding.hidden = true;
+        card.inert = false;
+        document.body.classList.remove('opening-active');
+        if (completed) {
+            remember('calamansense-opening-seen');
+            remember('calamansense-onboarding-seen');
+        }
+        const heading = document.querySelector('.auth-heading h2');
+        heading.tabIndex = -1;
+        heading.focus({preventScroll: true});
+    }
+    document.getElementById('opening-continue').addEventListener('click', showOnboarding);
+    next.addEventListener('click', () => { if (page < 2) showPage(page + 1); else dismiss(true); });
+    skip.addEventListener('click', () => dismiss(true));
+    dots.forEach(dot => dot.addEventListener('click', () => showPage(Number(dot.dataset.page))));
+    mobile.addEventListener('change', event => { if (!event.matches) dismiss(false); });
+    if (openingSeen) showOnboarding();
+    else {
+        opening.hidden = false;
+        document.getElementById('opening-continue').focus({preventScroll: true});
+    }
+})();
+</script>
+{% endif %}
