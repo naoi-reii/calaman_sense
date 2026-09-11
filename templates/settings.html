@@ -5,7 +5,14 @@
 {% block navigation %}{% include 'includes/overview_navigation.html' with active_page='settings' %}{% endblock %}
 
 {% block content %}
-<div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.5rem;">
+<header class="mobile-settings-heading">
+    <a href="{% url 'profile' %}" aria-label="{% ui 'Back to Profile' 'Bumalik sa Profile' %}">
+        <span class="material-symbols-outlined" aria-hidden="true">chevron_left</span>
+    </a>
+    <h1>{% ui 'Settings' 'Mga Setting' %}</h1>
+    <div></div>
+</header>
+<div class="desktop-settings-heading">
     <h1>{% ui 'Settings' 'Mga Setting' %}</h1>
 </div>
 

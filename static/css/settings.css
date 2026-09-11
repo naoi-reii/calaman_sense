@@ -1,4 +1,4 @@
-﻿.language-form { display:flex; flex-wrap:wrap; align-items:center; gap:7px; }
+.language-form { display:flex; flex-wrap:wrap; align-items:center; gap:7px; }
 .language-label { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
 .settings-guides { background:var(--white); border:1px solid var(--border); border-radius:14px; overflow:hidden; margin-bottom:24px; }
 .settings-guide-hero { padding:25px; background:var(--green-light); }
@@ -17,12 +17,18 @@
 .guide-content a { color:var(--green-dark); font-weight:600; }
 .guide-chips { display:flex; gap:8px; }
 .guide-chips span { padding:5px 12px; border-radius:20px; background:var(--green-light); color:var(--green-dark); }
+.mobile-settings-heading { display: none; }
+.desktop-settings-heading { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 1.5rem; }
+.desktop-settings-heading h1 { font-size: 32px; letter-spacing: -.8px; margin: 0; }
+
 .settings-guides summary:focus-visible { outline:2px solid var(--green); outline-offset:-3px; }
 @media(max-width:760px) {
  .mobile-settings-page { padding-top:0; }
- .mobile-settings-page .overview-topbar { display:none; }
- .mobile-settings-page .container { max-width:520px; margin:0 auto; padding:max(24px, env(safe-area-inset-top)) 18px 24px; }
- .mobile-settings-page .container > div > h1 { font-size:23px; }
+ .mobile-settings-page .overview-topbar, .mobile-settings-page .desktop-settings-heading { display:none; }
+ .mobile-settings-page .container { max-width:520px; margin:0 auto; padding:max(20px, env(safe-area-inset-top)) 18px 24px; }
+ .mobile-settings-heading { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; margin-bottom: 16px; }
+ .mobile-settings-heading a { display: grid; place-items: center; min-height: 44px; color: var(--black); text-decoration: none; }
+ .mobile-settings-heading h1 { font-size: 21px; text-align: center; margin: 0; }
  .mobile-settings-page .settings-page .box { padding:18px; border-radius:12px; }
  .mobile-settings-page .settings-row { flex-wrap:wrap; gap:10px; }
  .mobile-settings-page .row-text { min-width:120px; }
