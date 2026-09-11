@@ -301,14 +301,6 @@ def settings_view(request):
                 user = password_form.save()
                 update_session_auth_hash(request, user)
                 return redirect('settings')
-        elif 'update_profile' in request.POST:
-            request.user.first_name = request.POST.get('first_name', '')
-            request.user.last_name = request.POST.get('last_name', '')
-            username = request.POST.get('username')
-            if username:
-                request.user.username = username
-            request.user.save()
-            return redirect('settings')
         else:
             password_form = SetPasswordForm(request.user)
     else:

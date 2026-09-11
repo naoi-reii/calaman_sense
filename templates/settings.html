@@ -1,4 +1,4 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 {% load static ui_language %}
 {% block body_class %}overview-page mobile-settings-page{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2"><link rel="stylesheet" href="{% static 'css/settings.css' %}">{% endblock %}
@@ -52,38 +52,7 @@
         font-size: 1.1rem;
     }
 
-    /* Profile header */
-    .profile-header {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
 
-    .profile-avatar {
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        background-color: var(--accent-green-bg);
-        color: var(--accent-green-fg);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        font-size: 1.1rem;
-        flex-shrink: 0;
-    }
-
-    .profile-name {
-        margin: 0;
-        font-weight: 700;
-        color: var(--black);
-    }
-
-    .profile-meta {
-        margin: 0.15rem 0 0 0;
-        color: var(--gray-dark);
-        font-size: 0.9rem;
-    }
 
     /* Settings rows */
     .settings-list {
@@ -209,19 +178,7 @@
             margin-bottom: 0.75rem;
         }
 
-        .profile-avatar {
-            width: 48px;
-            height: 48px;
-            font-size: 1rem;
-        }
 
-        .profile-name {
-            font-size: 0.95rem;
-        }
-
-        .profile-meta {
-            font-size: 0.8rem;
-        }
 
         .settings-row {
             padding: 0.7rem 0;
@@ -284,19 +241,7 @@
 
 <div class="settings-page">
 
-    <!-- Profile -->
-    <div class="box">
-        <div class="profile-header" style="justify-content: space-between; width: 100%;">
-            <div style="display: flex; align-items: center; gap: 1rem;">
-                <div class="profile-avatar">{{ request.user.first_name|first|default:request.user.username|first|upper }}{{ request.user.last_name|first|default:""|upper }}</div>
-                <div>
-                    <p class="profile-name">{{ request.user.first_name|default:request.user.username }} {{ request.user.last_name }}</p>
-                    <p class="profile-meta">{{ request.user.username }}</p>
-                </div>
-            </div>
-            <button type="button" onclick="document.getElementById('profileModal').style.display='flex'">{% ui 'Edit' 'I-edit' %}</button>
-        </div>
-    </div>
+
 
     <!-- App preferences -->
     <div class="box">
@@ -442,41 +387,14 @@
     </div>
 </div>
 
-<div id="profileModal" class="modal" style="display: none;">
-    <div class="modal-content box" style="position: relative; width: 100%; max-width: 500px; background-color: var(--white); margin: auto;">
-        <span class="close-modal" onclick="document.getElementById('profileModal').style.display='none'" style="color: var(--black); top: 10px; right: 20px;">&times;</span>
-        <h3 style="margin-top: 0;">{% ui 'Edit Profile' 'I-edit ang Profile' %}</h3>
-        
-        <form method="POST">
-            {% csrf_token %}
-            <input type="hidden" name="update_profile" value="1">
-            <div style="margin-bottom: 1rem;">
-                <label class="spec-label" for="first_name">{% ui 'First Name' 'Pangalan' %}</label>
-                <input type="text" name="first_name" id="first_name" value="{{ request.user.first_name }}" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
-            </div>
-            <div style="margin-bottom: 1rem;">
-                <label class="spec-label" for="last_name">{% ui 'Last Name' 'Apelyido' %}</label>
-                <input type="text" name="last_name" id="last_name" value="{{ request.user.last_name }}" style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
-            </div>
-            <div style="margin-bottom: 1rem;">
-                <label class="spec-label" for="username">{% ui 'Username' 'Username' %}</label>
-                <input type="text" name="username" id="username" value="{{ request.user.username }}" required style="width: 100%; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box;">
-            </div>
-            <button type="submit" style="margin-top: 1rem; width: 100%;">{% ui 'Save Changes' 'I-save ang mga Pagbabago' %}</button>
-        </form>
-    </div>
-</div>
+
 
 <script>
     // Close modal when clicking outside of the content box
     window.onclick = function(event) {
         const modal = document.getElementById('passwordModal');
-        const profileModal = document.getElementById('profileModal');
         if (event.target == modal) {
             modal.style.display = "none";
-        }
-        if (event.target == profileModal) {
-            profileModal.style.display = "none";
         }
     }
 
