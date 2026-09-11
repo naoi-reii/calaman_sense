@@ -1,4 +1,4 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 {% load static ui_language %}
 {% block body_class %}overview-page profile-page{% endblock %}
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2"><link rel="stylesheet" href="{% static 'css/profile.css' %}">{% endblock %}
@@ -7,7 +7,7 @@
 <header class="profile-heading"><h1>{% ui 'Profile' 'Profile' %}</h1><p>Manage your account information.</p></header>
 <section class="profile-card" aria-label="Your profile">
     <div class="profile-identity"><div class="profile-avatar" aria-hidden="true">{% if user.profile.photo %}<img src="{{ user.profile.photo.url }}" alt="Your profile photo" id="profile-photo-preview">{% else %}<span id="profile-initial">{{ user.username|first|upper }}</span><img id="profile-photo-preview" alt="Selected profile photo" hidden>{% endif %}</div><h2>{{ user.get_full_name|default:user.username }}</h2><p>{% if user.is_staff %}Administrator{% else %}Grower{% endif %}</p></div>
-    <form class="profile-edit-form" method="post" enctype="multipart/form-data" id="profile-edit-form">{% csrf_token %}
+    <form class="profile-edit-form" method="post" enctype="multipart/form-data" id="profile-edit-form-desktop">{% csrf_token %}
         <h2>Edit your profile</h2>
         {% if saved %}<p class="profile-save-success" role="status">Your profile has been saved.</p>{% endif %}
         {{ profile_form.non_field_errors }}
@@ -18,9 +18,16 @@
 <div class="mobile-profile-menu">
  <div class="mobile-profile-rows">
   <details><summary><span class="material-symbols-outlined" aria-hidden="true">person</span>{% ui 'My Account' 'Aking Account' %}<span class="material-symbols-outlined profile-chevron" aria-hidden="true">chevron_right</span></summary><div class="profile-menu-content"><dl><dt>Name</dt><dd>{{ user.get_full_name|default:user.username }}</dd><dt>Username</dt><dd>{{ user.username }}</dd><dt>Email</dt><dd>{{ user.email|default:"Not added yet" }}</dd></dl><a href="#profile-edit-form">Edit my account</a></div></details>
+  <details class="mobile-edit-profile-details"><summary><span class="material-symbols-outlined" aria-hidden="true">edit</span>{% ui 'Edit your profile' 'I-edit ang iyong profile' %}<span class="material-symbols-outlined profile-chevron" aria-hidden="true">chevron_right</span></summary><div class="profile-menu-content profile-edit-form-mobile"><form class="profile-edit-form" method="post" enctype="multipart/form-data" id="profile-edit-form">{% csrf_token %}
+      {% if saved %}<p class="profile-save-success" role="status">Your profile has been saved.</p>{% endif %}
+      {{ profile_form.non_field_errors }}
+      <div class="profile-edit-grid">{% for field in profile_form %}<div class="profile-edit-field {% if field.name == 'photo' %}profile-photo-field{% endif %}"><label for="{{ field.id_for_label }}-mobile">{{ field.label }}</label>{{ field }}{% if field.name == 'photo' %}<small>JPG, PNG or WebP. Maximum 5MB.</small>{% endif %}{{ field.errors }}</div>{% endfor %}</div>
+      <button type="submit">Save Changes</button>
+      <a class="profile-security-link" href="{% url 'settings' %}">Change password in Settings</a>
+    </form></div></details>
   <a class="profile-menu-link" href="{% url 'settings' %}"><span class="material-symbols-outlined" aria-hidden="true">settings</span>{% ui 'Settings' 'Mga Setting' %}<span class="material-symbols-outlined profile-chevron" aria-hidden="true">chevron_right</span></a>
   <details><summary><span class="material-symbols-outlined" aria-hidden="true">help_outline</span>{% ui 'Help' 'Tulong' %}<span class="material-symbols-outlined profile-chevron" aria-hidden="true">chevron_right</span></summary><div class="profile-menu-content"><p><strong>Scan your calamansi</strong><br>Open Scan Calamansi from Home, allow camera access, and position the fruits inside the frame. Use good lighting and hold the camera steady.</p><p><strong>Review before uploading</strong><br>Take a photo or choose images from your gallery. Review the selected photos, then tap Upload to analyze them.</p><p><strong>Find your results</strong><br>Open History for saved scans or Report for totals and trends.</p><a href="{% url 'knowledge_hub' %}">Explore the Knowledge Hub</a></div></details>
-  <details><summary><span class="material-symbols-outlined" aria-hidden="true">info</span>{% ui 'About CalamanSense' 'Tungkol sa CalamanSense' %}<span class="material-symbols-outlined profile-chevron" aria-hidden="true">chevron_right</span></summary><div class="profile-menu-content"><p>CalamanSense helps you assess calamansi using image analysis. Scan fruits, review estimated ripeness and batch grades, and track your saved results.</p><p>For farmers. For better harvests. A smarter tomorrow.</p></div></details>
+  <details><summary><span class="material-symbols-outlined" aria-hidden="true">info</span>{% ui 'About CalamanSense' 'Tungkol sa CalamanSense' %}<span class="material-symbols-outlined profile-chevron" aria-hidden="true">chevron_right</span></summary><div class="profile-menu-content"><p>CalamanSense helps you assess calamansi using image analysis. Scan fruits, review estimated ripeness and batch grades, and track your saved results.</p></div></details>
  </div>
  <form method="post" action="{% url 'logout' %}" class="mobile-profile-logout">{% csrf_token %}<button type="submit">{% ui 'Log Out' 'Mag-log Out' %}</button></form>
 </div>
