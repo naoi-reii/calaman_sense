@@ -1,14 +1,24 @@
+import os
 import cv2
 import numpy as np
 from pathlib import Path
+
+# Disable Ultralytics online auto-update and requirement auto-install checks
+os.environ['ULTRALYTICS_AUTOUPDATE'] = '0'
+os.environ['YOLO_AUTOINSTALL'] = 'False'
+
 from ultralytics import YOLO
 from .types import AnalysisProvider, ScanAnalysisResult
 
 class RealAnalysisProvider(AnalysisProvider):
+    _model = None
+
     def __init__(self):
-        # Load the pre-trained YOLOv8 small model (smarter than nano)
-        # It will download automatically on first run
-        self.model = YOLO(str(Path(__file__).resolve().parents[2] / 'yolov8s.pt'))
+        if RealAnalysisProvider._model is None:
+            # Load the pre-trained YOLOv8 small model once into class cache
+            model_path = str(Path(__file__).resolve().parents[2] / 'yolov8s.pt')
+            RealAnalysisProvider._model = YOLO(model_path)
+        self.model = RealAnalysisProvider._model
 
     @staticmethod
     def _merge_boxes(boxes):
