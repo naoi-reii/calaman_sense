@@ -12,7 +12,8 @@ from services.analysis.real_provider import RealAnalysisProvider
 
 class RealAnalysisProviderFilteringTest(unittest.TestCase):
     def setUp(self):
-        self.provider = RealAnalysisProvider()
+        # Filtering tests must not load or download model weights.
+        self.provider = RealAnalysisProvider.__new__(RealAnalysisProvider)
         self.temp_dir = tempfile.TemporaryDirectory()
 
     def tearDown(self):

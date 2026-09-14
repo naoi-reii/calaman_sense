@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-import random
+from pathlib import Path
 from ultralytics import YOLO
 from .types import AnalysisProvider, ScanAnalysisResult
 
@@ -8,7 +8,110 @@ class RealAnalysisProvider(AnalysisProvider):
     def __init__(self):
         # Load the pre-trained YOLOv8 small model (smarter than nano)
         # It will download automatically on first run
-        self.model = YOLO('yolov8s.pt')
+        self.model = YOLO(str(Path(__file__).resolve().parents[2] / 'yolov8s.pt'))
+
+    @staticmethod
+    def _merge_boxes(boxes):
+        """Remove repeat views of a fruit while preserving offset, overlapping fruit."""
+        kept = []
+        for box in sorted(boxes, key=lambda b: ((b[2]-b[0])*(b[3]-b[1]), *b)):
+            area = (box[2]-box[0]) * (box[3]-box[1])
+            duplicate = False
+            for other in kept:
+                intersection = max(0, min(box[2], other[2])-max(box[0], other[0])) * max(0, min(box[3], other[3])-max(box[1], other[1]))
+                other_area = (other[2]-other[0]) * (other[3]-other[1])
+                iou = intersection / max(1, area + other_area - intersection)
+                # Containment alone is insufficient: occluded fruits can overlap.
+                close_center = all(abs((box[k]+box[k+2])-(other[k]+other[k+2])) / 2 <= 0.2 * min(box[k+2]-box[k], other[k+2]-other[k]) for k in (0, 1))
+                containment = intersection / max(1, min(area, other_area))
+                if iou >= 0.65 or containment >= 0.92 or (close_center and containment >= 0.85):
+                    duplicate = True
+                    break
+            # A loose cluster box is not an additional fruit. It encloses the
+            # centers and most of at least two tighter detections.
+            enclosed = sum(
+                max(0, min(box[2], b[2])-max(box[0], b[0]))
+                * max(0, min(box[3], b[3])-max(box[1], b[1]))
+                / max(1, (b[2]-b[0])*(b[3]-b[1])) > 0.8
+                for b in kept
+            )
+            if not duplicate and enclosed < 2:
+                kept.append(box)
+        return sorted(kept, key=lambda b: (b[1], b[0], b[3], b[2]))
+
+    def _detect_boxes(self, img):
+        """Scan full image and overlapping detail views with fixed inference settings."""
+        height, width = img.shape[:2]
+        views = [(0, 0, width, height)]
+        if min(height, width) >= 160:
+            for scale in (0.8, 0.5):
+                tile_w, tile_h = int(width * scale), int(height * scale)
+                views += [(x, y, x+tile_w, y+tile_h)
+                          for y in sorted({0, (height-tile_h)//2, height-tile_h})
+                          for x in sorted({0, (width-tile_w)//2, width-tile_w})]
+        candidates = []
+        for left, top, right, bottom in views:
+            results = self.model(img[top:bottom, left:right], conf=0.03,
+                                 iou=0.7, imgsz=960, device='cpu',
+                                 augment=False, agnostic_nms=True, verbose=False)
+            for detection in results[0].boxes:
+                cls_id = int(detection.cls[0].cpu().numpy())
+                # This checkpoint uses COCO labels: only apple/orange candidates.
+                if cls_id not in (47, 49):
+                    continue
+                x1, y1, x2, y2 = detection.xyxy[0].cpu().numpy()
+                # Ignore fruit clipped by an internal tile edge; overlapping views
+                # provide another opportunity to detect the complete visible fruit.
+                margin_x, margin_y = (right-left)*0.05, (bottom-top)*0.05
+                if ((left > 0 and x1 <= margin_x) or (top > 0 and y1 <= margin_y)
+                        or (right < width and x2 >= right-left-margin_x)
+                        or (bottom < height and y2 >= bottom-top-margin_y)):
+                    continue
+                x1, y1 = max(0, int(x1+left)), max(0, int(y1+top))
+                x2, y2 = min(width, int(x2+left)), min(height, int(y2+top))
+                if self._is_valid_fruit_crop(img[y1:y2, x1:x2], x1, y1, x2, y2, width, height):
+                    candidates.append(np.array([x1, y1, x2, y2]))
+        return candidates
+
+    def _recover_visible_regions(self, img, boxes):
+        """Recover compact citrus-colored regions beside already detected fruit.
+
+        Only uncovered pixels are considered. Size is relative to detected fruit,
+        and shape checks reject thin stems, elongated leaves and diffuse shadows.
+        This supplements the generic detector; it does not infer invisible fruit.
+        """
+        if not boxes:
+            return []
+        height, width = img.shape[:2]
+        reference_area = float(np.median([(b[2]-b[0])*(b[3]-b[1]) for b in boxes]))
+        mask = cv2.inRange(cv2.cvtColor(img, cv2.COLOR_BGR2HSV),
+                           np.array([10, 40, 35]), np.array([90, 255, 255]))
+        covered = np.zeros((height, width), dtype=np.uint8)
+        for x1, y1, x2, y2 in boxes:
+            covered[y1:y2, x1:x2] = 255
+        mask[covered > 0] = 0
+        radius = max(2, int(np.sqrt(reference_area) * 0.08))
+        nearby = cv2.dilate(covered, np.ones((2*radius+1, 2*radius+1), np.uint8))
+        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        recovered = []
+        for contour in contours:
+            area = cv2.contourArea(contour)
+            if not 0.12 * reference_area <= area <= 0.8 * reference_area:
+                continue
+            x, y, w, h = cv2.boundingRect(contour)
+            if not 0.55 <= w / max(1, h) <= 1.8:
+                continue
+            hull_area = cv2.contourArea(cv2.convexHull(contour))
+            perimeter = cv2.arcLength(contour, True)
+            if area / max(1, hull_area) < 0.75 or 4*np.pi*area / max(1, perimeter**2) < 0.30:
+                continue
+            region = np.zeros((h, w), dtype=np.uint8)
+            cv2.drawContours(region, [contour - np.array([[[x, y]]])], -1, 255, -1)
+            if not np.any((region > 0) & (nearby[y:y+h, x:x+w] > 0)):
+                continue
+            if self._is_valid_fruit_crop(img[y:y+h, x:x+w], x, y, x+w, y+h, width, height):
+                recovered.append(np.array([x, y, x+w, y+h]))
+        return recovered
 
     def _is_valid_fruit_crop(self, crop, x1, y1, x2, y2, img_width, img_height):
         """
@@ -60,6 +163,22 @@ class RealAnalysisProvider(AnalysisProvider):
 
         return True
 
+    @staticmethod
+    def ripeness_label(crop):
+        """Color-based ripeness score for saved scans."""
+        hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
+        green = cv2.countNonZero(cv2.inRange(hsv, np.array([35, 40, 40]), np.array([85, 255, 255])))
+        yellow = cv2.countNonZero(cv2.inRange(hsv, np.array([15, 40, 40]), np.array([35, 255, 255])))
+        if not green + yellow:
+            return 'ripe', 'Ripe 50%'
+        ratio = green / (green + yellow)
+        if ratio > .6:
+            return 'unripe', f'Unripe {ratio * 100:.0f}%'
+        if ratio < .3:
+            return 'overripe', f'Overripe {(1 - ratio) * 100:.0f}%'
+        score = max(0.0, 100 - abs(ratio - .45) / .15 * 100)
+        return 'ripe', f'Ripe {score:.0f}%'
+
     def analyze(self, image_path: str) -> ScanAnalysisResult:
         # Load image with OpenCV for processing
         img = cv2.imread(image_path)
@@ -68,21 +187,7 @@ class RealAnalysisProvider(AnalysisProvider):
 
         img_height, img_width = img.shape[:2]
 
-        # 1. Run YOLOv8 Detection with conf=0.15
-        results = self.model(image_path, conf=0.15, verbose=False)
-        result = results[0]
-        yolo_boxes = result.boxes
-
-        raw_boxes = []
-        if len(yolo_boxes) > 0:
-            for box in yolo_boxes:
-                # Exclude known COCO non-fruit background categories if present
-                cls_id = int(box.cls[0].cpu().numpy()) if hasattr(box, 'cls') and len(box.cls) > 0 else -1
-                # COCO background classes: 56 (chair), 57 (couch), 59 (bed), 60 (dining table), 62 (tv), 63 (laptop), 73 (book)
-                if cls_id in [56, 57, 59, 60, 62, 63, 73]:
-                    continue
-                xyxy = box.xyxy[0].cpu().numpy()
-                raw_boxes.append(xyxy)
+        raw_boxes = self._detect_boxes(img)
 
         # 2. Fallback to OpenCV Watershed if YOLO found no candidates
         if len(raw_boxes) == 0:
@@ -147,27 +252,8 @@ class RealAnalysisProvider(AnalysisProvider):
             if self._is_valid_fruit_crop(crop, x1, y1, x2, y2, img_width, img_height):
                 valid_boxes.append(np.array([x1, y1, x2, y2]))
 
-        # 4. Non-Maximum Suppression (NMS) to eliminate duplicate/nested boxes
-        final_boxes = []
-        if len(valid_boxes) > 0:
-            # Sort by area ascending so we prefer tight fruit boxes over large outer containers
-            valid_boxes.sort(key=lambda b: (b[2]-b[0]) * (b[3]-b[1]))
-            for box in valid_boxes:
-                keep = True
-                bx1, by1, bx2, by2 = box
-                b_area = (bx2 - bx1) * (by2 - by1)
-                for existing in final_boxes:
-                    ex1, ey1, ex2, ey2 = existing
-                    # Calculate intersection
-                    ix1, iy1 = max(bx1, ex1), max(by1, ey1)
-                    ix2, iy2 = min(bx2, ex2), min(by2, ey2)
-                    if ix1 < ix2 and iy1 < iy2:
-                        i_area = (ix2 - ix1) * (iy2 - iy1)
-                        if i_area / float(b_area) > 0.60:
-                            keep = False
-                            break
-                if keep:
-                    final_boxes.append(box)
+        final_boxes = self._merge_boxes(valid_boxes)
+        final_boxes = self._merge_boxes(final_boxes + self._recover_visible_regions(img, final_boxes))
 
         total_fruits = len(final_boxes)
         annotations = []
@@ -195,49 +281,13 @@ class RealAnalysisProvider(AnalysisProvider):
             if crop.size == 0:
                 continue
 
-            # --- OpenCV Ripeness Analysis (Color Heuristic) ---
-            hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
-            # Hue ranges: Green is roughly 35-85, Yellow/Orange is 15-35
-            lower_green = np.array([35, 40, 40])
-            upper_green = np.array([85, 255, 255])
-
-            lower_yellow = np.array([15, 40, 40])
-            upper_yellow = np.array([35, 255, 255])
-
-            green_mask = cv2.inRange(hsv, lower_green, upper_green)
-            yellow_mask = cv2.inRange(hsv, lower_yellow, upper_yellow)
-
-            green_pixels = cv2.countNonZero(green_mask)
-            yellow_pixels = cv2.countNonZero(yellow_mask)
-
-            total_colored = green_pixels + yellow_pixels
-
-            # --- Determine ripeness label, confidence %, and CSS class ---
-            if total_colored > 0:
-                green_ratio = green_pixels / total_colored
-
-                if green_ratio > 0.6:
-                    unripe_count += 1
-                    confidence = green_ratio * 100
-                    css_class = "unripe"
-                    label = f"Unripe {confidence:.0f}%"
-                elif green_ratio < 0.3:
-                    overripe_count += 1
-                    confidence = (1 - green_ratio) * 100
-                    css_class = "overripe"
-                    label = f"Overripe {confidence:.0f}%"
-                else:
-                    ripe_count += 1
-                    # Confidence peaks at the center of the "ripe" band (0.45)
-                    distance_from_center = abs(green_ratio - 0.45)
-                    confidence = max(0.0, 100 - (distance_from_center / 0.15) * 100)
-                    css_class = "ripe"
-                    label = f"Ripe {confidence:.0f}%"
+            css_class, label = self.ripeness_label(crop)
+            if css_class == 'unripe':
+                unripe_count += 1
+            elif css_class == 'overripe':
+                overripe_count += 1
             else:
-                ripe_count += 1  # fallback
-                confidence = 50.0
-                css_class = "ripe"
-                label = f"Ripe {confidence:.0f}%"
+                ripe_count += 1
 
             annotations.append({
                 'x': x_pct,
@@ -248,7 +298,6 @@ class RealAnalysisProvider(AnalysisProvider):
                 'css_class': css_class
             })
 
-        # Grade based on Greenness (more green = better grade)
         green_ratio = unripe_count / total_fruits if total_fruits > 0 else 0
         if green_ratio >= 0.75:
             grade = 'Best Quality'
@@ -282,5 +331,5 @@ class RealAnalysisProvider(AnalysisProvider):
             defect_foreign_matter_pct=0.0,
 
             mock_annotations=annotations,
-            model_version='yolov8s-opencv-watershed'
+            model_version='yolov8s-visible-regions-v3'
         )

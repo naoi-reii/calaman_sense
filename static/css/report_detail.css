@@ -179,3 +179,25 @@
 .mobile-result-actions a.mobile-pdf-save { background:#086839; color:white; }
 .result-save { text-decoration:none; }
 .result-sample-name { margin:0 0 16px; padding:10px 14px; border-radius:8px; background:var(--green-light); color:var(--green-dark); font-size:14px; overflow-wrap:anywhere; }
+
+/* Result reveal and touch-friendly fruit details. */
+.fruit-tap-hint { display:flex; align-items:center; gap:7px; margin:8px 0 12px; font-size:12px; color:var(--green-dark); }
+.fruit-tap-hint[hidden] { display:none; }
+.fruit-tap-hint .material-symbols-outlined { font-size:19px; }
+.result-total, [data-count] { font-variant-numeric:tabular-nums; }
+.ripeness-track { display:block; height:6px; margin:8px 14px 0 0; overflow:hidden; background:var(--gray-light); border-radius:8px; }
+.ripeness-fill { display:block; height:100%; max-width:100%; border-radius:inherit; transform-origin:left; }
+.ripeness-fill.unripe { background:#319843; }.ripeness-fill.ripe { background:#e7ae00; }.ripeness-fill.overripe { background:#eb4949; }
+body.fruit-inspector-open { overflow:hidden; }
+#fruit-inspector { box-shadow:0 24px 90px #031d2850; border-radius:24px; overscroll-behavior:contain; }
+#fruit-inspector::backdrop { background:#071a16ad; backdrop-filter:blur(5px); }
+#fruit-inspector .inspector-eyebrow { margin:0 0 4px; color:var(--green-dark); text-transform:uppercase; letter-spacing:1.8px; font-size:10px; font-weight:700; }
+#inspector-close { width:44px; height:44px; border-radius:50%; }
+.fruit-zoom-stage { overflow:hidden; border-radius:16px; }
+#fruit-zoom { display:block; touch-action:pan-y pinch-zoom; }
+.fruit-zoom-control { display:flex; align-items:center; gap:12px; margin:14px 0 8px; font-size:12px; }
+#fruit-zoom-level { flex:1; width:0; min-width:0; min-height:32px; accent-color:#086839; padding:0; }
+#fruit-zoom-value { min-width:35px; font-variant-numeric:tabular-nums; }
+#fruit-inspector .inspector-swipe-help { text-align:center; color:var(--gray); font-size:11px; margin:0 0 16px; }
+@media(max-width:760px) { #fruit-inspector { max-height:92svh; padding:18px; } }
+@media print { #fruit-inspector, .fruit-tap-hint { display:none !important; } .ripeness-fill { print-color-adjust:exact; } }

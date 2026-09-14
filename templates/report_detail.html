@@ -1,4 +1,4 @@
-﻿{% extends 'base.html' %}
+{% extends 'base.html' %}
 {% load static ui_language %}
 {% block body_class %}overview-page result-page{% endblock %}
 {% block extra_css %}
@@ -19,6 +19,7 @@
     <section class="result-visual labels-visible" aria-label="Detected calamansi images">
         <div class="result-visual-toolbar"><span>Visual Analysis</span><div id="fruit-filters" aria-label="Highlight ripeness"><button type="button" data-filter="all" aria-pressed="true"><i class="filter-dot dot-all" aria-hidden="true"></i>All</button><button type="button" data-filter="unripe" aria-pressed="false"><i class="filter-dot dot-unripe" aria-hidden="true"></i>Unripe</button><button type="button" data-filter="ripe" aria-pressed="false"><i class="filter-dot dot-ripe" aria-hidden="true"></i>Ripe</button><button type="button" data-filter="overripe" aria-pressed="false"><i class="filter-dot dot-overripe" aria-hidden="true"></i>Overripe</button></div>{% if scan.images.all %}<button type="button" id="toggle-labels" aria-pressed="true">Hide labels</button>{% endif %}</div>
         <p id="fruit-filter-status" role="status" class="fruit-filter-help"></p>
+        <p class="fruit-tap-hint"><span class="material-symbols-outlined" aria-hidden="true">touch_app</span>Tap a fruit to explore its ripeness.</p>
         {% for scan_image in scan.images.all %}
         <figure class="result-figure" data-image-id="{{ scan_image.id }}">{{ scan_image.mock_annotations|json_script }}{{ scan_image.label_corrections|json_script }}
             <div class="image-viewer">
@@ -36,14 +37,14 @@
         <p class="result-score-help">Each box shows the fruit's estimated ripeness score from color analysis, not a calibrated probability.</p>
     </section>
     <aside class="result-summary">
-        <section class="result-count-card"><h2>{% ui 'Total Fruits Detected' 'Kabuuang Bungang Natukoy' %}</h2><strong class="result-total">{{ scan.fruit_count_total }}</strong>
-            <table class="result-ripeness"><caption>Ripeness breakdown</caption><tbody>{% for row in ripeness %}<tr><th scope="row"><i class="result-dot {{ row.key }}"></i>{{ row.label }}</th><td class="mobile-result-count">{% if counts_available %}<strong>{{ row.count }}</strong>{% else %}&mdash;{% endif %}</td><td>{{ row.pct|floatformat:1 }}%</td></tr>{% endfor %}</tbody></table>
+        <section class="result-count-card"><h2>{% ui 'Total Fruits Detected' 'Kabuuang Bungang Natukoy' %}</h2><strong class="result-total" data-count="{{ scan.fruit_count_total }}" aria-label="{{ scan.fruit_count_total }} fruits">{{ scan.fruit_count_total }}</strong>
+            <table class="result-ripeness"><caption>Ripeness breakdown</caption><tbody>{% for row in ripeness %}<tr><th scope="row"><i class="result-dot {{ row.key }}"></i>{{ row.label }}<span class="ripeness-track" aria-hidden="true"><span class="ripeness-fill {{ row.key }}" style="width: {{ row.pct|floatformat:'1u' }}%"></span></span></th><td class="mobile-result-count">{% if counts_available %}<strong data-count="{{ row.count }}" aria-label="{{ row.count }} fruits">{{ row.count }}</strong>{% else %}&mdash;{% endif %}</td><td>{{ row.pct|floatformat:1 }}%</td></tr>{% endfor %}</tbody></table>
         </section>
         <div class="mobile-result-count-help">{% if not counts_available %}Per-fruit detections are not available for this saved scan.{% elif scan.images.count > 1 %}Counts and percentages summarize the last uploaded image.{% endif %}</div>
         <section class="result-count-card result-ripeness-counts" aria-labelledby="ripeness-counts-title">
             <h2 id="ripeness-counts-title">Fruit Count by Ripeness</h2>
             <table class="result-ripeness"><caption>{% if scan.images.count > 1 %}Detected fruits in the last uploaded image{% else %}Number of detected calamansi{% endif %}</caption><tbody>
-                {% for row in ripeness %}<tr><th scope="row"><i class="result-dot {{ row.key }}"></i>{{ row.label }}</th><td>{% if counts_available %}<strong>{{ row.count }}</strong> <span class="result-count-unit">fruit{{ row.count|pluralize }}</span>{% else %}&mdash;{% endif %}</td></tr>{% endfor %}
+                {% for row in ripeness %}<tr><th scope="row"><i class="result-dot {{ row.key }}"></i>{{ row.label }}</th><td>{% if counts_available %}<strong data-count="{{ row.count }}" aria-label="{{ row.count }} fruits">{{ row.count }}</strong> <span class="result-count-unit">fruit{{ row.count|pluralize }}</span>{% else %}&mdash;{% endif %}</td></tr>{% endfor %}
             </tbody></table>
             {% if not counts_available %}<p class="result-score-help">Per-fruit detections are not available for this saved scan.</p>{% endif %}
         </section>
@@ -54,8 +55,19 @@
 <section class="result-notes" aria-labelledby="notes-title"><span class="material-symbols-outlined" aria-hidden="true">info</span><div><h2 id="notes-title">Notes</h2><ul>{% for note in result_notes %}<li>{{ note }}</li>{% endfor %}</ul></div></section>
 <a class="result-back" href="{% url 'reports' %}">← Back to reports</a>
 <div class="mobile-result-actions"><a class="mobile-pdf-save" href="{% url 'report_detail' scan.id %}?download=pdf" download="calamansense-scan-{{ scan.id }}.pdf"><span class="material-symbols-outlined" aria-hidden="true">download</span>{% ui 'Save PDF' 'I-save bilang PDF' %}</a><a href="{% url 'upload' %}#open-camera-btn">{% ui 'New Scan' 'Bagong Scan' %}</a></div>
-<dialog id="fruit-inspector" aria-labelledby="inspector-title"><button type="button" id="inspector-close" aria-label="Close inspector">&times;</button><h2 id="inspector-title">Fruit Inspector</h2><div class="fruit-zoom-stage"><canvas id="fruit-zoom" width="480" height="360" role="img" aria-label="Enlarged selected fruit"></canvas><span id="fruit-number" class="fruit-number"></span><button type="button" id="fruit-prev" class="fruit-photo-arrow" aria-label="Previous fruit">&lt;</button><button type="button" id="fruit-next" class="fruit-photo-arrow" aria-label="Next fruit">&gt;</button></div><p id="inspector-position"></p><p id="inspector-original"></p><p>Original score is a color-based estimate, not a calibrated probability. A manual label has no new model score.</p><label for="fruit-label">Reviewed ripeness</label><select id="fruit-label"><option value="unripe">Unripe</option><option value="ripe">Ripe</option><option value="overripe">Overripe</option></select><div class="inspector-actions"><button type="button" id="fruit-save">Save correction</button><button type="button" id="fruit-reset">Restore original</button></div><p id="inspector-status" role="status"></p><form hidden>{% csrf_token %}</form></dialog>
+<dialog id="fruit-inspector" aria-labelledby="inspector-title">
+    <button type="button" id="inspector-close" aria-label="Close inspector">&times;</button>
+    <p class="inspector-eyebrow">A closer look</p><h2 id="inspector-title">Fruit Inspector</h2>
+    <div class="fruit-zoom-stage"><canvas id="fruit-zoom" width="720" height="540" role="img" aria-label="Enlarged selected fruit"></canvas><span id="fruit-number" class="fruit-number"></span><button type="button" id="fruit-prev" class="fruit-photo-arrow" aria-label="Previous fruit">&lt;</button><button type="button" id="fruit-next" class="fruit-photo-arrow" aria-label="Next fruit">&gt;</button></div>
+    <div class="fruit-zoom-control"><label for="fruit-zoom-level">Zoom</label><input id="fruit-zoom-level" type="range" min="1" max="2.5" step="0.1" value="1"><output id="fruit-zoom-value" for="fruit-zoom-level">1.0×</output></div>
+    <p id="inspector-position" aria-live="polite"></p><p class="inspector-swipe-help">Swipe the photo or use the arrows to explore.</p>
+    <p id="inspector-original"></p>
+    <p>Original score is a color-based estimate, not a calibrated probability. A manual label has no new model score.</p>
+    <label for="fruit-label">Reviewed ripeness</label><select id="fruit-label"><option value="unripe">Unripe</option><option value="ripe">Ripe</option><option value="overripe">Overripe</option></select><div class="inspector-actions"><button type="button" id="fruit-save">Save correction</button><button type="button" id="fruit-reset">Restore original</button></div>
+    <p id="inspector-status" role="status"></p><form hidden>{% csrf_token %}</form>
+</dialog>
 <script src="{% static 'js/fruit-inspector.js' %}" defer></script>
+<script src="{% static 'js/result-reveal.js' %}" defer></script>
 <script>
 const labelsButton = document.getElementById('toggle-labels');
 if (labelsButton) {

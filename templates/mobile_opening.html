@@ -13,7 +13,7 @@
         <h1>CalamanSense</h1>
         <p>Smart Calamansi<br>Quality Assessment</p>
     </div>
-    <div class="mobile-opening-footer"><p>For farmers. For better harvests.<br>A smarter tomorrow.</p><button type="button" id="opening-continue">Tap to continue <span aria-hidden="true">&rarr;</span></button></div>
+    <div class="mobile-opening-footer"><p>For farmers. For better harvests.<br>A smarter tomorrow.</p><button type="button" id="opening-continue">Tap to continue <span aria-hidden="true">&rarr;</span></button><small class="opening-swipe-hint">or swipe up to explore</small></div>
 </div>
 {% include 'mobile_onboarding.html' %}
 <script>
@@ -27,6 +27,14 @@
     const next = document.getElementById('onboarding-next');
     const skip = document.getElementById('onboarding-skip');
     let page = 0;
+    let busy = false;
+    let closed = false;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const viewport = onboarding.querySelector('.onboarding-slides');
+    async function animate(element, frames, duration = 360) {
+        if (reducedMotion.matches || !element.animate) return;
+        try { await element.animate(frames, {duration, easing: 'cubic-bezier(.22,1,.36,1)'}).finished; } catch (_) {}
+    }
     let openingSeen = false;
     let onboardingSeen = false;
     try {
@@ -37,21 +45,34 @@
     card.inert = true;
     document.body.classList.add('opening-active');
     function remember(key) { try { sessionStorage.setItem(key, '1'); } catch (_) {} }
-    function showPage(index) {
+    async function showPage(index, initial = false) {
+        if (busy || closed || index < 0 || index >= slides.length || (!initial && index === page)) return;
+        busy = true;
+        const direction = index > page ? 1 : -1;
+        if (!initial) await animate(slides[page], [{opacity: 1, transform: 'translateX(0)'}, {opacity: 0, transform: `translateX(${-direction * 55}px)`}], 160);
+        if (closed) { busy = false; return; }
         page = index;
         slides.forEach((slide, i) => { slide.hidden = i !== page; });
         dots.forEach((dot, i) => { if (i === page) dot.setAttribute('aria-current', 'step'); else dot.removeAttribute('aria-current'); });
         next.textContent = page === 2 ? 'Get Started' : 'Next';
         skip.hidden = page === 2;
         slides[page].querySelector('h2').focus({preventScroll: true});
+        await animate(slides[page], [{opacity: 0, transform: `translateX(${direction * 65}px) scale(.97)`}, {opacity: 1, transform: 'translateX(0) scale(1)'}]);
+        busy = false;
     }
-    function showOnboarding() {
+    async function showOnboarding() {
+        if (busy || closed) return;
+        busy = true;
+        if (!opening.hidden) await animate(opening, [{opacity: 1, transform: 'translateY(0)'}, {opacity: 0, transform: 'translateY(-35px)'}], 300);
+        if (closed) { busy = false; return; }
         opening.hidden = true;
         onboarding.hidden = false;
         remember('calamansense-opening-seen');
-        showPage(0);
+        busy = false;
+        showPage(0, true);
     }
     function dismiss(completed) {
+        closed = true;
         opening.hidden = true;
         onboarding.hidden = true;
         card.inert = false;
@@ -68,6 +89,34 @@
     next.addEventListener('click', () => { if (page < 2) showPage(page + 1); else dismiss(true); });
     skip.addEventListener('click', () => dismiss(true));
     dots.forEach(dot => dot.addEventListener('click', () => showPage(Number(dot.dataset.page))));
+    // Lock gestures to their intended axis so vertical reading remains natural.
+    function swipe(surface, axis, onSwipe) {
+        let start = null;
+        surface.addEventListener('pointerdown', event => {
+            if (!event.isPrimary || event.button !== 0 || busy || closed || event.target.closest('button')) return;
+            start = {x: event.clientX, y: event.clientY, id: event.pointerId};
+            surface.setPointerCapture(event.pointerId);
+        });
+        surface.addEventListener('pointerup', event => {
+            if (!start || start.id !== event.pointerId) return;
+            const dx = event.clientX - start.x;
+            const dy = event.clientY - start.y;
+            start = null;
+            const distance = axis === 'x' ? dx : dy;
+            const cross = axis === 'x' ? dy : dx;
+            if (Math.abs(distance) >= 45 && Math.abs(distance) > Math.abs(cross) * 1.3) onSwipe(distance);
+        });
+        surface.addEventListener('pointercancel', () => { start = null; });
+        surface.addEventListener('lostpointercapture', () => { start = null; });
+        surface.addEventListener('dragstart', event => event.preventDefault());
+    }
+    swipe(viewport, 'x', distance => showPage(page + (distance < 0 ? 1 : -1)));
+    swipe(opening, 'y', distance => { if (distance < 0) showOnboarding(); });
+    onboarding.addEventListener('keydown', event => {
+        if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return;
+        event.preventDefault();
+        showPage(page + (event.key === 'ArrowRight' ? 1 : -1));
+    });
     mobile.addEventListener('change', event => { if (!event.matches) dismiss(false); });
     if (openingSeen) showOnboarding();
     else {

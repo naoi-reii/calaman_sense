@@ -78,7 +78,7 @@
 .onboarding-fruit::before, .onboarding-fruit::after { content: ''; position: absolute; background: #177b3f; width: 19px; height: 10px; border-radius: 0 100% 0 100%; top: -5px; left: 5px; transform: rotate(20deg); }
 .onboarding-fruit::after { left: 17px; top: -7px; transform: rotate(-55deg); }
 .onboarding-slides { width: 100%; max-width: 400px; flex: 1; display: flex; align-items: center; padding: 24px 0 12px; }
-.onboarding-slide { width: 100%; }
+.onboarding-slide { width: 100%; min-width: 0; }
 .onboarding-copy h2 { color: #17241b; font-size: clamp(23px, 6vw, 28px); line-height: 1.25; letter-spacing: -.5px; margin: 0 0 13px; font-weight: 700; }
 .onboarding-copy h2:focus { outline: none; }
 .onboarding-copy p { color: #53605a; font-size: 17px; line-height: 1.4; margin: 0; }
@@ -143,4 +143,40 @@
  .auth-register-page .auth-heading { margin-bottom: 23px; }
  .auth-register-page .auth-heading h2 { font-size: 24px; }
  .auth-register-page .auth-help { font-size: 11px; line-height: 1.5; }
+}
+
+/* Mobile welcome motion; all effects respect the device motion preference. */
+.mobile-opening { touch-action: pan-x; overflow: hidden; }
+.mobile-onboarding { overflow-x: hidden; }
+.onboarding-slides { touch-action: pan-y pinch-zoom; user-select: none; }
+.opening-swipe-hint { display: block; margin-top: 12px; color: #edf5df; font-size: 11px; letter-spacing: .6px; }
+.onboarding-swipe-hint { margin: 0 0 3px; color: #637769; font-size: 11px; letter-spacing: .4px; }
+.onboarding-swipe-hint span { display: inline-block; margin-left: 5px; }
+.onboarding-dots button::after { transition: width .3s ease, left .3s ease, background .3s ease; }
+.onboarding-dots button[aria-current]::after { width: 21px; left: 4px; border-radius: 8px; }
+.auth-page .onboarding-next { transition: transform .18s ease, background .18s ease, box-shadow .18s ease; box-shadow: 0 6px 18px #00663720; }
+.auth-page .onboarding-next:active, #opening-continue:active { transform: scale(.97); }
+@media (prefers-reduced-motion: no-preference) {
+    .mobile-opening:not([hidden]) .mobile-opening-photo { animation: welcome-zoom 7s ease-out both; }
+    .mobile-opening:not([hidden]) .mobile-opening-logo { animation: welcome-rise .9s .1s both, welcome-float 4s 1s ease-in-out infinite; }
+    .mobile-opening:not([hidden]) h1 { animation: welcome-rise .8s .25s both; }
+    .mobile-opening:not([hidden]) .mobile-opening-identity p { animation: welcome-rise .8s .4s both; }
+    .mobile-opening:not([hidden]) .mobile-opening-footer { animation: welcome-rise .8s .6s both; }
+    .mobile-onboarding:not([hidden]) .onboarding-brand { animation: welcome-rise .65s both; }
+    .onboarding-slide:not([hidden]) .onboarding-copy { animation: welcome-rise .6s .08s both; }
+    .onboarding-slide:not([hidden]) .illustrated-fruit { animation: welcome-float 3.6s ease-in-out infinite; }
+    .onboarding-slide:not([hidden]) .art-halo { animation: welcome-halo 4s ease-in-out infinite alternate; }
+    .onboarding-slide:not([hidden]) .insights-chart i { transform-origin: bottom; animation: welcome-bar .8s .15s both; }
+    .onboarding-slide:not([hidden]) .insights-chart i:nth-child(2) { animation-delay: .3s; }
+    .onboarding-slide:not([hidden]) .insights-chart i:nth-child(3) { animation-delay: .45s; }
+    .onboarding-slide:not([hidden]) .scan-corners::after { content: ''; position: absolute; left: 3px; right: 3px; top: 8px; height: 2px; background: #77df99; box-shadow: 0 0 10px #51d980; animation: welcome-scan 2.6s ease-in-out infinite alternate; }
+}
+@keyframes welcome-rise { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes welcome-zoom { from { transform: scale(1.14); } to { transform: scale(1); } }
+@keyframes welcome-float { 0%, 100% { transform: translateY(0) rotate(-2deg); } 50% { transform: translateY(-9px) rotate(2deg); } }
+@keyframes welcome-halo { from { transform: scale(.94) rotate(-5deg); } to { transform: scale(1.05) rotate(5deg); } }
+@keyframes welcome-bar { from { transform: scaleY(.08); opacity: .3; } to { transform: scaleY(1); opacity: 1; } }
+@keyframes welcome-scan { from { transform: translateY(0); opacity: .5; } to { transform: translateY(92px); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+    .onboarding-dots button::after, .auth-page .onboarding-next { transition: none; }
 }

@@ -1,4 +1,4 @@
-﻿"""Report aggregation over saved scan summaries."""
+"""Report aggregation over saved scan summaries."""
 from collections import Counter
 from datetime import timedelta
 from django.utils import timezone

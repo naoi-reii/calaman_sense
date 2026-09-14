@@ -51,7 +51,6 @@ class ScanImage(models.Model):
     image = models.ImageField(upload_to='scans/')
     mock_annotations = models.JSONField(default=list, blank=True)
     label_corrections = models.JSONField(default=dict, blank=True)
-
     def __str__(self):
         return f"Image for Scan {self.scan.id}"
 

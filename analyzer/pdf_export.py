@@ -1,4 +1,4 @@
-﻿"""Downloadable report PDFs using the existing Matplotlib dependency."""
+"""Downloadable report PDFs using the existing Matplotlib dependency."""
 from io import BytesIO
 from textwrap import wrap
 from django.http import HttpResponse
