@@ -80,8 +80,10 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 LOGIN_URL = 'login'
+# Account popups embed this app's pages; other websites cannot frame them.
+X_FRAME_OPTIONS = 'SAMEORIGIN'
 LOGIN_REDIRECT_URL = 'dashboard'
-LOGOUT_REDIRECT_URL = 'login'
+LOGOUT_REDIRECT_URL = 'home'
 
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Manila'

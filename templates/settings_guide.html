@@ -1,0 +1,11 @@
+﻿{% extends 'base.html' %}
+{% load static ui_language %}
+{% block body_class %}overview-page settings-screen{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2"><link rel="stylesheet" href="{% static 'css/settings.css' %}?v=settings-pages-1">{% endblock %}
+{% block navigation %}{% include 'includes/overview_navigation.html' with active_page='settings' %}{% endblock %}
+{% block content %}
+<a class="guide-back" href="{% url 'settings' %}"><span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>{% ui 'Back to Settings' 'Bumalik sa Mga Setting' %}</a>
+<header class="settings-heading"><div><h1>{% ui guide_title guide_title_fil %}</h1><p>{% ui 'A little guidance for a better harvest.' 'Gabay para sa mas magandang ani.' %}</p></div></header>
+<article class="settings-card guide-article"><div class="guide-banner"><span class="material-symbols-outlined" aria-hidden="true">{{ guide_icon }}</span><span>CalamanSense</span></div><div class="guide-content">{% include guide_content %}</div></article>
+<nav class="guide-next" aria-label="Related guides"><a href="{% url 'settings_guide' 'scanning' %}">{% ui 'How Scanning Works' 'Paano Gumagana ang Pag-scan' %}</a><a href="{% url 'settings_guide' 'help' %}">{% ui 'Help' 'Tulong' %}</a><a href="{% url 'settings_guide' 'user-guide' %}">{% ui 'User Guide' 'Gabay sa Paggamit' %}</a></nav>
+{% endblock %}

@@ -1,43 +1,47 @@
 {% extends 'base.html' %}
 {% load static ui_language %}
 {% block body_class %}overview-page profile-page{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2"><link rel="stylesheet" href="{% static 'css/profile.css' %}">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2"><link rel="stylesheet" href="{% static 'css/profile.css' %}?v=profile-photo-6">{% endblock %}
 {% block navigation %}{% include 'includes/overview_navigation.html' with active_page='profile' %}{% endblock %}
 {% block content %}
-<header class="profile-heading"><h1>{% ui 'Profile' 'Profile' %}</h1><p>Manage your account information.</p></header>
-<section class="profile-card" aria-label="Your profile">
-    <div class="profile-identity"><div class="profile-avatar" aria-hidden="true">{% if user.profile.photo %}<img src="{{ user.profile.photo.url }}" alt="Your profile photo" id="profile-photo-preview">{% else %}<span id="profile-initial">{{ user.username|first|upper }}</span><img id="profile-photo-preview" alt="Selected profile photo" hidden>{% endif %}</div><h2>{{ user.get_full_name|default:user.username }}</h2><p>{% if user.is_staff %}Administrator{% else %}Grower{% endif %}</p></div>
-    <form class="profile-edit-form" method="post" enctype="multipart/form-data" id="profile-edit-form-desktop">{% csrf_token %}
-        <h2>Edit your profile</h2>
-        {% if saved %}<p class="profile-save-success" role="status">Your profile has been saved.</p>{% endif %}
-        {{ profile_form.non_field_errors }}
-        <div class="profile-edit-grid">{% for field in profile_form %}<div class="profile-edit-field {% if field.name == 'photo' %}profile-photo-field{% endif %}"><label for="{{ field.id_for_label }}">{{ field.label }}</label>{{ field }}{% if field.name == 'photo' %}<small>JPG, PNG or WebP. Maximum 5MB.</small>{% endif %}{{ field.errors }}</div>{% endfor %}</div>
-        <button type="submit">Save Changes</button>
-        <a class="profile-security-link" href="{% url 'settings' %}">Change password in Settings</a>
-    </form></section>
-<div class="mobile-profile-menu">
- <div class="mobile-profile-rows">
-  <details><summary><span class="material-symbols-outlined" aria-hidden="true">person</span>{% ui 'My Account' 'Aking Account' %}<span class="material-symbols-outlined profile-chevron" aria-hidden="true">chevron_right</span></summary><div class="profile-menu-content"><dl><dt>Name</dt><dd>{{ user.get_full_name|default:user.username }}</dd><dt>Username</dt><dd>{{ user.username }}</dd><dt>Email</dt><dd>{{ user.email|default:"Not added yet" }}</dd></dl><a href="#profile-edit-form">Edit my account</a></div></details>
-  <details class="mobile-edit-profile-details"><summary><span class="material-symbols-outlined" aria-hidden="true">edit</span>{% ui 'Edit your profile' 'I-edit ang iyong profile' %}<span class="material-symbols-outlined profile-chevron" aria-hidden="true">chevron_right</span></summary><div class="profile-menu-content profile-edit-form-mobile"><form class="profile-edit-form" method="post" enctype="multipart/form-data" id="profile-edit-form">{% csrf_token %}
-      {% if saved %}<p class="profile-save-success" role="status">Your profile has been saved.</p>{% endif %}
-      {{ profile_form.non_field_errors }}
-      <div class="profile-edit-grid">{% for field in profile_form %}<div class="profile-edit-field {% if field.name == 'photo' %}profile-photo-field{% endif %}"><label for="{{ field.id_for_label }}-mobile">{{ field.label }}</label>{{ field }}{% if field.name == 'photo' %}<small>JPG, PNG or WebP. Maximum 5MB.</small>{% endif %}{{ field.errors }}</div>{% endfor %}</div>
-      <button type="submit">Save Changes</button>
-      <a class="profile-security-link" href="{% url 'settings' %}">Change password in Settings</a>
-    </form></div></details>
-  <a class="profile-menu-link" href="{% url 'settings' %}"><span class="material-symbols-outlined" aria-hidden="true">settings</span>{% ui 'Settings' 'Mga Setting' %}<span class="material-symbols-outlined profile-chevron" aria-hidden="true">chevron_right</span></a>
-  <details><summary><span class="material-symbols-outlined" aria-hidden="true">help_outline</span>{% ui 'Help' 'Tulong' %}<span class="material-symbols-outlined profile-chevron" aria-hidden="true">chevron_right</span></summary><div class="profile-menu-content"><p><strong>Scan your calamansi</strong><br>Open Scan Calamansi from Home, allow camera access, and position the fruits inside the frame. Use good lighting and hold the camera steady.</p><p><strong>Review before uploading</strong><br>Take a photo or choose images from your gallery. Review the selected photos, then tap Upload to analyze them.</p><p><strong>Find your results</strong><br>Open History for saved scans or Report for totals and trends.</p><a href="{% url 'knowledge_hub' %}">Explore the Knowledge Hub</a></div></details>
-  <details><summary><span class="material-symbols-outlined" aria-hidden="true">info</span>{% ui 'About CalamanSense' 'Tungkol sa CalamanSense' %}<span class="material-symbols-outlined profile-chevron" aria-hidden="true">chevron_right</span></summary><div class="profile-menu-content"><p>CalamanSense helps you assess calamansi using image analysis. Scan fruits, review estimated ripeness and batch grades, and track your saved results.</p></div></details>
- </div>
- <form method="post" action="{% url 'logout' %}" class="mobile-profile-logout">{% csrf_token %}<button type="submit">{% ui 'Log Out' 'Mag-log Out' %}</button></form>
+<header class="profile-heading"><div><h1>Profile <span class="material-symbols-outlined" aria-hidden="true">eco</span></h1><p>View and manage your account information.</p></div><nav aria-label="Breadcrumb"><a href="{% url 'dashboard' %}">Home</a><span aria-hidden="true">›</span><span aria-current="page">Profile</span></nav></header>
+{% if photo_saved %}<p class="profile-save-success" role="status">Your profile picture has been saved.</p>{% endif %}{% if saved %}<p class="profile-save-success" role="status">Your profile has been saved.</p>{% endif %}
+<div class="profile-layout">
+<section class="profile-panel personal-panel" aria-labelledby="personal-title">
+<div class="profile-panel-heading"><h2 id="personal-title"><span class="material-symbols-outlined" aria-hidden="true">account_circle</span>Personal Information</h2><button type="button" id="edit-profile" hidden><span class="material-symbols-outlined" aria-hidden="true">edit</span>Edit Profile</button></div>
+<div id="profile-summary" hidden>
+<div class="profile-detail"><span>Full Name</span><div><span class="material-symbols-outlined" aria-hidden="true">person</span>{{ user.get_full_name|default:user.username }}</div></div>
+<div class="profile-detail"><span>Email Address</span><div><span class="material-symbols-outlined" aria-hidden="true">mail</span>{{ user.email|default:'Not added yet' }}</div></div>
+<div class="profile-detail"><span>Contact Number</span><div><span class="material-symbols-outlined" aria-hidden="true">call</span>{{ user.profile.contact_number|default:'Not added yet' }}</div></div>
+<div class="profile-detail"><span>Farm/Business Name</span><div><span class="material-symbols-outlined" aria-hidden="true">storefront</span>{{ user.profile.farm_name|default:'Not added yet' }}</div></div>
+<div class="profile-detail"><span>Location</span><div><span class="material-symbols-outlined" aria-hidden="true">location_on</span>{{ user.profile.location|default:'Not added yet' }}</div></div>
 </div>
-<script>
-(() => {
- const input=document.getElementById('id_photo'), preview=document.getElementById('profile-photo-preview'), initial=document.getElementById('profile-initial');
- const original=preview.getAttribute('src');let url=null;
- input.addEventListener('change',()=>{if(url)URL.revokeObjectURL(url);const file=input.files[0];if(file){url=URL.createObjectURL(file);preview.src=url;preview.hidden=false;if(initial)initial.hidden=true;}else{if(original){preview.src=original;preview.hidden=false;}else{preview.hidden=true;if(initial)initial.hidden=false;}}});
-})();
-</script>{% endblock %}
-
-
-
+<form method="post" enctype="multipart/form-data" id="profile-edit-form" data-errors="{% if profile_form.errors %}true{% else %}false{% endif %}">{% csrf_token %}
+{{ profile_form.non_field_errors }}
+<div class="profile-edit-grid">{% for field in profile_form %}<div class="profile-edit-field{% if field.name == 'first_name' or field.name == 'last_name' %} name-field{% endif %}"><label for="{{ field.id_for_label }}">{% if field.name == 'farm_name' %}Farm/Business Name{% else %}{{ field.label }}{% endif %}</label>{{ field }}{% if field.name == 'photo' %}<small>JPG, PNG or WebP. Maximum 5MB.</small>{% endif %}{{ field.errors }}</div>{% endfor %}</div>
+<div class="profile-form-actions"><button type="submit">Save Changes</button><button type="button" id="cancel-edit" class="profile-secondary" hidden>Cancel</button></div>
+</form>
+</section>
+<div class="profile-side">
+<section class="profile-panel picture-panel" aria-labelledby="picture-title"><h2 id="picture-title"><span class="material-symbols-outlined" aria-hidden="true">potted_plant</span>Profile Picture</h2>
+<div class="profile-identity"><div class="profile-avatar-wrap"><button type="button" class="profile-avatar" id="open-photo-editor" aria-label="Edit profile picture" aria-expanded="false" aria-controls="profile-photo-dialog">{% if user.profile.photo %}<img src="{{ user.profile.photo.url }}" alt="Your profile photo" id="profile-photo-preview">{% else %}<span id="profile-initial" aria-hidden="true">{{ user.username|first|upper }}</span><img id="profile-photo-preview" alt="Selected profile photo" hidden>{% endif %}</button><button type="button" id="change-photo" aria-label="Change profile picture" hidden><span class="material-symbols-outlined" aria-hidden="true">photo_camera</span></button></div>
+<dialog id="profile-photo-dialog" aria-labelledby="photo-dialog-title">
+<header class="photo-dialog-heading"><div><h2 id="photo-dialog-title">Update profile picture</h2><p>Choose a photo or take a new one.</p></div><button type="button" id="close-photo-dialog" aria-label="Close photo editor"><span class="material-symbols-outlined" aria-hidden="true">close</span></button></header>
+<div class="profile-avatar photo-dialog-preview"><span id="photo-dialog-initial" aria-hidden="true">{{ user.username|first|upper }}</span><img id="photo-dialog-preview" alt="Profile picture preview" hidden></div>
+<form method="post" enctype="multipart/form-data" id="profile-photo-form" data-errors="{% if photo_form.errors %}true{% else %}false{% endif %}">
+{% csrf_token %}<input type="hidden" name="action" value="photo">
+<div class="photo-source-actions"><button type="button" id="photo-album"><span class="material-symbols-outlined" aria-hidden="true">photo_library</span>Album</button><button type="button" id="photo-camera"><span class="material-symbols-outlined" aria-hidden="true">photo_camera</span>Camera</button></div>
+<div hidden>{{ photo_form.photo }}</div>{{ photo_form.photo.errors }}
+<input type="file" id="photo-camera-input" accept="image/*" capture="user" hidden>
+<div id="profile-camera-panel" hidden><video id="profile-camera-video" autoplay muted playsinline></video><button type="button" id="profile-camera-capture">Take Photo</button><button type="button" id="profile-camera-stop">Close Camera</button></div>
+<p id="photo-status" role="status" aria-live="polite"></p>
+{{ photo_form.non_field_errors }}
+<div class="profile-form-actions"><button type="submit">Save Photo</button><button type="button" id="cancel-photo" class="profile-secondary">Cancel</button></div>
+</form></dialog><h3>{{ user.get_full_name|default:user.username }}</h3><p class="profile-motto">“Better harvests for a brighter tomorrow.”</p></div></section>
+<section class="profile-panel account-panel" aria-labelledby="actions-title"><h2 id="actions-title"><span class="material-symbols-outlined" aria-hidden="true">settings</span>Account Actions</h2>
+<a class="profile-action" href="{% url 'settings' %}#passwordModal"><span class="material-symbols-outlined" aria-hidden="true">key</span><span>Change Password<small>Update your password</small></span><span class="material-symbols-outlined" aria-hidden="true">chevron_right</span></a>
+<form method="post" action="{% url 'logout' %}">{% csrf_token %}<button class="profile-action profile-logout" type="submit"><span class="material-symbols-outlined" aria-hidden="true">logout</span><span>Log Out<small>Sign out from your account</small></span><span class="material-symbols-outlined" aria-hidden="true">chevron_right</span></button></form>
+</section></div></div>
+<footer class="profile-banner"><span class="material-symbols-outlined banner-sprout" aria-hidden="true">potted_plant</span><div><strong>Thank you for being part of CalamanSense!</strong><p>Together, we support local farmers and promote better calamansi quality.</p></div><p class="banner-quote">“Healthy calamansi.<br>Brighter communities.”</p><div class="banner-landscape" aria-hidden="true"><span class="material-symbols-outlined">forest</span><span class="material-symbols-outlined">cottage</span></div></footer>
+<script src="{% static 'js/profile.js' %}?v=profile-photo-6" defer></script>
+{% endblock %}

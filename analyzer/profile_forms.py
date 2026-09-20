@@ -5,10 +5,16 @@ class ProfileForm(forms.ModelForm):
     first_name = forms.CharField(max_length=150, required=False)
     last_name = forms.CharField(max_length=150, required=False)
     email = forms.EmailField(max_length=254, required=False)
+    class Meta:
+        model = UserProfile
+        fields = ['first_name', 'last_name', 'email', 'contact_number', 'farm_name', 'location']
+
+
+class ProfilePhotoForm(forms.ModelForm):
     remove_photo = forms.BooleanField(required=False)
     class Meta:
         model = UserProfile
-        fields = ['first_name', 'last_name', 'email', 'photo', 'contact_number', 'farm_name', 'location']
+        fields = ['photo']
         widgets = {'photo': forms.FileInput(attrs={'accept': 'image/jpeg,image/png,image/webp'})}
 
     def clean_photo(self):
@@ -24,4 +30,6 @@ class ProfileForm(forms.ModelForm):
         data = super().clean()
         if data.get('remove_photo') and 'photo' in self.files:
             self.add_error('photo', 'Choose either a new photo or Remove photo, not both.')
+        if not data.get('remove_photo') and 'photo' not in self.files:
+            self.add_error('photo', 'Please select a photo from Album or Camera.')
         return data

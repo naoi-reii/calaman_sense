@@ -13,6 +13,12 @@ from django.contrib.auth import update_session_auth_hash, login
 from django.contrib.auth.forms import SetPasswordForm, UserCreationForm
 from services.analysis import get_analysis_provider
 
+def home(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+    return render(request, 'home.html')
+
+
 @login_required
 def dashboard(request):
     if request.user.is_superuser:
@@ -276,6 +282,24 @@ def training_view(request):
     return render(request, 'training.html', {'samples': samples})
 
 @login_required
+def settings_guide(request, page):
+    from django.http import Http404
+    pages = {
+        'about': ('About CalamanSense', 'Tungkol sa CalamanSense', 'eco'),
+        'scanning': ('How Scanning Works', 'Paano Gumagana ang Pag-scan', 'center_focus_weak'),
+        'help': ('Help', 'Tulong', 'help_outline'),
+        'user-guide': ('User Guide', 'Gabay sa Paggamit', 'menu_book'),
+    }
+    if page not in pages:
+        raise Http404
+    title, title_fil, icon = pages[page]
+    return render(request, 'settings_guide.html', {
+        'guide_title': title, 'guide_title_fil': title_fil, 'guide_icon': icon,
+        'guide_content': 'guides/' + page + '.html',
+    })
+
+
+@login_required
 def settings_view(request):
     if request.method == 'POST' and 'language' in request.POST:
         language = request.POST.get('language')
@@ -410,26 +434,32 @@ def knowledge_hub(request):
 @login_required
 def profile_view(request):
     from .models import UserProfile
-    from .profile_forms import ProfileForm
+    from .profile_forms import ProfileForm, ProfilePhotoForm
     from django.db import transaction
     profile, _ = UserProfile.objects.get_or_create(user=request.user)
     old_photo = profile.photo.name
-    form = ProfileForm(request.POST or None, request.FILES or None, instance=profile,
+    photo_action = request.method == 'POST' and request.POST.get('action') == 'photo'
+    form = ProfileForm(request.POST if request.method == 'POST' and not photo_action else None, instance=profile,
                        initial={key: getattr(request.user, key) for key in ('first_name', 'last_name', 'email')})
-    if request.method == 'POST' and form.is_valid():
+    photo_form = ProfilePhotoForm(request.POST if photo_action else None,
+                                 request.FILES if photo_action else None, instance=profile)
+    active_form = photo_form if photo_action else form
+    if request.method == 'POST' and active_form.is_valid():
         with transaction.atomic():
-            for key in ('first_name', 'last_name', 'email'):
-                setattr(request.user, key, form.cleaned_data[key])
-            request.user.save(update_fields=['first_name', 'last_name', 'email'])
-            updated = form.save(commit=False)
-            if form.cleaned_data['remove_photo']:
+            if not photo_action:
+                for key in ('first_name', 'last_name', 'email'):
+                    setattr(request.user, key, form.cleaned_data[key])
+                request.user.save(update_fields=['first_name', 'last_name', 'email'])
+            updated = active_form.save(commit=False)
+            if photo_action and photo_form.cleaned_data['remove_photo']:
                 updated.photo = ''
             updated.save()
             if old_photo and old_photo != updated.photo.name:
                 storage = profile._meta.get_field('photo').storage
                 transaction.on_commit(lambda: storage.delete(old_photo))
-        return redirect('/profile/?saved=1')
-    return render(request, 'profile.html', {'profile_form': form, 'saved': request.GET.get('saved') == '1'})
+        return redirect('/profile/?saved=' + ('photo' if photo_action else '1'))
+    return render(request, 'profile.html', {'profile_form': form, 'photo_form': photo_form,
+                  'saved': request.GET.get('saved') == '1', 'photo_saved': request.GET.get('saved') == 'photo'})
 
 def register_view(request):
     if request.user.is_authenticated:

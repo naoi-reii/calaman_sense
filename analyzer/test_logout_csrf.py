@@ -19,7 +19,7 @@ class LogoutCsrfTests(TestCase):
         self.assertEqual(response.status_code, 403)
         self.assertIn('_auth_user_id', client.session)
         response = client.post('/logout/', {'csrfmiddlewaretoken': current_token})
-        self.assertRedirects(response, '/login/', fetch_redirect_response=False)
+        self.assertRedirects(response, '/', fetch_redirect_response=False)
         self.assertNotIn('_auth_user_id', client.session)
 
     def test_missing_token_does_not_log_user_out(self):
