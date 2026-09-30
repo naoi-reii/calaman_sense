@@ -7,9 +7,9 @@ SECRET_KEY = 'django-insecure-dummy-key-for-phase1'
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.ngrok.io', '.ngrok-free.app', 'camera-sage-enduring.ngrok-free.dev']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '.ngrok.io', '.ngrok-free.app', 'camera-sage-enduring.ngrok-free.dev', 'www.calamansense.dpdns.org', 'calamansense.dpdns.org']
 
-CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.app', 'https://*.ngrok.io', 'https://camera-sage-enduring.ngrok-free.dev']
+CSRF_TRUSTED_ORIGINS = ['https://*.ngrok-free.app', 'https://*.ngrok.io', 'https://camera-sage-enduring.ngrok-free.dev', 'https://www.calamansense.dpdns.org', 'https://calamansense.dpdns.org']
 
 INSTALLED_APPS = [
     'django.contrib.admin',
