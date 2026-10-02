@@ -61,6 +61,38 @@ function measureCameraPosition(data, width, height, frame, previous, sourceAspec
     const switchButton = document.getElementById('switch-camera-btn');
     const status = document.getElementById('camera-quality');
     const canvas = document.getElementById('camera-canvas');
+    const zoomControl = document.getElementById('camera-zoom');
+    const viewfinder = dialog.querySelector('.camera-viewfinder');
+    let zoomLevel = 1;
+    function setZoom(value) {
+        if (!stream || capturing) return;
+        zoomLevel = Math.max(1, Math.min(4, value));
+        zoomControl.value = String(zoomLevel);
+        document.getElementById('camera-zoom-value').textContent = zoomLevel.toFixed(1)+'×';
+        video.style.transform = `scale(${zoomLevel})`;
+        resetReady(); previousFrame = null; quality = null;
+    }
+    zoomControl.addEventListener('input', () => setZoom(Number(zoomControl.value)));
+    document.getElementById('camera-zoom-reset').addEventListener('click', () => setZoom(1));
+    const pointers = new Map(); let pinch = null;
+    function distance() { const [a,b] = [...pointers.values()]; return Math.hypot(a.x-b.x,a.y-b.y); }
+    viewfinder.addEventListener('pointerdown', e => {
+        if (e.pointerType !== 'touch' || !stream || capturing) return;
+        pointers.set(e.pointerId,{x:e.clientX,y:e.clientY}); viewfinder.setPointerCapture(e.pointerId);
+        if (pointers.size === 2) pinch = {distance:distance(),zoom:zoomLevel};
+    });
+    viewfinder.addEventListener('pointermove', e => {
+        if (!pointers.has(e.pointerId)) return;
+        pointers.set(e.pointerId,{x:e.clientX,y:e.clientY});
+        if (pointers.size === 2 && pinch?.distance > 0) setZoom(pinch.zoom*distance()/pinch.distance);
+    });
+    ['pointerup','pointercancel','lostpointercapture'].forEach(name => viewfinder.addEventListener(name,e => { pointers.delete(e.pointerId); pinch=null; }));
+    function crop() {
+        const aspect = viewfinder.clientWidth/viewfinder.clientHeight;
+        const w = video.videoWidth, h = video.videoHeight;
+        const sw = Math.min(w,h*aspect)/zoomLevel, sh = Math.min(h,w/aspect)/zoomLevel;
+        return [(w-sw)/2,(h-sh)/2,sw,sh];
+    }
     const sample = document.createElement('canvas');
     sample.width = sample.height = 160;
     const sampleContext = sample.getContext('2d', {willReadFrequently: true});
@@ -79,6 +111,8 @@ function measureCameraPosition(data, width, height, frame, previous, sourceAspec
     function release() {
         clearInterval(interval);
         interval = null;
+        pointers.clear(); pinch=null; zoomLevel=1; zoomControl.value='1'; zoomControl.disabled=true;
+        video.style.transform=''; document.getElementById('camera-zoom-value').textContent='1.0×';
         resetReady();
         previousFrame = null;
         capturing = false;
@@ -108,17 +142,14 @@ function measureCameraPosition(data, width, height, frame, previous, sourceAspec
     function checkQuality() {
         if (capturing) return;
         if (!video.videoWidth || video.readyState < 2 || document.hidden) { resetReady(); previousFrame = null; return; }
-        // Map the visible guide through object-fit: contain, including letterboxing.
-        const rect = video.getBoundingClientRect(), guide = frame.getBoundingClientRect();
-        const scale = Math.min(rect.width/video.videoWidth, rect.height/video.videoHeight);
-        if (!scale) { resetReady(); return; }
-        const displayWidth = video.videoWidth*scale, displayHeight = video.videoHeight*scale;
-        const ox = rect.left+(rect.width-displayWidth)/2, oy = rect.top+(rect.height-displayHeight)/2;
-        const bounds = {left: Math.max(0,(guide.left-ox)/displayWidth*160), right: Math.min(159,(guide.right-ox)/displayWidth*160), top: Math.max(0,(guide.top-oy)/displayHeight*160), bottom: Math.min(159,(guide.bottom-oy)/displayHeight*160)};
-        sampleContext.drawImage(video,0,0,160,160);
+        // Analyze the same crop that is visible and saved.
+        const rect = viewfinder.getBoundingClientRect(), guide = frame.getBoundingClientRect();
+        if (!rect.width || !rect.height) { resetReady(); return; }
+        const bounds = {left:(guide.left-rect.left)/rect.width*160,right:(guide.right-rect.left)/rect.width*160,top:(guide.top-rect.top)/rect.height*160,bottom:(guide.bottom-rect.top)/rect.height*160};
+        const source = crop();
+        sampleContext.drawImage(video,...source,0,0,160,160);
         const pixels = sampleContext.getImageData(0,0,160,160).data;
-        // Preserve source proportions for the shape check.
-        const position = measureCameraPosition(pixels,160,160,bounds,previousFrame,video.videoWidth/video.videoHeight);
+        const position = measureCameraPosition(pixels,160,160,bounds,previousFrame,source[2]/source[3]);
         previousFrame = pixels;
         const score = measureCameraQuality(pixels,160,160);
         quality = quality ? {brightness: quality.brightness*.65+score.brightness*.35, sharpness: quality.sharpness*.65+score.sharpness*.35} : score;
@@ -152,14 +183,36 @@ function measureCameraPosition(data, width, height, frame, previous, sourceAspec
         message('Starting camera...');
         try {
             if (!navigator.mediaDevices?.getUserMedia) throw new Error('unsupported');
-            const result = await navigator.mediaDevices.getUserMedia({audio:false, video:{facingMode:{ideal:facing}, width:{ideal:1920},height:{ideal:1080}}});
+            let result = await navigator.mediaDevices.getUserMedia({audio:false, video:{facingMode:{ideal:facing}, width:{ideal:1920},height:{ideal:1080}}});
             if (token !== version || dialog.hidden) { result.getTracks().forEach(track => track.stop()); return; }
+            // Prefer a normal rear lens when the browser exposes lens labels.
+            if (facing === 'environment' && navigator.mediaDevices.enumerateDevices) {
+                try {
+                    const devices = await navigator.mediaDevices.enumerateDevices();
+                    const rear = devices.filter(d => d.kind==='videoinput' && /back|rear|environment/i.test(d.label) && !/ultra|0[.,]5|telephoto|depth|macro/i.test(d.label));
+                    const normal = rear.find(d => /main|standard|back camera$|rear camera$/i.test(d.label)) || rear[0];
+                    if (token !== version || dialog.hidden) { result.getTracks().forEach(t=>t.stop()); return; }
+                    if (normal && normal.deviceId !== result.getVideoTracks()[0].getSettings().deviceId) {
+                        result.getTracks().forEach(t=>t.stop());
+                        result = await navigator.mediaDevices.getUserMedia({audio:false,video:{deviceId:{exact:normal.deviceId},width:{ideal:1920},height:{ideal:1080}}});
+                    }
+                } catch (_) {
+                    if (result.getVideoTracks()[0].readyState === 'ended') result = await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:facing}}});
+                }
+            }
+            if (token !== version || dialog.hidden) { result.getTracks().forEach(t=>t.stop()); return; }
             stream = result;
             video.srcObject = stream;
             await video.play();
             if (token !== version) return;
             const track = stream.getVideoTracks()[0];
-            flash.disabled = !track.getCapabilities?.().torch;
+            const capabilities = track.getCapabilities?.() || {};
+            if (capabilities.zoom) {
+                try { await track.applyConstraints({advanced:[{zoom:Math.max(capabilities.zoom.min,Math.min(capabilities.zoom.max,1))}]}); } catch (_) {}
+            }
+            if (token !== version) return;
+            zoomControl.disabled = false;
+            flash.disabled = !capabilities.torch;
             document.getElementById('flash-label').textContent = flash.disabled ? 'Flash unavailable' : 'Flash';
             track.addEventListener('ended', () => { if (token === version) { release(); message('Camera disconnected. Close and reopen the camera.',true); } });
             interval = setInterval(checkQuality, 600);
@@ -221,9 +274,10 @@ function measureCameraPosition(data, width, height, frame, previous, sourceAspec
         capture.disabled = true;
         clearInterval(interval);
         const token = version;
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        canvas.getContext('2d').drawImage(video,0,0,canvas.width,canvas.height);
+        const source = crop();
+        canvas.width = Math.max(1,Math.round(source[2]));
+        canvas.height = Math.max(1,Math.round(source[3]));
+        canvas.getContext('2d').drawImage(video,...source,0,0,canvas.width,canvas.height);
         canvas.toBlob(blob => {
             if (token !== version) return;
             capturing = false;

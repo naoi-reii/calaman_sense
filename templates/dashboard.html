@@ -2,30 +2,22 @@
 {% load static %}
 {% block body_class %}overview-page home-page{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=recent-images-3">
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=dashboard-reference-8">
 {% endblock %}
 {% block navigation %}{% include "includes/overview_navigation.html" with active_page="dashboard" %}{% endblock %}
 {% block content %}
 {% include 'includes/mobile_home.html' %}
 <div class="desktop-home">
-<section class="overview-heading">
-    <div><h1>Welcome back, {{ user.first_name|default:user.username }}! <span aria-hidden="true">🌿</span></h1><p>Here's your calamansi scanning overview.</p></div>
-    <a class="overview-new-scan" href="{% url 'upload' %}"><span class="material-symbols-outlined" aria-hidden="true">add_photo_alternate</span>New Scan</a>
-</section>
-<div class="overview-stats" aria-label="Scan summary">
-    <div class="overview-stat"><strong>{{ total_scans }}</strong><span>Total Scans</span></div>
-    <div class="overview-stat"><strong>{{ total_fruits }}</strong><span>Fruits Analyzed</span></div>
-    <div class="overview-stat"><strong class="overview-quality">{{ average_grade }}</strong><span>Average Batch Grade</span></div>
-    <div class="overview-stat"><strong>{% if total_fruits %}{{ defect_rate }}%{% else %}&mdash;{% endif %}</strong><span>Defect Rate</span></div>
-</div>
+<section class="dashboard-hero"><div class="dashboard-hero-copy"><h1>Welcome back, {{ user.first_name|default:user.username }}! <span class="material-symbols-outlined" aria-hidden="true">eco</span></h1><h2>Ready to check your calamansi?</h2><p>Scan a batch to get the ripeness results and quality grade.</p></div><img class="dashboard-hero-fruit" src="{% static 'images/dashboard-calamansi.png' %}" alt="" aria-hidden="true"><a class="dashboard-scan-action" href="{% url 'upload' %}"><span class="dashboard-scan-plus material-symbols-outlined" aria-hidden="true">add</span><span><strong>New Scan</strong><small>Start scanning now</small></span><span class="dashboard-scan-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span></a></section>
+<div class="dashboard-stat-grid" aria-label="Scan summary"><a class="dashboard-stat-card" href="{% url 'reports' %}"><span class="dashboard-stat-icon material-symbols-outlined" aria-hidden="true">description</span><div><strong>{{ total_scans }}</strong><span>Total Scans</span></div><span class="dashboard-stat-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span></a><a class="dashboard-stat-card dashboard-stat-fruits" href="{% url 'reports_overview' %}"><span class="dashboard-stat-icon"><img src="{% static 'images/dashboard-calamansi.png' %}" alt="" aria-hidden="true"></span><div><strong>{{ total_fruits }}</strong><span>Fruits Scanned</span></div><span class="dashboard-stat-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span></a><a class="dashboard-stat-card dashboard-stat-quality" href="{% url 'reports_overview' %}"><span class="dashboard-stat-icon material-symbols-outlined" aria-hidden="true">workspace_premium</span><div><strong>{{ average_grade }}</strong><span>Average Batch Grade</span></div><span class="dashboard-stat-arrow material-symbols-outlined" aria-hidden="true">arrow_forward</span></a></div>
 <section class="overview-recent" aria-labelledby="recent-title">
-    <div class="overview-section-heading"><h2 id="recent-title">Recent Scans</h2><a href="{% url 'reports' %}">See all <span aria-hidden="true">→</span></a></div>
+    <div class="overview-section-heading"><h2 id="recent-title">Recent Scans <span class="material-symbols-outlined" aria-hidden="true">eco</span></h2><a href="{% url 'reports' %}">See all <span aria-hidden="true">→</span></a></div>
     <div class="overview-table-scroll">
         <table class="overview-table">
-            <thead><tr><th scope="col">Image</th><th scope="col">Date &amp; Time</th><th scope="col">Total Fruits</th><th scope="col">Batch Grade</th><th scope="col">Actions</th></tr></thead>
+            <thead><tr><th scope="col">#</th><th scope="col">Image</th><th scope="col">Date &amp; Time</th><th scope="col">Total Fruits</th><th scope="col">Batch Grade</th><th scope="col">Actions</th></tr></thead>
             <tbody>
-            {% for scan in recent_scans %}
-                <tr>
+            {% for scan in recent_scans|slice:':4' %}
+                <tr><td>#{{ scan.id }}</td>
                     <td>{% with scan_image=scan.images.last %}<a class="recent-scan-thumbnail" href="{% url 'report_detail' scan.id %}" aria-label="View image for scan {{ scan.id }}">{% if scan_image %}<img src="{{ scan_image.image.url }}" alt="Calamansi scan {{ scan.id }}" loading="lazy">{% else %}<span class="material-symbols-outlined" aria-hidden="true">image_not_supported</span>{% endif %}</a>{% endwith %}</td>
                     <td>{{ scan.created_at|date:"M j, Y" }} <span class="scan-time">{{ scan.created_at|date:"h:i A" }}</span></td>
                     <td>{{ scan.fruit_count_total }}</td>
@@ -33,7 +25,7 @@
                     <td><a class="overview-view" href="{% url 'report_detail' scan.id %}" aria-label="View scan {{ scan.id }}">View</a></td>
                 </tr>
             {% empty %}
-                <tr><td colspan="5"><div class="overview-empty"><span class="material-symbols-outlined" aria-hidden="true">photo_camera</span><h3>Your first scan starts here</h3><p>Upload calamansi images to see your batch results.</p><a href="{% url 'upload' %}">Start a new scan →</a></div></td></tr>
+                <tr><td colspan="6"><div class="overview-empty"><span class="material-symbols-outlined" aria-hidden="true">photo_camera</span><h3>Your first scan starts here</h3><p>Upload calamansi images to see your batch results.</p><a href="{% url 'upload' %}">Start a new scan →</a></div></td></tr>
             {% endfor %}
             </tbody>
         </table>

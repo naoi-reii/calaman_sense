@@ -1,10 +1,10 @@
-<div id="cameraModal" class="camera-modal" role="dialog" aria-modal="true" aria-labelledby="camera-title" hidden>
+﻿<div id="cameraModal" class="camera-modal" role="dialog" aria-modal="true" aria-labelledby="camera-title" hidden>
  <div class="camera-screen">
-  <header class="camera-header"><button type="button" id="close-camera-btn" aria-label="Close camera"><span class="material-symbols-outlined">close</span></button><h2 id="camera-title">Scan Calamansi</h2><button type="button" id="switch-camera-btn" aria-label="Switch camera"><span class="material-symbols-outlined">flip_camera_ios</span></button></header>
-  <div class="camera-viewfinder"><video id="camera-stream" autoplay playsinline muted></video><div class="camera-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div></div>
-  <p class="camera-instruction">Keep fruits inside the frame and hold steady to auto-capture. You can also tap the capture button.</p>
-  <p id="camera-quality" class="camera-quality" role="status" aria-live="polite">Starting camera...</p>
-  <div class="camera-controls"><button type="button" id="camera-gallery"><span class="material-symbols-outlined">photo_library</span>Gallery</button><button type="button" id="capture-btn" aria-label="Capture photo" disabled></button><button type="button" id="camera-flash" aria-pressed="false" disabled><span class="material-symbols-outlined">flash_off</span><span id="flash-label">Flash unavailable</span></button></div>
+  <h2 id="camera-title" class="camera-accessible-title">Scan Calamansi</h2>
+  <div class="camera-viewfinder"><video id="camera-stream" autoplay playsinline muted></video><div class="camera-top-controls"><button type="button" id="camera-flash" aria-pressed="false" disabled><span class="material-symbols-outlined" aria-hidden="true">flash_off</span><span id="flash-label">Flash unavailable</span></button><button type="button" id="switch-camera-btn" aria-label="Switch camera"><span class="material-symbols-outlined" aria-hidden="true">flip_camera_ios</span>Flip</button></div><div class="camera-frame" aria-hidden="true"><i></i><i></i><i></i><i></i></div><p id="camera-quality" class="camera-quality" role="status" aria-live="polite">Starting camera...</p></div>
+  <div class="camera-controls"><button type="button" id="camera-gallery"><span class="material-symbols-outlined" aria-hidden="true">photo_library</span>Gallery</button><button type="button" id="capture-btn" aria-label="Capture photo" disabled><span class="material-symbols-outlined" aria-hidden="true">photo_camera</span></button><button type="button" id="close-camera-btn"><span class="material-symbols-outlined" aria-hidden="true">close</span>Close</button></div>
+  <div class="camera-zoom-control"><button type="button" id="camera-zoom-reset" aria-label="Reset camera zoom to 1x">1&times;</button><label for="camera-zoom">Zoom</label><input id="camera-zoom" type="range" min="1" max="4" step="0.01" value="1" disabled><output id="camera-zoom-value" for="camera-zoom">1.0&times;</output></div>
+  <p class="camera-instruction">Pinch to zoom. Keep fruits inside the frame and hold steady to auto-capture, or tap the camera button.</p>
  </div>
 </div>
 <canvas id="camera-canvas" hidden></canvas>

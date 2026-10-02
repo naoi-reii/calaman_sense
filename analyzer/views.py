@@ -183,12 +183,34 @@ def reports_view(request):
         scans = scans.filter(quality_grade=grade)
         
     period = request.GET.get('period', 'all')
-    if period in ('7', '30', '90'):
+    if period == 'today':
+        scans = scans.filter(created_at__date=timezone.localdate())
+    elif period in ('7', '30', '90'):
         scans = scans.filter(created_at__gte=timezone.now() - timedelta(days=int(period)))
     else:
         period = 'all'
     context = {'scans': scans, 'selected_grade': grade or '', 'selected_period': period,
                'grade_choices': Scan.QUALITY_CHOICES}
+    history_data = []
+    for scan in scans:
+        images = list(scan.images.all())
+        photo = max(images, key=lambda image: image.id) if images else None
+        boxes = photo.mock_annotations if photo else []
+        rows = [{'key': key, 'label': label,
+                 'pct': getattr(scan, 'ripeness_' + key + '_pct'),
+                 'count': sum(box.get('css_class') == key for box in boxes) if boxes or scan.fruit_count_total == 0 else None}
+                for key, label in [('unripe', 'Unripe'), ('ripe', 'Ripe'), ('overripe', 'Overripe')]]
+        leading = max(rows, key=lambda row: row['pct'])
+        summary = ('Mostly ' + leading['label']) if leading['pct'] > 50 else 'Mixed Ripeness'
+        if not scan.fruit_count_total:
+            summary = 'No fruits detected'
+        history_data.append({'id': scan.id, 'batch': scan.batch_name or 'Unnamed sample',
+                             'date': timezone.localtime(scan.created_at).strftime('%b %d, %Y'),
+                             'time': timezone.localtime(scan.created_at).strftime('%I:%M %p'),
+                             'image': photo.image.url if photo else '', 'total': scan.fruit_count_total,
+                             'grade': scan.quality_grade or 'Pending', 'rows': rows,
+                             'summary': summary, 'key': leading['key'], 'annotations': boxes})
+    context['history_data'] = history_data
     return render(request, 'reports.html', context)
 
 @login_required
@@ -384,6 +406,21 @@ def reports_overview(request):
     else:
         ripeness = ''
     context = summarize(scans)
+    from collections import Counter
+    leading = max(context['distribution'], key=lambda row: row['pct'])
+    context['dominant_ripeness'] = leading
+    grades = Counter(scan.quality_grade for scan in scans if scan.quality_grade)
+    context['most_common_grade'] = grades.most_common(1)[0][0] if grades else 'N/A'
+    fruit_days = Counter()
+    for scan in scans:
+        date_label = timezone.localtime(scan.created_at).strftime('%b %Y' if len(context['trend']) and len(context['trend'][0]['date']) == 8 else '%b %d, %Y')
+        fruit_days[date_label] += scan.fruit_count_total
+    fruit_max = max(fruit_days.values(), default=1) or 1
+    for point in context['trend']:
+        point['fruits'] = fruit_days[point['date']]
+        point['fruit_y'] = round(175 - point['fruits'] / fruit_max * 140, 2)
+    context['trend_fruit_max'] = fruit_max
+    context['trend_fruit_points'] = ' '.join(f"{p['x']},{p['fruit_y']}" for p in context['trend'])
     context['selected_period'] = period
     context['period_choices'] = [('all', 'All'), ('today', 'Today'), ('7', 'Last 7 Days'), ('30', 'Last 30 Days')]
     context['grade_distribution'] = [
@@ -394,7 +431,7 @@ def reports_overview(request):
     ]
     for point in context['trend']:
         point['pct'] = round(point['count'] / len(scans) * 100, 1) if scans else 0
-    context['recent_activity'] = sorted(scans, key=lambda scan: (scan.created_at, scan.pk), reverse=True)[:5]
+    context['recent_activity'] = sorted(scans, key=lambda scan: (scan.created_at, scan.pk), reverse=True)[:3]
     context.update({'errors': errors, 'start': dates['start'].isoformat() if dates['start'] else '', 'end': dates['end'].isoformat() if dates['end'] else '', 'quality': quality, 'selected_ripeness': ripeness, 'grade_choices': Scan.QUALITY_CHOICES, 'ripeness_choices': RIPENESS})
     if request.GET.get('download') == 'csv':
         import csv
@@ -507,3 +544,7 @@ def compare_scans(request):
     difference = scans[1].fruit_count_total - scans[0].fruit_count_total
     return render(request, 'compare_scans.html', {'cards': cards, 'difference': difference,
         'difference_abs': abs(difference), 'same_sample': bool(scans[0].batch_name and scans[0].batch_name == scans[1].batch_name)})
+
+@login_required
+def settings_appearance(request):
+    return render(request, 'settings_appearance.html')

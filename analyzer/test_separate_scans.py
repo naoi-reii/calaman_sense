@@ -1,4 +1,4 @@
-﻿"""Each uploaded photo keeps its own analysis result."""
+"""Each uploaded photo keeps its own analysis result."""
 import tempfile
 from dataclasses import fields
 from unittest.mock import patch

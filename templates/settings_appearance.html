@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% load static ui_language %}
+{% block body_class %}overview-page settings-screen appearance-screen{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/dashboard.css' %}"><link rel="stylesheet" href="{% static 'css/settings.css' %}?v=appearance-desktop-5">{% endblock %}
+{% block navigation %}{% include 'includes/overview_navigation.html' with active_page='settings' %}{% endblock %}
+{% block content %}
+<section class="appearance-page"><header class="appearance-heading"><a href="{% url 'settings' %}" aria-label="Back to settings"><span class="material-symbols-outlined" aria-hidden="true">arrow_back</span></a><h1>{% ui 'Dark Mode' 'Madilim na Tema' %}</h1></header>
+<div class="appearance-preview" aria-label="Preview of light and dark appearances">{% for mode in '12' %}<div class="appearance-example {% if forloop.last %}preview-dark{% endif %}"><div class="preview-phone" aria-hidden="true"><span class="preview-notch"></span><div class="preview-user"><i></i><span></span></div><div class="preview-feature"><span class="material-symbols-outlined">image</span><div><i></i><i></i><i></i></div></div><div class="preview-list"><i></i><span></span></div><div class="preview-list"><i></i><span></span></div><div class="preview-list"><i></i><span></span></div></div><p>{% if forloop.first %}{% ui 'Light Mode' 'Maliwanag na Tema' %}{% else %}{% ui 'Dark Mode' 'Madilim na Tema' %}{% endif %}</p></div>{% endfor %}</div>
+<fieldset class="appearance-choices"><legend class="appearance-sr-only">Choose an appearance</legend><label><input type="radio" name="appearance" value="light"><span class="appearance-radio" aria-hidden="true"></span><span>{% ui 'Light Mode' 'Maliwanag na Tema' %}</span></label><label><input type="radio" name="appearance" value="dark"><span class="appearance-radio" aria-hidden="true"></span><span>{% ui 'Dark Mode' 'Madilim na Tema' %}</span></label></fieldset></section>
+{% endblock %}

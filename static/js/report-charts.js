@@ -16,3 +16,34 @@
  }
  document.addEventListener('keydown',e=>{if(e.key==='Escape')hide();});window.addEventListener('scroll',hide,{passive:true});
 })();
+
+// Place each saved percentage at the midpoint of its donut segment.
+(() => {
+ const donut=document.getElementById('interactive-donut');
+ if(!donut)return;
+ const rows=JSON.parse(document.getElementById('report-distribution-data').textContent);
+ rows.filter(row=>row.pct>=4).forEach(row=>{
+  const angle=((row.start+row.end)/2)*Math.PI/50-Math.PI/2;
+  const label=document.createElement('span');label.className='report-donut-label';
+  label.textContent=row.pct.toFixed(1)+'%';label.setAttribute('aria-hidden','true');
+  label.style.left=(50+41*Math.cos(angle))+'%';label.style.top=(50+41*Math.sin(angle))+'%';donut.append(label);
+ });
+})();
+
+// Swipe between report charts on mobile; dots also support keyboard navigation.
+(() => {
+ const track=document.querySelector('.analytics-charts');if(!track)return;
+ const cards=[...track.querySelectorAll('.analytics-card')];
+ const nav=document.createElement('div');nav.className='reports-chart-navigation';nav.setAttribute('role','group');nav.setAttribute('aria-label','Choose report graph');
+ const hint=document.createElement('p');hint.className='reports-chart-swipe-hint';hint.textContent='Swipe to explore the graphs';
+ const mobile=matchMedia('(max-width:760px)'), reduce=matchMedia('(prefers-reduced-motion:reduce)');
+ const dots=cards.map((card,index)=>{
+  const button=document.createElement('button');button.type='button';button.setAttribute('aria-label',card.querySelector('h2').textContent.trim());button.setAttribute('aria-pressed',String(index===0));
+  button.onclick=()=>track.scrollTo({left:card.offsetLeft-cards[0].offsetLeft,behavior:reduce.matches?'auto':'smooth'});nav.append(button);return button;
+ });
+ track.after(hint,nav);
+ let scheduled=false;
+ function sync(){scheduled=false;const origin=cards[0].offsetLeft;let closest=0;cards.forEach((card,i)=>{if(Math.abs(card.offsetLeft-origin-track.scrollLeft)<Math.abs(cards[closest].offsetLeft-origin-track.scrollLeft))closest=i;});dots.forEach((dot,i)=>dot.setAttribute('aria-pressed',String(i===closest)));}
+ track.addEventListener('scroll',()=>{if(!scheduled){scheduled=true;requestAnimationFrame(sync);}},{passive:true});
+ mobile.addEventListener('change',()=>{track.scrollLeft=0;sync();});window.addEventListener('resize',sync);sync();
+})();

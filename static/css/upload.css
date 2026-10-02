@@ -218,3 +218,77 @@
 @media(max-width:760px) { .scan-name-panel { padding:15px; margin:18px 0; }.scan-name-panel input { font-size:16px; } }
 @media(min-width:761px) { #switch-camera-btn,#camera-flash { display:none!important; } }
 
+
+.camera-viewfinder { touch-action:none; }
+.camera-viewfinder video { object-fit:cover; transform-origin:center; pointer-events:none; }
+.camera-zoom-control { display:flex; align-items:center; gap:10px; margin-top:10px; font-size:12px; }
+.camera-zoom-control input { flex:1; min-width:0; accent-color:#65ed89; }
+.camera-zoom-control output { min-width:40px; font-variant-numeric:tabular-nums; }
+
+/* One complete photo per slide inside the upload box. */
+.upload-page .dropzone.has-images { padding:0; overflow:hidden; }
+.upload-page .dropzone .scan-previews {
+ display:flex!important; position:relative; flex-wrap:nowrap; justify-content:flex-start;
+ gap:0; margin:0; width:100%; overflow-x:auto; scroll-snap-type:x mandatory;
+ overscroll-behavior-x:contain; scrollbar-width:none; touch-action:pan-x pan-y;
+}
+.upload-page .dropzone .scan-previews:empty { display:none!important; }
+.scan-previews::-webkit-scrollbar { display:none; }
+.upload-page .dropzone .scan-previews > .preview-slide {
+ position:relative; flex:0 0 100%; width:100%; max-width:100%; min-width:0;
+ scroll-snap-align:start; scroll-snap-stop:always; overflow:hidden;
+}
+.upload-page .dropzone .scan-previews > .preview-slide .preview-thumb {
+ width:100%; height:clamp(260px,45vh,480px); min-height:0; max-height:none;
+ aspect-ratio:auto; object-fit:contain; border:0; border-radius:0; background:#eef2ee; cursor:default;
+}
+.upload-page .dropzone .scan-previews .preview-remove {
+ position:absolute; top:10px!important; right:10px!important; width:44px!important;
+ height:44px!important; padding:0; border:1px solid var(--border); border-radius:50%;
+ background:var(--white); color:var(--black); font-size:26px; cursor:pointer;
+}
+.upload-page .dropzone .preview-filename {
+ margin:0; padding:8px 16px; width:100%; text-align:center; font-size:12px;
+ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; color:var(--gray-dark);
+}
+.preview-controls { display:flex; align-items:center; justify-content:center; gap:20px; padding:8px; width:100%; }
+.preview-controls[hidden],.preview-help[hidden] { display:none; }
+.preview-controls button { width:44px; height:44px; border:1px solid var(--border); border-radius:50%; background:var(--white); color:var(--green-dark); cursor:pointer; }
+.preview-controls button:disabled { opacity:.35; cursor:default; }
+.preview-controls output { min-width:70px; text-align:center; font-size:13px; font-variant-numeric:tabular-nums; }
+.upload-page .dropzone > .preview-help { display:block; font-size:12px; color:var(--gray-dark); text-align:center; padding:0 12px 12px; margin:0; }
+.upload-page .dropzone > .preview-help[hidden] { display:none; }
+/* Scan workspace with a photo slider and submission row. */
+.scan-heading h1 { font-size:36px; margin:0; }.scan-heading p { margin-top:8px; font-size:13px; line-height:1.5; }
+.scan-layout { grid-template-columns:minmax(0,2.15fr) minmax(250px,1fr); gap:24px; }.scan-upload-panel { min-width:0; }
+.scan-source-actions { gap:0; border:1px solid var(--border); border-radius:10px; overflow:hidden; margin-bottom:18px; }.scan-source-actions button { border:0; border-radius:0; min-height:54px; }.scan-source-actions #open-camera-btn { order:-1; }
+.scan-selection-heading { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:18px 20px; background:var(--white); border:1px solid var(--border); border-bottom:0; border-radius:12px 12px 0 0; }.scan-selection-heading h2 { display:flex; align-items:center; gap:10px; font-size:15px; margin:0; }.scan-selection-heading h2 > span:first-child { display:grid; place-items:center; width:40px; height:40px; border-radius:50%; color:var(--green-dark); background:var(--green-light); }.scan-selection-heading #selected-count { font-size:14px; font-weight:650; color:var(--black); }
+#clear-selected { display:flex; align-items:center; gap:5px; padding:6px 0; border:0; background:transparent; color:#e93643; font-size:13px; }#clear-selected[hidden] { display:none; }
+.scan-drop-frame { border-radius:0 0 12px 12px; padding:0 20px 18px; }.upload-page .dropzone.has-images { background:var(--white); border:0; }.upload-page .dropzone .scan-previews { border-radius:10px; }.upload-page .dropzone .scan-previews > .preview-slide .preview-thumb { height:330px; background:var(--background); border-radius:10px; }.upload-page .dropzone .scan-previews .preview-remove { border-radius:8px; width:36px!important; height:36px!important; }.preview-controls { gap:14px; }.preview-controls button { width:44px; height:44px; box-shadow:0 2px 5px #12352a10; }.preview-controls output { color:var(--gray); }
+.scan-submit-row { display:flex; align-items:center; flex-wrap:wrap; gap:20px; padding:18px; margin-top:18px; border:1px solid var(--border); border-radius:12px; background:var(--white); }.scan-submit-row .scan-name-panel { flex:1; min-width:180px; padding:0; margin:0; border:0; background:transparent; }.scan-name-panel label span { padding:3px 8px; border-radius:12px; background:var(--green-light); color:var(--green-dark); }.scan-name-panel p { font-size:10px; margin-bottom:0; }.scan-submit-row .scan-analyze { min-height:64px; padding:18px 20px; border-radius:10px; font-size:15px; background:linear-gradient(130deg,#198c61,#086839); box-shadow:0 5px 12px #08683920; }.scan-submit-row #loading-msg { flex-basis:100%; font-size:13px; }
+.scan-tips { border:1px solid var(--border); border-radius:10px; padding:20px; }.scan-tips li::before { content:'?'; display:grid; place-items:center; width:15px; height:15px; border-radius:50%; font-size:10px; background:#15962a; color:white; flex-shrink:0; }.camera-examples { margin-top:14px; }.camera-examples h2 { color:var(--green-dark); }
+@media(max-width:900px) { .scan-layout { grid-template-columns:1fr; }.scan-tips { margin-top:0; } }
+@media(max-width:760px) { .scan-selection-heading { padding:12px; }.scan-drop-frame { padding:0 10px 12px; }.scan-submit-row { gap:12px; padding:14px; }.scan-submit-row .scan-name-panel { flex-basis:100%; }.scan-submit-row .scan-analyze { width:100%; min-height:48px; }.upload-page .dropzone .scan-previews > .preview-slide .preview-thumb { height:280px; }.scan-selection-heading #selected-count { font-size:12px; }#clear-selected { font-size:11px; } }
+/* Live camera controls match the supplied viewfinder reference. */
+.camera-accessible-title { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); }
+.camera-modal .camera-screen { box-sizing:border-box; width:min(650px,100%); background:var(--white); color:var(--black); padding:8px 8px 14px; border:1px solid var(--border); border-radius:14px; }
+.camera-viewfinder { position:relative; aspect-ratio:1.6; border-radius:8px; background:#101510; }
+.camera-top-controls { position:absolute; inset:14px 14px auto; display:flex; justify-content:space-between; align-items:center; z-index:3; gap:12px; }
+.camera-screen .camera-top-controls button { display:inline-flex!important; align-items:center; gap:6px; min-height:36px; min-width:0; padding:6px 12px; border:1px solid #ffffff26; border-radius:24px; background:#252525b8; color:white; font-size:12px; backdrop-filter:blur(6px); }
+.camera-top-controls .material-symbols-outlined { font-size:20px; }
+.camera-modal .camera-frame { inset:18% 9% 9%; }
+.camera-modal .camera-frame i { width:32px; height:32px; }
+.camera-modal .camera-quality,#desktop-camera-slot .camera-quality { position:absolute; z-index:2; bottom:12px; left:50%; transform:translateX(-50%); width:max-content; max-width:85%; box-sizing:border-box; min-height:0; padding:8px 12px; margin:0; border:1px solid #7caa67; border-radius:22px; background:#102413d9; color:#e3f3df; font-size:11px; line-height:1.4; text-align:center; }
+.camera-modal .camera-quality.is-warning,#desktop-camera-slot .camera-quality.is-warning { color:#fff4ca; border-color:#d4a91b; background:#201d0ce6; }
+.camera-quality.is-warning::before { content:'? '; color:#ffd63e; }
+.camera-modal .camera-controls { display:grid; grid-template-columns:1fr 1fr 1fr; align-items:center; padding:14px 12px 8px; margin:0; gap:12px; }
+.camera-modal .camera-controls button:not(#capture-btn) { display:flex; flex-direction:row; align-items:center; justify-content:center; gap:8px; min-height:44px; padding:8px 12px; border:1px solid var(--border); border-radius:9px; color:var(--black); background:var(--white); font-size:12px; }
+.camera-controls #camera-gallery { justify-self:start; }.camera-controls #close-camera-btn { justify-self:end; }
+.camera-modal .camera-controls .material-symbols-outlined { color:var(--green-dark); font-size:23px; }
+.camera-modal #capture-btn,#desktop-camera-slot #capture-btn { display:grid; place-items:center; width:66px; height:66px; padding:0; border:4px solid #86d8a8; background:#09a34d; box-shadow:inset 0 0 0 3px white; border-radius:50%; }
+.camera-modal #capture-btn .material-symbols-outlined { color:white; font-size:28px; }
+#desktop-camera-slot #capture-btn::after { content:none; }
+.camera-modal .camera-instruction,#desktop-camera-slot .camera-instruction { margin:8px 12px 0; color:var(--gray); font-size:10px; line-height:1.5; }
+.camera-modal .camera-zoom-control { margin:4px 14px; color:var(--gray-dark); }.camera-modal .camera-zoom-control button { min-width:38px; min-height:30px; padding:4px; color:var(--green-dark); }.camera-modal .camera-zoom-control input { accent-color:#087541; }
+#desktop-camera-slot .camera-viewfinder { aspect-ratio:1.6; }#desktop-camera-slot .camera-frame { inset:18% 9% 9%; }
+@media(max-width:760px) { .camera-modal { align-items:center; background:#000b; padding:10px; }.camera-modal .camera-screen { min-height:0; max-height:95svh; overflow:auto; }.camera-modal .camera-viewfinder { max-height:none; aspect-ratio:1; }.camera-top-controls { inset:12px 12px auto; }.camera-modal .camera-quality { max-width:88%; font-size:10px; }.camera-modal .camera-controls { padding:14px 4px 6px; gap:8px; }.camera-modal .camera-controls button:not(#capture-btn) { font-size:11px; padding:8px; } }

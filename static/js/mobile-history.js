@@ -1,11 +1,11 @@
-﻿(() => {
+(() => {
  const mobile=matchMedia('(max-width: 760px)'), list=document.querySelector('.mobile-history-list');
  const form=document.getElementById('mobile-delete-form'), items=[...list.querySelectorAll('.mobile-history-item')];
  const start=document.getElementById('mobile-selection-start'), cancel=document.getElementById('mobile-selection-cancel'), remove=document.getElementById('mobile-selection-delete');
  let selecting=false,timer=null,submitted=false;
  const boxes=items.map(item=>item.querySelector('input'));
  function update(){const count=boxes.filter(box=>box.checked).length;document.getElementById('mobile-selection-count').textContent=`${count} selected`;remove.disabled=!count;items.forEach((item,i)=>item.classList.toggle('is-selected',boxes[i].checked));}
- function mode(enabled){selecting=enabled;list.classList.toggle('is-selecting',enabled);start.hidden=enabled;cancel.hidden=remove.hidden=!enabled;if(!enabled)boxes.forEach(box=>box.checked=false);update();}
+ function mode(enabled){selecting=enabled;document.body.classList.toggle('mobile-history-selecting',enabled);list.classList.toggle('is-selecting',enabled);start.hidden=enabled;cancel.hidden=remove.hidden=!enabled;if(!enabled)boxes.forEach(box=>box.checked=false);update();}
  function stop(){clearTimeout(timer);timer=null;}
  items.forEach(item=>{
   const card=item.querySelector('a'), box=item.querySelector('input');let x=0,y=0;
@@ -26,3 +26,8 @@
  mode(false);
 })();
 
+
+(() => {
+ const toggle=document.getElementById('mobile-history-filter-toggle'),form=document.getElementById('history-filter-form');
+ toggle.addEventListener('click',()=>{const open=toggle.getAttribute('aria-expanded')!=='true';toggle.setAttribute('aria-expanded',String(open));form.classList.toggle('mobile-filters-open',open);if(open)form.querySelector('[name=grade]').focus();});
+})();

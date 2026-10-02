@@ -194,10 +194,121 @@ body.fruit-inspector-open { overflow:hidden; }
 #fruit-inspector .inspector-eyebrow { margin:0 0 4px; color:var(--green-dark); text-transform:uppercase; letter-spacing:1.8px; font-size:10px; font-weight:700; }
 #inspector-close { width:44px; height:44px; border-radius:50%; }
 .fruit-zoom-stage { overflow:hidden; border-radius:16px; }
-#fruit-zoom { display:block; touch-action:pan-y pinch-zoom; }
+#fruit-zoom { display:block; touch-action:none; }
 .fruit-zoom-control { display:flex; align-items:center; gap:12px; margin:14px 0 8px; font-size:12px; }
 #fruit-zoom-level { flex:1; width:0; min-width:0; min-height:32px; accent-color:#086839; padding:0; }
 #fruit-zoom-value { min-width:35px; font-variant-numeric:tabular-nums; }
 #fruit-inspector .inspector-swipe-help { text-align:center; color:var(--gray); font-size:11px; margin:0 0 16px; }
 @media(max-width:760px) { #fruit-inspector { max-height:92svh; padding:18px; } }
 @media print { #fruit-inspector, .fruit-tap-hint { display:none !important; } .ripeness-fill { print-color-adjust:exact; } }
+
+/* Scan title and compact sample/date card. */
+.result-heading { align-items:center; flex-wrap:nowrap; margin-bottom:18px; }
+.result-heading-copy { min-width:0; }
+.result-heading-copy h1 { margin:0; font-size:32px; font-weight:750; letter-spacing:-1px; }
+.result-heading-copy p { margin:6px 0 0; font-size:13px; }
+.result-scan-meta { display:flex; align-items:center; gap:22px; padding:15px 18px; border-radius:10px; background:#eaf5ef; flex-shrink:0; max-width:60%; }
+.result-meta-item { display:flex; align-items:center; gap:12px; min-width:0; }
+.result-meta-item > div { min-width:0; }
+.result-meta-label { display:block; color:#26764f; font-size:11px; font-weight:600; margin-bottom:5px; }
+.result-meta-sample strong { display:block; color:#111827; font-size:14px; overflow-wrap:anywhere; }
+.result-meta-icon { flex-shrink:0; font-size:25px; color:#264a46; }
+.result-meta-sample .result-meta-icon { width:44px; height:44px; display:grid; place-items:center; border-radius:50%; background:#d9eee1; }
+.result-meta-date { border-left:1px solid #cce3d6; padding-left:22px; flex-shrink:0; }
+.result-meta-date time { display:block; white-space:nowrap; font-size:12px; color:#475569; }
+.result-header-actions { justify-content:flex-end; margin-bottom:18px; }
+@media(max-width:900px) { .result-heading { flex-wrap:wrap; }.result-scan-meta { max-width:100%; } }
+@media screen and (max-width:760px) {
+ .result-heading-copy,.result-header-actions { display:none; }
+ .result-scan-meta { width:100%; padding:14px; gap:14px; }
+ .result-meta-item { gap:8px; }.result-meta-date { padding-left:14px; }
+ .result-meta-sample { flex:1; }.result-meta-sample .result-meta-icon { width:36px; height:36px; font-size:22px; }
+ .result-meta-date time { font-size:11px; }
+}
+@media screen and (max-width:380px) { .result-scan-meta { flex-wrap:wrap; }.result-meta-date { border-left:0; padding-left:0; width:100%; } }
+/* Fruit inspector: photo workspace and focused review panel. */
+#fruit-inspector { box-sizing:border-box; width:min(960px,calc(100% - 32px)); max-height:92svh; padding:0; border:1px solid #dce7e0; border-radius:24px; background:#fff; color:#172d24; }
+.inspector-header { display:flex; align-items:flex-start; justify-content:space-between; gap:20px; padding:26px 30px 22px; border-bottom:1px solid #e7eee9; }
+#fruit-inspector h2 { margin:3px 0 0; font-size:28px; letter-spacing:-.8px; line-height:1.2; }
+#fruit-inspector .inspector-intro { margin:8px 0 0; color:#718078; }
+#fruit-inspector #inspector-close { float:none; flex-shrink:0; width:44px; height:44px; font-size:28px; background:#f1f5f2; color:#344b3f; cursor:pointer; }
+.inspector-layout { display:grid; grid-template-columns:minmax(0,1.35fr) minmax(0,1fr); gap:26px; padding:26px 30px; }
+.inspector-photo,.inspector-review { min-width:0; }
+#fruit-inspector .fruit-zoom-stage { margin:0; border:1px solid #e4ebe6; border-radius:18px; background:#f3f6f3; }
+#fruit-inspector #fruit-zoom { border-radius:0; background:#f3f6f3; }
+#fruit-inspector .fruit-number { top:16px; left:16px; background:#086839; font-size:12px; padding:7px 13px; }
+#fruit-inspector .fruit-zoom-control { padding:8px 0; margin:12px 0 0; gap:14px; }
+.fruit-zoom-control label { display:flex; align-items:center; gap:5px; font-weight:600; }
+.fruit-zoom-control .material-symbols-outlined { font-size:20px; }
+#fruit-zoom-value { background:#f1f5f2; border-radius:8px; padding:5px 8px; text-align:center; }
+#fruit-inspector #inspector-position { margin:12px 0 4px; font-size:12px; color:#506459; }
+#fruit-inspector .inspector-swipe-help { margin:0; }
+.inspector-review { display:flex; flex-direction:column; gap:18px; }
+.inspector-estimate { padding:22px; border:1px solid #dcece1; border-radius:16px; background:linear-gradient(135deg,#edf7f0,#f8fbf9); }
+.inspector-card-label { display:flex; align-items:center; gap:8px; color:#397452; font-size:12px; font-weight:650; }
+#fruit-inspector #inspector-original { margin:13px 0 8px; font-size:26px; font-weight:750; letter-spacing:-.5px; line-height:1.3; overflow-wrap:anywhere; }
+#fruit-inspector .inspector-score-note { color:#6e8075; margin:0; font-size:12px; }
+.inspector-label-card { padding:22px; border:1px solid #e3eae5; border-radius:16px; }
+.inspector-label-card label { font-size:15px; font-weight:700; }
+#fruit-inspector .inspector-label-card p { margin:7px 0 14px; font-size:12px; color:#718078; }
+#fruit-inspector #fruit-label { box-sizing:border-box; width:100%; min-height:50px; margin:0; padding:12px 14px; border:1px solid #cddcd2; background:#fff; color:#183d29; font-size:15px; }
+#fruit-inspector .inspector-review-note { display:flex; align-items:flex-start; gap:8px; margin:0; padding:0 4px; color:#718078; font-size:12px; }
+.inspector-review-note .material-symbols-outlined { font-size:18px; flex-shrink:0; margin-top:2px; }
+.inspector-footer { border-top:1px solid #e7eee9; padding:18px 30px 24px; }
+#fruit-inspector #inspector-status { margin:0; color:#397452; }
+#inspector-status:empty { display:none; }
+#fruit-inspector .inspector-actions { display:flex; justify-content:flex-end; gap:12px; margin:0; }
+#inspector-status:not(:empty) + .inspector-actions { margin-top:12px; }
+#fruit-inspector .inspector-actions button { display:flex; align-items:center; justify-content:center; gap:7px; min-height:48px; padding:12px 20px; border-radius:10px; cursor:pointer; }
+#fruit-inspector #fruit-reset { color:#397452; border-color:#cfddd4; }
+#fruit-inspector :is(button,select,input):focus-visible { outline:3px solid #73b991; outline-offset:3px; }
+@media(max-width:680px) {
+ #fruit-inspector { width:calc(100% - 20px); border-radius:20px; }
+ .inspector-header { padding:20px; gap:12px; }
+ #fruit-inspector h2 { font-size:24px; }
+ .inspector-layout { grid-template-columns:1fr; padding:20px; gap:20px; }
+ .inspector-review { gap:12px; }
+ .inspector-estimate,.inspector-label-card { padding:18px; }
+ .inspector-footer { padding:16px 20px 20px; }
+ #fruit-inspector .inspector-actions { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+ #fruit-inspector .inspector-actions button { padding:10px 8px; font-size:12px; }
+}
+/* Original estimate card matches the fruit review reference. */
+#fruit-inspector .inspector-estimate { padding:24px; background:#f1f8f5; border:0; border-radius:18px; }
+.inspector-estimate-heading { display:flex; align-items:center; gap:16px; }
+.inspector-estimate-heading > div { min-width:0; }
+#fruit-inspector .inspector-estimate-icon { display:grid; place-items:center; flex:0 0 64px; width:64px; height:64px; border-radius:50%; background:#dcefe5; color:#00643d; font-size:36px; }
+#fruit-inspector .inspector-estimate .inspector-card-label { color:#00643d; font-size:15px; font-weight:600; }
+#fruit-inspector .inspector-estimate #inspector-original { margin:4px 0 0; color:#0b172b; font-size:30px; font-weight:750; letter-spacing:-.6px; line-height:1.2; }
+#fruit-inspector .inspector-estimate .inspector-score-note { margin:18px 0 0; color:#7a8790; font-size:14px; line-height:1.65; }
+@media(max-width:380px) { #fruit-inspector .inspector-estimate { padding:18px; }.inspector-estimate-heading { gap:12px; }#fruit-inspector .inspector-estimate-icon { flex-basis:52px; width:52px; height:52px; font-size:30px; }#fruit-inspector .inspector-estimate #inspector-original { font-size:26px; } }
+#fruit-inspector .inspector-filters { display:flex; flex-wrap:wrap; align-items:center; gap:6px; padding:16px 30px 0; }
+#fruit-inspector .inspector-filters button { display:inline-flex; align-items:center; gap:8px; padding:9px 13px; min-height:42px; border:1px solid transparent; border-radius:24px; background:transparent; color:#425c50; font-size:13px; cursor:pointer; }
+#fruit-inspector .inspector-filters button[aria-pressed="true"] { background:#e8f5ee; border-color:#dcebe2; color:#086839; font-weight:700; }
+#fruit-inspector .inspector-filters button:disabled { cursor:default; }
+#fruit-inspector .inspector-filters .filter-dot { width:11px; height:11px; }
+@media(max-width:680px) { #fruit-inspector .inspector-filters { padding:14px 20px 0; gap:2px; }#fruit-inspector .inspector-filters button { padding:8px 10px; font-size:12px; } }
+/* Scan metadata sits above the ripeness filters in the result panel. */
+.result-visual > .result-scan-meta { box-sizing:border-box; width:100%; max-width:100%; margin:0 0 18px; }
+.result-visual > .result-scan-meta .result-meta-sample { flex:1; }
+.fruit-filter-help[hidden] { display:none; }
+/* Align the scan information and scan/download actions on one row. */
+.result-top-row { display:flex; align-items:center; gap:20px; margin-bottom:20px; }
+.result-top-row > .result-scan-meta { flex:1; min-width:0; max-width:none; box-sizing:border-box; }
+.result-top-row .result-meta-sample { flex:1; }
+.result-top-row > .result-header-actions { flex-shrink:0; margin:0; }
+@media(max-width:1000px) { .result-top-row { flex-wrap:wrap; gap:12px; }.result-top-row > .result-scan-meta { flex-basis:100%; }.result-top-row > .result-header-actions { margin-left:auto; } }
+@media screen and (max-width:760px) { .result-top-row { margin-bottom:16px; }.result-top-row > .result-header-actions { display:flex; flex-wrap:wrap; } }
+/* Keep the batch/date card compact beside the actions. */
+.result-top-row > .result-scan-meta { flex:0 1 auto; width:auto; gap:18px; padding:14px 18px; }
+.result-top-row .result-meta-sample { flex:0 1 auto; }
+.result-top-row .result-meta-date { padding-left:18px; }
+.result-top-row > .result-header-actions { margin-left:auto; }
+@media(max-width:1000px) { .result-top-row > .result-scan-meta { flex-basis:auto; max-width:100%; } }
+@media(max-width:380px) { .result-top-row > .result-scan-meta { width:100%; }.result-top-row .result-meta-date { padding-left:0; } }
+/* Match the metadata card to the Visual Analysis column below. */
+.result-top-row { display:grid; grid-template-columns:minmax(0,1.4fr) minmax(350px,1fr); gap:24px; }
+.result-top-row > .result-scan-meta { width:100%; max-width:100%; }
+.result-top-row .result-meta-sample { flex:1; }
+.result-top-row > .result-header-actions { justify-self:end; margin-left:0; }
+@media(max-width:1050px) { .result-top-row { grid-template-columns:minmax(0,1fr); gap:12px; }.result-top-row > .result-scan-meta { width:100%; }.result-top-row > .result-header-actions { justify-self:end; } }

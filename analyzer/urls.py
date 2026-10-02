@@ -1,4 +1,4 @@
-﻿from django.urls import path
+from django.urls import path
 from django.contrib.auth import views as auth_views
 from . import views
 
@@ -16,6 +16,7 @@ urlpatterns = [
     path('training/', views.training_view, name='training'),
     path('knowledge/', views.knowledge_hub, name='knowledge_hub'),
     path('settings/', views.settings_view, name='settings'),
+    path('settings/appearance/', views.settings_appearance, name='settings_appearance'),
     path('settings/<slug:page>/', views.settings_guide, name='settings_guide'),
     path('profile/', views.profile_view, name='profile'),
 ]

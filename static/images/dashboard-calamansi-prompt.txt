@@ -1,0 +1,2 @@
+﻿Built-in image_gen prompt:
+Photorealistic cluster of glossy green and yellow-green calamansi, a cut half showing yellow citrus segments, fresh green leaves, soft studio light, transparent background, no text or watermark. Asset: static/images/dashboard-calamansi.png.

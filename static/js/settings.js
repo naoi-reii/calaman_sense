@@ -1,11 +1,7 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     const language = document.getElementById('language-choice');
     document.getElementById('save-language').hidden = true;
     language.addEventListener('change', () => language.form.requestSubmit());
-    const toggle = document.getElementById('darkModeToggle');
-    const state = document.getElementById('theme-state');
-    const updateState = () => { state.textContent = toggle.checked ? state.dataset.on : state.dataset.off; };
-    updateState(); toggle.addEventListener('change', updateState);
     const modal = document.getElementById('passwordModal');
     const opener = document.getElementById('open-password');
     let previousFocus = opener;
