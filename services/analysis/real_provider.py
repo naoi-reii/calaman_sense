@@ -95,7 +95,7 @@ class RealAnalysisProvider(AnalysisProvider):
         height, width = img.shape[:2]
         reference_area = float(np.median([(b[2]-b[0])*(b[3]-b[1]) for b in boxes]))
         mask = cv2.inRange(cv2.cvtColor(img, cv2.COLOR_BGR2HSV),
-                           np.array([10, 40, 35]), np.array([90, 255, 255]))
+                           np.array([5, 35, 30]), np.array([90, 255, 255]))
         covered = np.zeros((height, width), dtype=np.uint8)
         for x1, y1, x2, y2 in boxes:
             covered[y1:y2, x1:x2] = 255
@@ -155,9 +155,9 @@ class RealAnalysisProvider(AnalysisProvider):
 
         hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
         
-        # Calamansi spectrum: Green (unripe), Lime (ripe), Yellow/Orange (overripe)
-        # H: 10-90, S: 30-255, V: 35-255
-        lower_citrus = np.array([10, 30, 35])
+        # Calamansi spectrum: Orange (overripe), Yellow/Lime (ripe), Dark Green (unripe)
+        # H: 5-90, S: 30-255, V: 30-255
+        lower_citrus = np.array([5, 30, 30])
         upper_citrus = np.array([90, 255, 255])
         
         citrus_mask = cv2.inRange(hsv, lower_citrus, upper_citrus)
@@ -175,18 +175,66 @@ class RealAnalysisProvider(AnalysisProvider):
 
     @staticmethod
     def ripeness_label(crop):
-        """Color-based ripeness score for saved scans."""
-        hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
-        green = cv2.countNonZero(cv2.inRange(hsv, np.array([35, 40, 40]), np.array([85, 255, 255])))
-        yellow = cv2.countNonZero(cv2.inRange(hsv, np.array([15, 40, 40]), np.array([35, 255, 255])))
-        if not green + yellow:
+        """Color-based ripeness score for calamansi scans.
+
+        Properties:
+        - Overripe = Fully orange
+        - Ripe = Fully Yellow or Yellow with a little bit of green
+        - Unripe = Dark Green
+        """
+        if crop is None or crop.size == 0:
             return 'ripe', 'Ripe 50%'
-        ratio = green / (green + yellow)
-        if ratio > .6:
-            return 'unripe', f'Unripe {ratio * 100:.0f}%'
-        if ratio < .3:
-            return 'overripe', f'Overripe {(1 - ratio) * 100:.0f}%'
-        score = max(0.0, 100 - abs(ratio - .45) / .15 * 100)
+
+        ch, cw = crop.shape[:2]
+        # Elliptical fruit mask to focus on the fruit body and ignore background/container corners
+        mask = np.zeros((ch, cw), dtype=np.uint8)
+        cv2.ellipse(mask, (cw // 2, ch // 2), (max(1, int(cw * 0.42)), max(1, int(ch * 0.42))), 0, 0, 360, 255, -1)
+
+        hsv = cv2.cvtColor(crop, cv2.COLOR_BGR2HSV)
+
+        # Calibrated Calamansi Hue bands:
+        # Orange (Overripe): 5 - 21
+        # Yellow (Ripe): 22 - 34
+        # Green (Unripe): 35 - 88 (Dark green calamansi has Hue 35 to 88)
+        orange_mask = cv2.bitwise_and(cv2.inRange(hsv, np.array([5, 45, 40]), np.array([21, 255, 255])), mask)
+        yellow_mask = cv2.bitwise_and(cv2.inRange(hsv, np.array([22, 40, 40]), np.array([34, 255, 255])), mask)
+        green_mask  = cv2.bitwise_and(cv2.inRange(hsv, np.array([35, 30, 30]), np.array([88, 255, 255])), mask)
+
+        orange_cnt = cv2.countNonZero(orange_mask)
+        yellow_cnt = cv2.countNonZero(yellow_mask)
+        green_cnt  = cv2.countNonZero(green_mask)
+
+        total = orange_cnt + yellow_cnt + green_cnt
+        if total == 0:
+            # Fallback to unmasked crop if fruit was off-center or crop is very small
+            orange_mask = cv2.inRange(hsv, np.array([5, 45, 40]), np.array([21, 255, 255]))
+            yellow_mask = cv2.inRange(hsv, np.array([22, 40, 40]), np.array([34, 255, 255]))
+            green_mask  = cv2.inRange(hsv, np.array([35, 30, 30]), np.array([88, 255, 255]))
+            orange_cnt = cv2.countNonZero(orange_mask)
+            yellow_cnt = cv2.countNonZero(yellow_mask)
+            green_cnt  = cv2.countNonZero(green_mask)
+            total = orange_cnt + yellow_cnt + green_cnt
+            if total == 0:
+                return 'ripe', 'Ripe 50%'
+
+        p_orange = orange_cnt / total
+        p_yellow = yellow_cnt / total
+        p_green  = green_cnt / total
+
+        # 1. Overripe: Fully orange (dominant orange >= 45% and exceeds yellow & green)
+        if p_orange >= 0.45 and p_orange > p_yellow and p_orange > p_green:
+            conf = min(100.0, max(50.0, p_orange * 100))
+            return 'overripe', f'Overripe {conf:.0f}%'
+
+        # 2. Unripe: Dark Green (pure/overwhelmingly dark green with little to no yellow)
+        # Calamansi with even a little yellow (>= 14%) and green is classified as Ripe.
+        # Only fruits that are solidly dark green (>= 80% green, < 14% yellow) are Unripe.
+        if p_green >= 0.80 and p_yellow < 0.14:
+            conf = min(100.0, max(50.0, p_green * 100))
+            return 'unripe', f'Unripe {conf:.0f}%'
+
+        # 3. Ripe: Fully Yellow or Yellow with a little bit of green
+        score = min(100.0, max(50.0, (p_yellow + 0.3 * p_green) * 100))
         return 'ripe', f'Ripe {score:.0f}%'
 
     def analyze(self, image_path: str) -> ScanAnalysisResult:
