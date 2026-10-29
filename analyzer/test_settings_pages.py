@@ -22,7 +22,7 @@ class SettingsPagesTests(TestCase):
     def test_language_and_authentication(self):
         response = self.client.post(reverse('settings'), {'language': 'fil'})
         self.assertEqual(response.cookies['calamansense_language'].value, 'fil')
-        self.assertContains(self.client.get(reverse('settings')), 'Mga Kagustuhan')
+        self.assertContains(self.client.get(reverse('settings')), 'Mga Setting ng App')
         self.assertContains(self.client.get('/settings/help/'), 'Bumalik sa Mga Setting')
         self.assertEqual(self.client.post(reverse('settings'), {'language': 'invalid'}).status_code, 400)
         self.client.logout()
@@ -37,3 +37,32 @@ class SettingsPagesTests(TestCase):
         self.user.refresh_from_db()
         self.assertTrue(self.user.check_password('FreshHarvest982!'))
         self.assertEqual(self.client.get(reverse('settings')).status_code, 200)
+
+    def test_appearance_offers_device_light_and_dark_modes(self):
+        response = self.client.get(reverse('settings_appearance'))
+        self.assertContains(response, 'name="appearance" value="system"')
+        self.assertContains(response, 'name="appearance" value="light"')
+        self.assertContains(response, 'name="appearance" value="dark"')
+        self.assertContains(response, 'Use device setting')
+        self.client.cookies['calamansense_language'] = 'fil'
+        self.assertContains(self.client.get(reverse('settings_appearance')), 'Sundin ang Device')
+
+    def test_plain_filipino_copy_and_switch_back_to_english(self):
+        self.client.cookies['calamansense_language'] = 'fil'
+        settings = self.client.get(reverse('settings'))
+        self.assertContains(settings, 'Gumamit ng password na mahirap hulaan.')
+        self.assertContains(settings, 'Gabay sa Kalamansi')
+        self.assertNotContains(settings, 'Mga Kagustuhan')
+        scanning = self.client.get('/settings/scanning/')
+        self.assertContains(scanning, 'Paano Mag-scan')
+        self.assertContains(scanning, 'Kusang Pagkuha ng Litrato')
+        self.assertContains(self.client.get('/settings/user-guide/'), 'Mga Na-scan: balikan ang mga resulta.')
+        upload = self.client.get('/upload/')
+        self.assertContains(upload, 'Sandali lang, tinitingnan pa namin ang litrato mo.')
+        self.assertContains(upload, 'data-analyze-label="Tingnan ang Resulta"')
+        self.assertContains(upload, 'Hanggang 5 litrato lang')
+        self.client.post(reverse('settings'), {'language': 'en'})
+        self.assertContains(self.client.get('/settings/scanning/'), 'How Scanning Works')
+        upload = self.client.get('/upload/')
+        self.assertContains(upload, 'data-analyze-label="Analyze Images"')
+        self.assertNotContains(upload, 'Sandali lang, tinitingnan pa namin ang litrato mo.')

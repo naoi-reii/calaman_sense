@@ -2,14 +2,21 @@
 {% load static ui_language %}
 {% block body_class %}overview-page result-page{% endblock %}
 {% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/upload_results.css' %}?v=1">
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2">
-<link rel="stylesheet" href="{% static 'css/report_detail.css' %}?v=result-aligned-9">
+<link rel="stylesheet" href="{% static 'css/report_detail.css' %}?v=result-count-aligned-11">
 {% endblock %}
 {% block navigation %}{% include "includes/overview_navigation.html" with active_page="reports" %}{% endblock %}
 {% block content %}
+{% if upload_scans %}
+<nav class="upload-result-navigation" aria-label="Results from this upload">
+    <a href="{% url 'upload_results' upload_group %}">All {{ upload_scans|length }} images</a>
+    {% for item in upload_scans %}<a href="{% url 'report_detail' item.id %}?group={{ upload_group|urlencode }}" {% if item.id == scan.id %}aria-current="page"{% endif %}>Image {{ forloop.counter }}</a>{% endfor %}
+</nav>
+{% endif %}
 <header class="mobile-result-heading"><a href="{% url 'reports' %}" aria-label="Back to scan history"><span class="material-symbols-outlined" aria-hidden="true">chevron_left</span></a><h1>{% ui 'Scan Result' 'Resulta ng Scan' %}</h1></header>
 <header class="result-heading">
-    <div class="result-heading-copy"><h1>{% ui 'Scan Result' 'Resulta ng Scan' %}</h1><p>Here's the analysis of your calamansi batch.</p></div>
+    <div class="result-heading-copy"><h1>{% ui 'Scan Result' 'Resulta ng Scan' %}</h1><p>{% ui "Here's the analysis of your calamansi batch." 'Ito ang resulta ng pag-scan sa kalamansi mo.' %}</p></div>
 
 </header>
 <div class="result-top-row">
@@ -29,34 +36,34 @@
         <p id="fruit-filter-status" role="status" class="fruit-filter-help" hidden></p>
         {% for scan_image in scan.images.all %}
         <figure class="result-figure" data-image-id="{{ scan_image.id }}">{{ scan_image.mock_annotations|json_script }}{{ scan_image.label_corrections|json_script }}
-            <div class="image-viewer">
+            <div class="result-image-stage"><div class="image-viewer">
                 <img src="{{ scan_image.image.url }}" alt="Calamansi scan {{ forloop.counter }} with detected fruit locations">
                 {% for box in scan_image.mock_annotations %}
                 <button type="button" aria-label="Inspect fruit {{ forloop.counter }}: {{ box.label|default:box.css_class }}" data-fruit-index="{{ forloop.counter0 }}" class="bounding-box bbox-{{ box.css_class }}" style="top: {{ box.y }}%; left: {{ box.x }}%; width: {{ box.width }}%; height: {{ box.height }}%;">
                     <span class="bounding-box-label">{{ box.label|default:box.css_class }}</span>
                 </button>
                 {% endfor %}
-            </div>
+            </div></div>
             {% if scan.images.count > 1 %}<figcaption>Image {{ forloop.counter }}{% if forloop.last %} · Summary result{% endif %}</figcaption>{% endif %}
         </figure>
         {% empty %}<div class="result-no-image"><span class="material-symbols-outlined" aria-hidden="true">image_not_supported</span><p>No image is available for this scan.</p></div>{% endfor %}
         <div class="result-legend" aria-label="Detection colors"><span><i class="result-dot unripe"></i>Unripe</span><span><i class="result-dot ripe"></i>Ripe</span><span><i class="result-dot overripe"></i>Overripe</span></div>
-        <p class="result-score-help">Each box shows the fruit's estimated ripeness score from color analysis, not a calibrated probability.</p>
+        <p class="result-score-help">{% ui "Each box shows the fruit's estimated ripeness score from color analysis, not a calibrated probability." 'Tantiya lang ang porsiyento sa bawat kahon. Base ito sa kulay ng kalamansi at hindi garantiya na tama ang resulta.' %}</p>
     </section>
     <aside class="result-summary">
-        <section class="result-count-card"><h2>{% ui 'Total Fruits Detected' 'Kabuuang Bungang Natukoy' %}</h2><strong class="result-total" data-count="{{ scan.fruit_count_total }}" aria-label="{{ scan.fruit_count_total }} fruits">{{ scan.fruit_count_total }}</strong>
+        <section class="result-count-card"><h2>{% ui 'Total Fruits Detected' 'Bilang ng Kalamansing Nakita' %}</h2><strong class="result-total" data-count="{{ scan.fruit_count_total }}" aria-label="{{ scan.fruit_count_total }} fruits">{{ scan.fruit_count_total }}</strong>
             <table class="result-ripeness"><caption>Ripeness breakdown</caption><tbody>{% for row in ripeness %}<tr><th scope="row"><i class="result-dot {{ row.key }}"></i>{{ row.label }}<span class="ripeness-track" aria-hidden="true"><span class="ripeness-fill {{ row.key }}" style="width: {{ row.pct|floatformat:'1u' }}%"></span></span></th><td class="mobile-result-count">{% if counts_available %}<strong data-count="{{ row.count }}" aria-label="{{ row.count }} fruits">{{ row.count }}</strong>{% else %}&mdash;{% endif %}</td><td>{{ row.pct|floatformat:1 }}%</td></tr>{% endfor %}</tbody></table>
         </section>
         <div class="mobile-result-count-help">{% if not counts_available %}Per-fruit detections are not available for this saved scan.{% elif scan.images.count > 1 %}Counts and percentages summarize the last uploaded image.{% endif %}</div>
         <section class="result-count-card result-ripeness-counts" aria-labelledby="ripeness-counts-title">
-            <h2 id="ripeness-counts-title">Fruit Count by Ripeness</h2>
-            <table class="result-ripeness"><caption>{% if scan.images.count > 1 %}Detected fruits in the last uploaded image{% else %}Number of detected calamansi{% endif %}</caption><tbody>
+            <h2 id="ripeness-counts-title">{% ui 'Fruit Count by Ripeness' 'Bilang ng Hilaw, Hinog, at Sobrang Hinog' %}</h2>
+            <table class="result-ripeness"><caption>{% if scan.images.count > 1 %}Detected fruits in the last uploaded image{% else %}{% ui 'Number of detected calamansi' 'Bilang ng kalamansing nakita sa litrato' %}{% endif %}</caption><tbody>
                 {% for row in ripeness %}<tr><th scope="row"><i class="result-dot {{ row.key }}"></i>{{ row.label }}</th><td>{% if counts_available %}<strong data-count="{{ row.count }}" aria-label="{{ row.count }} fruits">{{ row.count }}</strong> <span class="result-count-unit">fruit{{ row.count|pluralize }}</span>{% else %}&mdash;{% endif %}</td></tr>{% endfor %}
             </tbody></table>
             {% if not counts_available %}<p class="result-score-help">Per-fruit detections are not available for this saved scan.</p>{% endif %}
         </section>
-        <section class="result-grade-card"><h2>{% ui 'Batch Grade' 'Grado ng Batch' %}</h2><strong class="result-grade {% if scan.quality_grade == 'Rejected' %}result-grade-rejected{% elif scan.quality_grade == 'Average' %}result-grade-average{% endif %}">{{ scan.quality_grade|default:"Not graded" }}</strong><p>Based on the scan analysis</p></section>
-        <div class="result-saved"><span class="material-symbols-outlined" aria-hidden="true">check_circle</span>Saved to your scan history</div>
+        <section class="result-grade-card"><h2>{% ui 'Batch Grade' 'Kalidad ng Kalamansi' %}</h2><strong class="result-grade {% if scan.quality_grade == 'Rejected' %}result-grade-rejected{% elif scan.quality_grade == 'Average' %}result-grade-average{% endif %}">{{ scan.quality_grade|default:"Not graded" }}</strong><p>{% ui 'Based on the scan analysis' 'Base sa resulta ng scan' %}</p></section>
+        <div class="result-saved"><span class="material-symbols-outlined" aria-hidden="true">check_circle</span>{% ui 'Saved to your scan history' 'Naka-save na sa Mga Na-scan' %}</div>
     </aside>
 </div>
 <section class="result-notes" aria-labelledby="notes-title"><span class="material-symbols-outlined" aria-hidden="true">info</span><div><h2 id="notes-title">Notes</h2><ul>{% for note in result_notes %}<li>{{ note }}</li>{% endfor %}</ul></div></section>
@@ -89,6 +96,7 @@
 </dialog>
 <script src="{% static 'js/fruit-inspector.js' %}?v=remove-breakdown-10" defer></script>
 <script src="{% static 'js/result-reveal.js' %}" defer></script>
+<script src="{% static 'js/result-image-layout.js' %}" defer></script>
 <script>
 const labelsButton = document.getElementById('toggle-labels');
 if (labelsButton) {

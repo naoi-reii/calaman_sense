@@ -1,7 +1,7 @@
 {% load ui_language %}
 <nav class="mobile-bottom-nav" aria-label="Mobile navigation">
     <a href="{% url 'dashboard' %}" {% if active_page == 'dashboard' %}aria-current="page"{% endif %}><span class="material-symbols-outlined" aria-hidden="true">home</span><span>{% ui 'Home' 'Home' %}</span></a>
-    <a href="{% url 'reports' %}" {% if active_page == 'history' %}aria-current="page"{% endif %}><span class="material-symbols-outlined" aria-hidden="true">history</span><span>{% ui 'History' 'Kasaysayan' %}</span></a>
+    <a href="{% url 'reports' %}" {% if active_page == 'history' %}aria-current="page"{% endif %}><span class="material-symbols-outlined" aria-hidden="true">history</span><span>{% ui 'History' 'Mga Na-scan' %}</span></a>
     <a href="{% url 'reports_overview' %}" {% if active_page == 'reports' %}aria-current="page"{% endif %}><span class="material-symbols-outlined" aria-hidden="true">description</span><span>{% ui 'Report' 'Ulat' %}</span></a>
     <a href="{% url 'settings' %}" {% if active_page == 'settings' %}aria-current="page"{% endif %}><span class="material-symbols-outlined" aria-hidden="true">settings</span><span>{% ui 'Settings' 'Mga Setting' %}</span></a>
 </nav>

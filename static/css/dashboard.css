@@ -187,7 +187,7 @@
  .desktop-home .recent-scan-thumbnail { width:80px; height:55px; }
  .desktop-home .overview-section-heading { margin-bottom:18px; }
  .desktop-home .overview-section-heading h2 { font-size:25px; }
- .desktop-home .scan-time::before { content:' • '; }
+ .desktop-home .scan-time::before { content: ' \00B7 '; }
 }
 @media(min-width:1001px) and (max-width:1300px) {
  .dashboard-hero { flex-wrap:wrap; padding:28px; }

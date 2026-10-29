@@ -1,4 +1,26 @@
 .upload-page .container { max-width: 1250px; }
+
+.upload-limit-help { margin:0 0 16px; color:var(--gray-dark); font-size:13px; line-height:1.5; }
+/* Keep progress inside the main content so navigation stays available. */
+.upload-is-loading .container > :not(.upload-loading) { display: none !important; }
+.upload-loading { position: relative; box-sizing: border-box; width: 100%; min-height: calc(100dvh - var(--topbar-height) - 110px); margin: 0; padding: 48px 16px 70px; color: #102e20; outline: none; }
+.upload-loading:not([hidden]) { display: flex; align-items: center; justify-content: center; }
+.upload-loading[hidden] { display: none; }
+@media (max-width: 760px) {
+ .upload-page.upload-is-loading { padding-top: var(--topbar-height); }
+ .upload-page.upload-is-loading .overview-topbar { display: flex; }
+ .upload-page.upload-is-loading .mobile-bottom-nav { display: grid; }
+ .upload-loading { min-height: calc(100dvh - var(--topbar-height) - 140px - env(safe-area-inset-bottom)); }
+}
+.upload-loading-content { width: 100%; text-align: center; transform: translateY(-20px); }
+.upload-loading-spinner { display: block; width: 50px; height: 50px; margin: 0 auto 24px; fill: none; stroke-width: 3.5; animation: upload-loading-spin 1s linear infinite; }
+.upload-loading-track { stroke: #e2ebdc; }
+.upload-loading-arc { stroke: #376c20; stroke-linecap: round; stroke-dasharray: 48 145; transform: rotate(-90deg); transform-origin: center; }
+.upload-loading h2 { margin: 0 0 10px; color: #102e20; font-size: clamp(20px, 3vw, 26px); font-weight: 700; line-height: 1.3; letter-spacing: -.5px; }
+.upload-loading-content p { margin: 0; color: #78838b; font-size: 14px; line-height: 1.5; }
+.upload-loading-footer { position: absolute; right: 24px; bottom: max(24px, env(safe-area-inset-bottom)); left: 24px; margin: 0; text-align: center; color: #78838b; font-size: 11px; }
+@keyframes upload-loading-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .upload-loading-spinner { animation: none; } }
 .scan-heading { margin-bottom: 26px; }
 .scan-heading h1 { font-size: clamp(25px, 2.5vw, 34px); letter-spacing: -.8px; }
 .scan-heading p { margin: 5px 0 0; color: var(--gray-dark); font-size: 14px; }

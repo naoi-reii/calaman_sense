@@ -13,7 +13,7 @@
  <article class="reports-stat-card"><span class="reports-stat-icon material-symbols-outlined" aria-hidden="true">nutrition</span><div><strong>{% if has_distribution %}{{ dominant_ripeness.pct|floatformat:0 }}%{% else %}&mdash;{% endif %}</strong><span>{% if has_distribution %}Mostly {{ dominant_ripeness.label }}{% else %}No ripeness data{% endif %}</span></div></article>
 </div>
 {{ distribution|json_script:"report-distribution-data" }}<div class="analytics-charts">
-    <section class="analytics-card report-distribution"><h2>{% ui 'Ripeness Distribution' 'Distribusyon ng Pagkahinog' %}</h2>{% if has_distribution %}
+    <section class="analytics-card report-distribution"><h2>{% ui 'Ripeness Distribution' 'Gaano Kahinog ang mga Kalamansi' %}</h2>{% if has_distribution %}
         <div class="distribution-layout"><div class="analytics-donut" id="interactive-donut" tabindex="0" role="img" aria-label="Ripeness distribution: {% for row in distribution %}{{ row.label }} {{ row.pct }} percent. {% endfor %}" style="background: conic-gradient({% for row in distribution %}{{ row.color }} {{ row.start }}% {{ row.end }}%{% if not forloop.last %}, {% endif %}{% endfor %});"><div><strong>{{ total_fruits|stringformat:"d" }}</strong><span>Fruits Scanned</span></div></div>
         <ul class="distribution-legend">{% for row in distribution %}<li tabindex="0" data-chart-tip="{{ row.label }}: {{ row.pct }}%"><span><i style="background: {{ row.color }}"></i>{{ row.label }}</span><strong>{{ row.pct }}%</strong></li>{% endfor %}</ul></div>
         <p class="analytics-help">Weighted by fruit count using each scan's saved ripeness percentages.</p>

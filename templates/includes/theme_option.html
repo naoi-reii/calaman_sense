@@ -1,0 +1,10 @@
+{% load ui_language %}
+<label class="theme-option" title="{% ui description description_fil %}">
+    <input type="radio" name="appearance" value="{{ mode }}">
+    <span class="theme-swatch theme-swatch--{{ mode }}" aria-hidden="true">
+        <span class="swatch-top"><i></i><i></i><i></i><span></span></span>
+        <span class="swatch-layout"><span class="swatch-sidebar"><b class="material-symbols-outlined">eco</b><i></i><i></i><i></i><i></i></span><span class="swatch-main"><i></i><b></b><span><i></i><i></i><i></i></span><span class="swatch-table"><i></i><i></i><i></i></span></span></span>
+    </span>
+    <span class="theme-mode-symbol material-symbols-outlined" aria-hidden="true">{% if mode == 'system' %}devices{% elif mode == 'light' %}light_mode{% else %}dark_mode{% endif %}</span>
+    <span class="theme-option-details"><span class="theme-option-title">{% ui title title_fil %}</span><span class="theme-option-description">{% ui description description_fil %}</span></span>
+</label>

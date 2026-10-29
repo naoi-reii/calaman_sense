@@ -10,18 +10,19 @@
     <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
     
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/branding.css' %}?v=1">
     
-    <script src="{% static 'js/theme.js' %}?v=1"></script>
+    <script src="{% static 'js/theme.js' %}?v=device-theme-2"></script>
     {% block extra_css %}{% endblock %}
-    <link rel="stylesheet" href="{% static 'css/theme.css' %}?v=1">
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}?v=charcoal-2">
 </head>
 <body class="{% block body_class %}{% endblock %}">
     {% block navigation %}
     {% if user.is_authenticated %}
     <header class="nav-bar">
         <div class="logo">
-            <a href="{% url 'dashboard' %}">
-                <span class="material-symbols-outlined">eco</span>CalamanSense
+            <a class="site-brand" href="{% url 'dashboard' %}">
+                <img class="site-brand-icon" src="{% static 'images/calamansense-logo-transparent.png' %}" alt="">CalamanSense
             </a>
         </div>
         

@@ -25,13 +25,13 @@ function renderPreviews() {
     previewContainer.replaceChildren();
     activePreview = Math.max(0, Math.min(activePreview, files.length - 1));
     document.getElementById('submit-btn').disabled = !files.length;
-    document.getElementById('selected-count').textContent = files.length ? `${files.length} photo${files.length===1?"":"s"} selected` : 'No photos selected';
+    document.getElementById('selected-count').textContent = uploadForm.dataset.selectedLabel.replace('{count}', files.length);
     document.getElementById('clear-selected').hidden=!files.length;
-    document.querySelector('#submit-btn .desktop-source-label').textContent=files.length?"Analyze Images ("+files.length+")":"Analyze Images";
+    document.querySelector('#submit-btn .desktop-source-label').textContent = uploadForm.dataset.analyzeLabel + (files.length ? ` (${files.length})` : '');
     document.getElementById('selection-empty').hidden = !!files.length;
     dropzone.classList.toggle('has-images', !!files.length);
     previewContainer.style.display = files.length ? 'flex' : 'none';
-    previewControls.hidden = !files.length;
+    previewControls.hidden = files.length < 2;
     document.getElementById('preview-help').hidden = files.length < 2;
 
     files.forEach((file, index) => {

@@ -7,7 +7,7 @@
 {% endblock %}
 {% block navigation %}{% include "includes/overview_navigation.html" with active_page="history" %}{% endblock %}
 {% block content %}
-<header class="mobile-history-heading"><a href="{% url 'dashboard' %}" aria-label="Back to home"><span class="material-symbols-outlined" aria-hidden="true">chevron_left</span></a><h1>{% ui 'History' 'Kasaysayan' %}</h1></header><header class="history-heading">
+<header class="mobile-history-heading"><a href="{% url 'dashboard' %}" aria-label="Back to home"><span class="material-symbols-outlined" aria-hidden="true">chevron_left</span></a><h1>{% ui 'History' 'Mga Na-scan' %}</h1></header><header class="history-heading">
     <div><h1>Scan History</h1><p>View and manage your past scans.</p></div>
     <div class="history-toolbar">
         <div class="history-view-toggle" role="group" aria-label="History view"><button type="button" data-history-view="table" aria-pressed="true"><span class="material-symbols-outlined" aria-hidden="true">table_rows</span>Table View</button><button type="button" data-history-view="gallery" aria-pressed="false"><span class="material-symbols-outlined" aria-hidden="true">grid_view</span>Gallery View</button></div>
@@ -26,7 +26,7 @@
 <form method="post" id="deleteForm">
     {% csrf_token %}
     <div class="history-table-scroll"><table class="history-table">
-        <thead><tr><th scope="col" class="history-select"><input type="checkbox" id="selectAll" aria-label="Select all displayed scans"></th><th scope="col">Image</th><th scope="col">Scan #</th><th scope="col">Batch name</th><th scope="col"><button type="button" id="history-sort">Date &amp; Time <span aria-hidden="true">↓</span></button></th><th scope="col">Total Fruits</th><th scope="col">Ripeness summary</th><th scope="col">{% ui 'Batch Grade' 'Grado ng Batch' %}</th><th scope="col">Actions</th></tr></thead>
+        <thead><tr><th scope="col" class="history-select"><input type="checkbox" id="selectAll" aria-label="Select all displayed scans"></th><th scope="col">Image</th><th scope="col">Scan #</th><th scope="col">Batch name</th><th scope="col"><button type="button" id="history-sort">Date &amp; Time <span aria-hidden="true">↓</span></button></th><th scope="col">Total Fruits</th><th scope="col">Ripeness summary</th><th scope="col">{% ui 'Batch Grade' 'Kalidad ng Kalamansi' %}</th><th scope="col">Actions</th></tr></thead>
         <tbody>{% for scan in scans %}
             <tr data-scan-id="{{ scan.id }}"><td><input type="checkbox" name="scan_ids" value="{{ scan.id }}" class="scan-checkbox" aria-label="Select scan {{ scan.id }}"></td>
                 <td>{% with scan_image=scan.images.last %}<a class="history-thumbnail" href="{% url 'report_detail' scan.id %}" aria-label="View scan {{ scan.id }}">{% if scan_image %}<img src="{{ scan_image.image.url }}" alt="Calamansi scan {{ scan.id }}" loading="lazy">{% else %}<span class="material-symbols-outlined" aria-hidden="true">image_not_supported</span>{% endif %}</a>{% endwith %}</td>

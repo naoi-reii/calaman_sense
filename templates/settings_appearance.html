@@ -1,10 +1,24 @@
 {% extends 'base.html' %}
 {% load static ui_language %}
 {% block body_class %}overview-page settings-screen appearance-screen{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/dashboard.css' %}"><link rel="stylesheet" href="{% static 'css/settings.css' %}?v=appearance-desktop-5">{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}">
+<link rel="stylesheet" href="{% static 'css/settings.css' %}?v=appearance-desktop-5">
+<link rel="stylesheet" href="{% static 'css/appearance.css' %}?v=desktop-cards-7">
+{% endblock %}
 {% block navigation %}{% include 'includes/overview_navigation.html' with active_page='settings' %}{% endblock %}
 {% block content %}
-<section class="appearance-page"><header class="appearance-heading"><a href="{% url 'settings' %}" aria-label="Back to settings"><span class="material-symbols-outlined" aria-hidden="true">arrow_back</span></a><h1>{% ui 'Dark Mode' 'Madilim na Tema' %}</h1></header>
-<div class="appearance-preview" aria-label="Preview of light and dark appearances">{% for mode in '12' %}<div class="appearance-example {% if forloop.last %}preview-dark{% endif %}"><div class="preview-phone" aria-hidden="true"><span class="preview-notch"></span><div class="preview-user"><i></i><span></span></div><div class="preview-feature"><span class="material-symbols-outlined">image</span><div><i></i><i></i><i></i></div></div><div class="preview-list"><i></i><span></span></div><div class="preview-list"><i></i><span></span></div><div class="preview-list"><i></i><span></span></div></div><p>{% if forloop.first %}{% ui 'Light Mode' 'Maliwanag na Tema' %}{% else %}{% ui 'Dark Mode' 'Madilim na Tema' %}{% endif %}</p></div>{% endfor %}</div>
-<fieldset class="appearance-choices"><legend class="appearance-sr-only">Choose an appearance</legend><label><input type="radio" name="appearance" value="light"><span class="appearance-radio" aria-hidden="true"></span><span>{% ui 'Light Mode' 'Maliwanag na Tema' %}</span></label><label><input type="radio" name="appearance" value="dark"><span class="appearance-radio" aria-hidden="true"></span><span>{% ui 'Dark Mode' 'Madilim na Tema' %}</span></label></fieldset></section>
+<section class="appearance-workspace" aria-labelledby="appearance-title">
+    <a class="appearance-back" href="{% url 'settings' %}"><span class="material-symbols-outlined" aria-hidden="true">arrow_back</span>{% ui 'Settings' 'Mga Setting' %}</a>
+    <header class="appearance-page-header"><h1 id="appearance-title">{% ui 'Appearance' 'Itsura ng App' %}</h1><p>{% ui 'Choose how CalamanSense looks on your screen.' 'Piliin ang gusto mong itsura ng CalamanSense.' %}</p></header>
+    <div class="appearance-choice-panel"><div class="appearance-choice-heading"><span class="appearance-setting-icon material-symbols-outlined" aria-hidden="true">contrast</span><div><h2>{% ui 'Color theme' 'Kulay ng App' %}</h2><p>{% ui 'Choose what feels right.' 'Piliin ang komportable sa mata mo.' %}</p></div></div>
+    <fieldset class="theme-options"><legend class="appearance-sr-only">{% ui 'Choose an appearance' 'Pumili ng Mode' %}</legend>
+        {% include 'includes/theme_option.html' with mode='system' title='Use device setting' title_fil='Sundin ang Device' description='Match your device automatically.' description_fil='Kusang sasabay sa mode ng device mo.' %}
+        {% include 'includes/theme_option.html' with mode='light' title='Light Mode' title_fil='Maliwanag na Mode' description='Always use a light background.' description_fil='Laging maliwanag ang background.' %}
+        {% include 'includes/theme_option.html' with mode='dark' title='Dark Mode' title_fil='Madilim na Mode' description='Always use a dark background.' description_fil='Laging madilim ang background.' %}
+    </fieldset>
+    </div>
+    <p class="appearance-device-hint"><span class="material-symbols-outlined" aria-hidden="true">devices</span>{% ui 'Use device setting switches automatically with your device.' 'Kapag Sundin ang Device ang pinili, kusang sasabay ang app sa mode ng device mo.' %}</p>
+    <p class="appearance-save-note">{% ui 'Changes apply instantly and are saved in this browser.' 'Agad makikita ang pagbabago at dito sa browser naka-save ang pinili mo.' %}</p>
+</section>
 {% endblock %}

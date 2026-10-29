@@ -10,6 +10,7 @@ urlpatterns = [
     path('dashboard/', views.dashboard, name='dashboard'),
     path('upload/', views.upload_view, name='upload'),
     path('reports/', views.reports_view, name='reports'),
+    path('reports/upload/<str:token>/', views.upload_results_view, name='upload_results'),
     path('reports/compare/', views.compare_scans, name='compare_scans'),
     path('reports/overview/', views.reports_overview, name='reports_overview'),
     path('reports/<int:id>/', views.report_detail_view, name='report_detail'),

@@ -13,8 +13,15 @@
 .result-visual-toolbar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; font-size: 12px; color: var(--gray-dark); }
 .result-visual-toolbar button { background: none; border: 0; padding: 4px; color: var(--green-dark); font: inherit; font-weight: 600; cursor: pointer; }
 .result-figure { margin: 0 0 12px; }
-.result-page .image-viewer { display: block; width: 100%; border-radius: 9px; border: 6px solid var(--white); box-shadow: 0 0 0 1px var(--border); }
-.result-page .image-viewer img { width: 100%; max-height: none; height: auto; }
+/* Size the frame with the photo so percentage-based fruit boxes stay aligned. */
+.result-page .image-viewer { display: block; width: fit-content; max-width: 100%; margin-inline: auto; border-radius: 9px; border: 6px solid var(--white); box-shadow: 0 0 0 1px var(--border); }
+.result-page .image-viewer img { display: block; width: auto; max-width: 100%; max-height: min(560px, 65vh); height: auto; }
+.result-image-stage { min-width: 0; }
+@media screen and (min-width: 1051px) {
+ .result-image-stage { box-sizing: border-box; display: flex; align-items: center; justify-content: center; height: var(--result-image-height, 560px); padding: 6px; border: 1px solid var(--border); border-radius: 9px; background: var(--white); }
+ .result-page .result-image-stage .image-viewer { border: 0; box-shadow: none; border-radius: 4px; }
+ .result-page .result-image-stage img { max-height: calc(var(--result-image-height, 560px) - 14px); }
+}
 .result-page .bounding-box { border-width: 2px; background: transparent; pointer-events: none; }
 .result-page .bbox-unripe { border-color: #319843; }
 .result-page .bbox-ripe { border-color: #e7ae00; }
@@ -98,7 +105,7 @@
  .result-layout { display: flex; flex-direction: column; gap: 18px; }
  .result-visual, .result-summary { width: 100%; }
  .result-page .image-viewer { border: 0; border-radius: 10px; overflow: hidden; }
- .result-page .image-viewer img { display: block; width: 100%; height: auto; }
+ .result-page .image-viewer img { max-height: min(420px, 60svh); }
  .result-visual-toolbar { font-size: 11px; }
  .result-visual-toolbar button { min-height: 36px; }
  .result-legend { gap: 14px; margin-top: 10px; font-size: 11px; }

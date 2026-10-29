@@ -5,7 +5,7 @@
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/auth.css' %}?v=square-2">{% endblock %}
 {% block content %}
 <section class="auth-card">
-<aside class="auth-brand"><a href="{% url 'home' %}" class="auth-logo">&#127819; CalamanSense</a><div class="auth-brand-copy"><p class="auth-eyebrow">SMART CALAMANSI ANALYTICS</p><h1>{% block brand_title %}Smarter scanning.<br>Better harvests.{% endblock %}</h1><span class="auth-rule"></span><p>Simple technology for farmers, vendors, and communities.</p></div><div class="auth-fruit-photo"><img src="{% static 'images/samples/green.jpg' %}" alt="Fresh green calamansi"></div><p class="auth-tagline">QUALITY TODAY.<br>BRIGHTER TOMORROW.</p></aside>
+<aside class="auth-brand"><a href="{% url 'home' %}" class="auth-logo site-brand"><img class="site-brand-icon" src="{% static 'images/calamansense-logo-transparent.png' %}" alt="">CalamanSense</a><div class="auth-brand-copy"><p class="auth-eyebrow">SMART CALAMANSI ANALYTICS</p><h1>{% block brand_title %}Smarter scanning.<br>Better harvests.{% endblock %}</h1><span class="auth-rule"></span><p>Simple technology for farmers, vendors, and communities.</p></div><div class="auth-fruit-photo"><img src="{% static 'images/samples/green.jpg' %}" alt="Fresh green calamansi"></div><p class="auth-tagline">QUALITY TODAY.<br>BRIGHTER TOMORROW.</p></aside>
 <div class="auth-panel"><a class="auth-back" href="{% url 'home' %}"><span aria-hidden="true">&larr;</span> Back to Home</a>{% block auth_form %}{% endblock %}<p class="auth-switch">{% block auth_switch %}{% endblock %}</p></div>
 </section>
 <script>

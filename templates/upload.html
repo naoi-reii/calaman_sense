@@ -3,31 +3,35 @@
 {% block body_class %}overview-page upload-page{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2">
-<link rel="stylesheet" href="{% static 'css/upload.css' %}?v=camera-reference-6">
+<link rel="stylesheet" href="{% static 'css/upload.css' %}?v=five-images-9">
 {% endblock %}
 {% block navigation %}{% include "includes/overview_navigation.html" with active_page="upload" %}{% endblock %}
 {% block content %}
 {% if upload_errors %}<section class="upload-server-feedback" role="alert"><h2>Some images could not be analyzed</h2><ul>{% for error in upload_errors %}<li>{{ error }}</li>{% endfor %}</ul>{% if successful_scans %}<p>The following scans were saved successfully. Only retry the failed photos.</p><ul>{% for saved in successful_scans %}<li><a href="{% url 'report_detail' saved.id %}">View saved scan #{{ saved.id }}</a></li>{% endfor %}</ul>{% endif %}</section>{% endif %}
-<header class="mobile-select-heading"><a href="{% url 'dashboard' %}" aria-label="Back to home"><span class="material-symbols-outlined" aria-hidden="true">chevron_left</span></a><h1>{% ui 'Select Image' 'Pumili ng Larawan' %}</h1></header><div class="scan-heading"><h1>{% ui 'Scan Calamansi' 'I-scan ang Kalamansi' %}</h1><p>Upload or take a photo of your calamansi to begin. Each image will be scanned separately with its own results.</p></div>
-<form method="POST" enctype="multipart/form-data" id="upload-form">
+<header class="mobile-select-heading"><a href="{% url 'dashboard' %}" aria-label="Back to home"><span class="material-symbols-outlined" aria-hidden="true">chevron_left</span></a><h1>{% ui 'Select Image' 'Pumili ng Litrato' %}</h1></header><div class="scan-heading"><h1>{% ui 'Scan Calamansi' 'I-scan ang Kalamansi' %}</h1><p>{% ui 'Upload or take a photo of your calamansi to begin. Each image will be scanned separately with its own results.' 'Kunan ng litrato ang kalamansi o pumili ng ia-upload. May sariling resulta ang bawat litrato.' %}</p></div>
+<form method="POST" enctype="multipart/form-data" id="upload-form"
+    data-selected-label="{% ui '{count} / 5 photos selected' '{count} / 5 litrato ang napili' %}"
+    data-analyze-label="{% ui 'Analyze Images' 'Tingnan ang Resulta' %}"
+    data-limit-error="{% ui 'You can upload up to 5 images. Remove a photo before adding more.' 'Hanggang 5 litrato lang ang puwedeng i-upload. Mag-alis muna ng isa bago magdagdag.' %}"
+    data-format-error="{% ui 'Please choose JPG or PNG images no larger than 10MB each.' 'Pumili ng JPG o PNG na litrato. Dapat 10MB pababa ang bawat isa.' %}">
+    <p class="upload-limit-help">{% ui 'Choose 1–5 images. Swipe or use the arrows to preview each photo inside the upload box.' 'Pumili ng 1–5 litrato. I-swipe o pindutin ang mga arrow para makita ang bawat kuha.' %}</p>
     {% csrf_token %}
     <div class="scan-layout">
         <div class="scan-upload-panel">
             <div class="scan-source-actions">
-                <button type="button" id="browse-images-btn" class="scan-source-active"><span class="material-symbols-outlined" aria-hidden="true">upload_file</span><span class="desktop-source-label">Upload Image</span><span class="mobile-source-label">{% ui 'Choose from Gallery' 'Pumili mula sa Gallery' %}</span></button>
-                <button type="button" id="open-camera-btn"><span class="material-symbols-outlined" aria-hidden="true">photo_camera</span><span class="desktop-source-label">Use Camera</span><span class="mobile-source-label">{% ui 'Take Photo' 'Kumuha ng Larawan' %}</span></button>
+                <button type="button" id="browse-images-btn" class="scan-source-active"><span class="material-symbols-outlined" aria-hidden="true">upload_file</span><span class="desktop-source-label">{% ui 'Upload Image' 'Mag-upload ng Litrato' %}</span><span class="mobile-source-label">{% ui 'Choose from Gallery' 'Pumili sa Gallery' %}</span></button>
+                <button type="button" id="open-camera-btn"><span class="material-symbols-outlined" aria-hidden="true">photo_camera</span><span class="desktop-source-label">{% ui 'Use Camera' 'Gamitin ang Camera' %}</span><span class="mobile-source-label">{% ui 'Take Photo' 'Kumuha ng Litrato' %}</span></button>
             </div>
-            <div id="desktop-camera-slot"></div><div class="scan-selection-heading"><h2><span class="material-symbols-outlined" aria-hidden="true">photo_library</span><span id="selected-count" aria-live="polite">No photos selected</span></h2><button type="button" id="clear-selected" hidden><span class="material-symbols-outlined" aria-hidden="true">delete</span>Clear All</button></div><p class="mobile-selection-empty" id="selection-empty">Take a photo or choose images from your gallery to preview them here.</p><div class="scan-drop-frame"><div id="dropzone" class="dropzone">
+            <div id="desktop-camera-slot"></div><div class="scan-selection-heading"><h2><span class="material-symbols-outlined" aria-hidden="true">photo_library</span><span id="selected-count" aria-live="polite">No photos selected</span></h2><button type="button" id="clear-selected" hidden><span class="material-symbols-outlined" aria-hidden="true">delete</span>Clear All</button></div><p class="mobile-selection-empty" id="selection-empty">{% ui 'Take a photo or choose images from your gallery to preview them here.' 'Kumuha ng litrato o pumili sa Gallery para makita ang kuha rito.' %}</p><div class="scan-drop-frame"><div id="dropzone" class="dropzone">
                 <span class="material-symbols-outlined drop-icon" aria-hidden="true">image</span>
                 <p>Drag and drop photos here<br>or click to browse</p>
-                <small>Supports: JPG, PNG (Max 10MB per image)</small>
+                <small>1–5 images · JPG, PNG · Max 10MB per image</small>
                 <input type="file" name="images" id="images" multiple required accept="image/jpeg,image/png" aria-label="Upload calamansi images">
                 <div id="image-previews" class="scan-previews" tabindex="0" role="region" aria-label="Selected photos" style="display: none;"></div><div id="preview-controls" class="preview-controls" hidden><button type="button" id="preview-prev" aria-label="Previous photo">&#10094;</button><output id="preview-position" aria-live="polite"></output><button type="button" id="preview-next" aria-label="Next photo">&#10095;</button></div><p id="preview-help" class="preview-help" hidden>Swipe or use the arrows to view your photos. Choose from Gallery to add more.</p>
             </div></div>
             <p id="upload-error" class="scan-error" role="alert" hidden></p>
 <div class="scan-submit-row">    <section class="scan-name-panel" aria-labelledby="scan-name-title"><label id="scan-name-title" for="batch_name">Batch / sample name <span>(optional)</span></label><input type="text" name="batch_name" id="batch_name" maxlength="255" value="{{ request.POST.batch_name }}" placeholder="e.g. Sample A - morning light" aria-describedby="scan-name-help"><p id="scan-name-help">Use the same name for photos of the same sample. Each photo still gets a separate result. Leave blank to use its scan number.</p></section>
-    <button type="submit" id="submit-btn" class="scan-analyze" disabled><span class="desktop-source-label">Analyze Images</span><span class="mobile-source-label">{% ui 'Upload' 'I-upload' %}</span> <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></button>
-    <p id="loading-msg" role="status" style="display: none;">Analyzing your images. Please wait…</p>
+    <button type="submit" id="submit-btn" class="scan-analyze" disabled><span class="desktop-source-label">{% ui 'Analyze Images' 'Tingnan ang Resulta' %}</span><span class="mobile-source-label">{% ui 'Upload' 'I-upload' %}</span> <span class="material-symbols-outlined" aria-hidden="true">arrow_forward</span></button>
 </div>
         </div>
         <div class="camera-side-column"><aside class="scan-tips"><h2>Tips for better results:</h2><ul>
@@ -43,13 +47,35 @@
 
 </form>
 {% include 'includes/camera.html' %}
+<section id="upload-loading" class="upload-loading" aria-labelledby="upload-loading-title" aria-describedby="upload-loading-description" tabindex="-1" hidden>
+    <div class="upload-loading-content" role="status" aria-live="polite">
+        <svg class="upload-loading-spinner" viewBox="0 0 52 52" aria-hidden="true"><circle class="upload-loading-track" cx="26" cy="26" r="23"/><circle class="upload-loading-arc" cx="26" cy="26" r="23"/></svg>
+        <h2 id="upload-loading-title">{% ui 'Analyzing your calamansi…' 'Tinitingnan ang kalamansi mo…' %}</h2>
+        <p id="upload-loading-description">{% ui 'Please wait while we check your image.' 'Sandali lang, tinitingnan pa namin ang litrato mo.' %}</p>
+    </div>
+    <p class="upload-loading-footer">{% ui 'Keep this page open.' 'Huwag munang isara ang page na ito.' %}</p>
+</section>
 
 <script>
-    document.getElementById('upload-form').addEventListener('submit', function(event) {
+    const uploadForm = document.getElementById('upload-form');
+    const uploadLoading = document.getElementById('upload-loading');
+    uploadForm.addEventListener('submit', function(event) {
         if (this.dataset.submitting) { event.preventDefault(); return; }
         this.dataset.submitting = 'true';
-        document.getElementById('submit-btn').style.display = 'none';
-        document.getElementById('loading-msg').style.display = 'block';
+        this.setAttribute('aria-busy', 'true');
+        document.getElementById('submit-btn').disabled = true;
+        document.body.classList.add('upload-is-loading');
+        uploadLoading.hidden = false;
+        window.scrollTo(0, 0);
+        uploadLoading.focus();
+    });
+    // Restore the form when returning through the browser's Back button.
+    window.addEventListener('pageshow', () => {
+        uploadLoading.hidden = true;
+        document.body.classList.remove('upload-is-loading');
+        delete uploadForm.dataset.submitting;
+        uploadForm.removeAttribute('aria-busy');
+        document.getElementById('submit-btn').disabled = !document.getElementById('images').files.length;
     });
 
     const fileInput = document.getElementById('images');
@@ -61,8 +87,13 @@
     let selectedFiles = [];
     function selectImages(files) {
         const selected = Array.from(files);
+        if (selected.length > 5) {
+            uploadError.textContent = uploadForm.dataset.limitError;
+            uploadError.hidden = false;
+            return false;
+        }
         if (selected.some(file => !['image/jpeg', 'image/png'].includes(file.type) || file.size > 10 * 1024 * 1024)) {
-            uploadError.textContent = 'Please choose JPG or PNG images no larger than 10MB each.';
+            uploadError.textContent = uploadForm.dataset.formatError;
             uploadError.hidden = false;
             return false;
         }
@@ -121,7 +152,7 @@
     });
 
 </script>
-<script src="{% static 'js/upload-previews.js' %}?v=camera-reference-6"></script>
+<script src="{% static 'js/upload-previews.js' %}?v=natural-filipino-8"></script>
 <script src="{% static 'js/camera.js' %}?v=camera-reference-6"></script>
 {% endblock %}
 

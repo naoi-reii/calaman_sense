@@ -12,6 +12,31 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from django.contrib.auth import update_session_auth_hash, login
 from django.contrib.auth.forms import SetPasswordForm, UserCreationForm
 from services.analysis import get_analysis_provider
+from django.core import signing
+from django.http import Http404
+
+
+def _upload_results(token, user):
+    try:
+        ids = signing.loads(token, salt='upload-results')
+    except signing.BadSignature:
+        raise Http404('Upload results not found.')
+    if not isinstance(ids, list) or not 2 <= len(ids) <= 5 or any(type(i) is not int for i in ids) or len(set(ids)) != len(ids):
+        raise Http404('Invalid upload results.')
+    scans = Scan.objects.filter(id__in=ids).prefetch_related('images')
+    if not user.is_superuser:
+        scans = scans.filter(created_by=user)
+    by_id = {scan.id: scan for scan in scans}
+    if len(by_id) != len(ids):
+        raise Http404('Upload results not found.')
+    return [by_id[i] for i in ids]
+
+
+@login_required
+def upload_results_view(request, token):
+    return render(request, 'upload_results.html', {
+        'upload_scans': _upload_results(token, request.user), 'upload_group': token,
+    })
 
 def home(request):
     if request.user.is_authenticated:
@@ -82,6 +107,8 @@ def upload_view(request):
         
         if not images:
             return render(request, 'upload.html', {'upload_errors': ['Please choose at least one image before uploading.']})
+        if len(images) > 5:
+            return render(request, 'upload.html', {'upload_errors': ['You can upload 1–5 images at a time. Please select no more than 5 images.']})
         if images:
             from django.db import transaction
             import logging
@@ -148,7 +175,8 @@ def upload_view(request):
                     'successful_scans': created_scans,
                 })
             if len(created_scans) > 1:
-                return redirect('reports')
+                token = signing.dumps([scan.id for scan in created_scans], salt='upload-results')
+                return redirect('upload_results', token=token)
             return redirect('report_detail', id=created_scans[0].id)
             
     return render(request, 'upload.html')
@@ -280,9 +308,14 @@ def report_detail_view(request, id):
     if request.GET.get('download') == 'pdf':
         from .pdf_export import scan_page_pdf
         return scan_page_pdf(request, {'scan': scan, 'ripeness': ripeness, 'result_notes': notes, 'counts_available': counts_available})
+    upload_group = request.GET.get('group', '')
+    upload_scans = _upload_results(upload_group, request.user) if upload_group else []
+    if upload_scans and scan.id not in [item.id for item in upload_scans]:
+        raise Http404('This scan is not part of this upload.')
     return render(request, 'report_detail.html', {
         'scan': scan, 'ripeness': ripeness, 'result_notes': notes,
         'counts_available': counts_available,
+        'upload_scans': upload_scans, 'upload_group': upload_group,
     })
 
 @login_required
@@ -308,7 +341,7 @@ def settings_guide(request, page):
     from django.http import Http404
     pages = {
         'about': ('About CalamanSense', 'Tungkol sa CalamanSense', 'eco'),
-        'scanning': ('How Scanning Works', 'Paano Gumagana ang Pag-scan', 'center_focus_weak'),
+        'scanning': ('How Scanning Works', 'Paano Mag-scan', 'center_focus_weak'),
         'help': ('Help', 'Tulong', 'help_outline'),
         'user-guide': ('User Guide', 'Gabay sa Paggamit', 'menu_book'),
     }

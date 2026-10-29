@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block body_class %}overview-page result-page{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2">
+<link rel="stylesheet" href="{% static 'css/report_detail.css' %}?v=upload-gallery-12">
+<link rel="stylesheet" href="{% static 'css/upload_results.css' %}?v=1">
+{% endblock %}
+{% block navigation %}{% include 'includes/overview_navigation.html' with active_page='reports' %}{% endblock %}
+{% block content %}
+<header class="upload-results-heading"><div><h1>Scan Results</h1><p>{{ upload_scans|length }} images analyzed. Each photo has its own counts and grade.</p></div><a class="upload-result-link" href="{% url 'upload' %}">Scan Another</a></header>
+<section class="upload-results-grid" aria-label="All uploaded image results">
+{% for scan in upload_scans %}
+    <article class="upload-result-card">
+        <h2>Image {{ forloop.counter }} <span>Scan #{{ scan.id }}</span></h2>
+        <a class="upload-result-preview" href="{% url 'report_detail' scan.id %}?group={{ upload_group|urlencode }}" aria-label="View individual result for image {{ forloop.counter }}">
+        {% for photo in scan.images.all %}
+            <div class="upload-result-photo"><img src="{{ photo.image.url }}" alt="Analyzed calamansi image {{ forloop.parentloop.counter }}">
+            {% for box in photo.mock_annotations %}<span class="bounding-box bbox-{{ box.css_class }}" style="top:{{ box.y }}%;left:{{ box.x }}%;width:{{ box.width }}%;height:{{ box.height }}%;" aria-hidden="true"></span>{% endfor %}
+            </div>
+        {% endfor %}
+        </a>
+        <dl class="upload-result-stats"><div><dt>Fruits detected</dt><dd>{{ scan.fruit_count_total }}</dd></div><div><dt>Batch grade</dt><dd>{{ scan.quality_grade|default:'Not graded' }}</dd></div></dl>
+        <a class="upload-result-link" href="{% url 'report_detail' scan.id %}?group={{ upload_group|urlencode }}">View individual result <span aria-hidden="true">→</span></a>
+    </article>
+{% endfor %}
+</section>
+{% endblock %}

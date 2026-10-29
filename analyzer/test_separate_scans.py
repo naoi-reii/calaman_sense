@@ -7,6 +7,8 @@ from django.contrib.auth.models import User
 from django.core.files.uploadedfile import SimpleUploadedFile
 from .models import Scan
 from services.analysis.types import ScanAnalysisResult
+from django.core import signing
+from django.urls import reverse
 
 class SeparateImageScanTests(TestCase):
     def setUp(self):
@@ -28,12 +30,51 @@ class SeparateImageScanTests(TestCase):
     def test_multiple_images_are_independent(self, provider):
         provider.return_value.analyze.side_effect = [self.result(10, 'Good Quality'), self.result(20, 'Average')]
         response = self.client.post('/upload/', {'images': [SimpleUploadedFile('one.jpg', b'one', content_type='image/jpeg'), SimpleUploadedFile('two.jpg', b'two', content_type='image/jpeg')], 'batch_name': 'Same sample'})
-        self.assertRedirects(response, '/reports/')
+        token = signing.dumps(list(Scan.objects.order_by('id').values_list('id', flat=True)), salt='upload-results')
+        self.assertEqual(response.status_code, 302)
+        overview = self.client.get(response.url)
+        self.assertEqual(overview.status_code, 200)
+        self.assertContains(overview, '2 images analyzed')
+        self.assertContains(overview, '>View individual result <span', count=2)
         scans = list(Scan.objects.order_by('id'))
         self.assertEqual([s.fruit_count_total for s in scans], [10,20])
         self.assertEqual([s.quality_grade for s in scans], ['Good Quality','Average'])
         self.assertTrue(all(s.images.count() == 1 for s in scans))
         self.assertTrue(all(s.batch_name == 'Same sample' for s in scans))
+        detail = self.client.get(reverse('report_detail', args=[scans[0].id]), {'group': token})
+        self.assertContains(detail, 'All 2 images')
+        self.assertContains(detail, 'aria-current="page"')
+
+    @patch('analyzer.views.get_analysis_provider')
+    def test_five_images_are_accepted(self, provider):
+        provider.return_value.analyze.return_value = self.result(3, 'Average')
+        images = [SimpleUploadedFile(f'{i}.jpg', b'image', content_type='image/jpeg') for i in range(5)]
+        response = self.client.post('/upload/', {'images': images})
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(Scan.objects.count(), 5)
+        self.assertContains(self.client.get(response.url), '5 images analyzed')
+
+    @patch('analyzer.views.get_analysis_provider')
+    def test_six_images_are_rejected_before_analysis(self, provider):
+        images = [SimpleUploadedFile(f'{i}.jpg', b'image', content_type='image/jpeg') for i in range(6)]
+        response = self.client.post('/upload/', {'images': images})
+        self.assertContains(response, 'no more than 5 images')
+        provider.assert_not_called()
+        self.assertFalse(Scan.objects.exists())
+
+    def test_group_results_check_ownership_and_signature(self):
+        owner = User.objects.get(username='grower')
+        other = User.objects.create_user(username='other-grower')
+        first = Scan.objects.create(created_by=owner)
+        second = Scan.objects.create(created_by=owner)
+        unrelated = Scan.objects.create(created_by=owner)
+        token = signing.dumps([first.id, second.id], salt='upload-results')
+        url = reverse('upload_results', args=[token])
+        self.assertEqual(self.client.get(url).status_code, 200)
+        self.assertEqual(self.client.get(reverse('upload_results', args=[token + 'bad'])).status_code, 404)
+        self.assertEqual(self.client.get(reverse('report_detail', args=[unrelated.id]), {'group': token}).status_code, 404)
+        self.client.force_login(other)
+        self.assertEqual(self.client.get(url).status_code, 404)
 
     @patch('analyzer.views.get_analysis_provider')
     def test_single_image_opens_its_result(self, provider):
