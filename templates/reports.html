@@ -3,7 +3,7 @@
 {% block body_class %}overview-page history-page{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2">
-<link rel="stylesheet" href="{% static 'css/history.css' %}?v=mobile-history-3">
+<link rel="stylesheet" href="{% static 'css/history.css' %}?v=upload-groups-4">
 {% endblock %}
 {% block navigation %}{% include "includes/overview_navigation.html" with active_page="history" %}{% endblock %}
 {% block content %}
@@ -80,7 +80,7 @@ document.querySelectorAll('[data-export]').forEach(button => button.addEventList
 <p id="history-search-empty" class="history-empty" hidden>No scans match your search.</p>
 <aside id="history-preview" class="history-preview" aria-label="Scan preview" hidden><button type="button" class="history-dismiss" aria-label="Close preview">&times;</button><div id="history-preview-content"></div></aside>
 <dialog id="history-compare" aria-labelledby="history-compare-title"><header><div><h2 id="history-compare-title">Compare Scans</h2><p>Compare the ripeness results of two selected scans.</p></div><button type="button" class="history-dismiss" aria-label="Close comparison">&times;</button></header><div id="history-compare-content" class="history-compare-grid"></div></dialog>
-<script src="{% static 'js/history-workspace.js' %}?v=2" defer></script>{% endblock %}
+<script src="{% static 'js/history-workspace.js' %}?v=groups-3" defer></script>{% endblock %}
 
 
 

@@ -4,6 +4,41 @@ from django.contrib.auth.models import User
 
 
 class HomePageTests(TestCase):
+    def test_opening_and_account_pages_always_use_light_theme(self):
+        for url in ('/', '/login/', '/register/'):
+            self.assertContains(self.client.get(url), 'data-theme-policy="light"')
+        self.client.force_login(User.objects.create_user(username='theme-user'))
+        self.assertContains(self.client.get('/dashboard/'), 'data-theme-policy="user"')
+
+    def test_existing_mobile_opening_is_connected_only_to_login(self):
+        login = self.client.get('/login/')
+        self.assertContains(login, 'id="mobile-opening"', count=1)
+        self.assertContains(login, 'id="mobile-onboarding"', count=1)
+        self.assertContains(login, 'mobile_opening.css')
+        self.assertContains(login, 'window.self !== window.top || !mobile.matches')
+        self.assertNotContains(self.client.get('/'), 'id="mobile-opening"')
+        self.assertNotContains(self.client.get('/register/'), 'id="mobile-opening"')
+        self.assertContains(self.client.get('/'), "window.location.replace('/login/?opening=1')")
+
+    def test_mobile_entry_opens_photo_splash_and_logout_opens_login(self):
+        agent = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) Mobile Safari'
+        self.assertRedirects(self.client.get('/', HTTP_USER_AGENT=agent), '/login/?opening=1', fetch_redirect_response=False)
+        opening = self.client.get('/login/?opening=1', HTTP_USER_AGENT=agent)
+        self.assertContains(opening, 'images/mobile-opening.png')
+        self.assertContains(opening, "entry.get('opening') === '1'")
+        self.client.force_login(User.objects.create_user(username='mobile-logout-user'))
+        response = self.client.post('/logout/', HTTP_USER_AGENT=agent)
+        self.assertRedirects(response, '/login/?logged_out=1', fetch_redirect_response=False)
+        self.assertNotIn('_auth_user_id', self.client.session)
+        login = self.client.get(response.url, HTTP_USER_AGENT=agent)
+        self.assertContains(login, 'id="id_username"')
+        self.assertContains(login, "if (entry.get('logged_out') === '1') return;")
+
+    def test_mobile_viewport_logout_can_request_login_redirect(self):
+        self.client.force_login(User.objects.create_user(username='viewport-logout-user'))
+        self.assertRedirects(self.client.post('/logout/', {'next': '/login/?logged_out=1'}),
+                             '/login/?logged_out=1', fetch_redirect_response=False)
+
     def test_auth_popup_pages_allow_only_same_origin_frames(self):
         for url in ('/login/', '/register/'):
             response = self.client.get(url)

@@ -1,4 +1,5 @@
 from django.db import models
+import uuid
 from django.contrib.auth.models import User
 
 class Scan(models.Model):
@@ -10,6 +11,7 @@ class Scan(models.Model):
     ]
 
     id = models.AutoField(primary_key=True)
+    upload_group_id = models.UUIDField(null=True, blank=True, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
     batch_name = models.CharField(max_length=255, blank=True, null=True)
     supplier_name = models.CharField(max_length=255, blank=True, null=True)
@@ -92,3 +94,20 @@ class UserProfile(models.Model):
     contact_number = models.CharField(max_length=30, blank=True)
     farm_name = models.CharField(max_length=150, blank=True)
     location = models.CharField(max_length=255, blank=True)
+
+
+class VerifiedPhone(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='verified_phone')
+    number = models.CharField(max_length=16, unique=True)
+
+
+class PhoneOTP(models.Model):
+    token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
+    number = models.CharField(max_length=16, db_index=True)
+    purpose = models.CharField(max_length=12)
+    code_hash = models.CharField(max_length=128)
+    payload = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    attempts = models.PositiveSmallIntegerField(default=0)
+    consumed = models.BooleanField(default=False)

@@ -35,7 +35,14 @@
         openingSeen = sessionStorage.getItem('calamansense-opening-seen') === '1';
         onboardingSeen = sessionStorage.getItem('calamansense-onboarding-seen') === '1';
     } catch (_) {}
-    if (!mobile.matches || onboardingSeen) return;
+    const entry = new URLSearchParams(location.search);
+    // Logout goes straight to the form, even if onboarding was never finished.
+    if (entry.get('logged_out') === '1') return;
+    if (entry.get('opening') === '1') {
+        openingSeen = false;
+        onboardingSeen = false;
+    }
+    if (window.self !== window.top || !mobile.matches || onboardingSeen) return;
     card.inert = true;
     document.body.classList.add('opening-active');
     function remember(key) { try { sessionStorage.setItem(key, '1'); } catch (_) {} }

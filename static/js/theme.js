@@ -1,5 +1,12 @@
 ﻿(() => {
     const root = document.documentElement;
+    // Public opening and account pages always use light mode. Keep the saved
+    // app preference intact for the dashboard after signing in.
+    if (root.dataset.themePolicy === 'light') {
+        root.dataset.theme = 'light';
+        root.style.colorScheme = 'light';
+        return;
+    }
     const deviceTheme = matchMedia('(prefers-color-scheme: dark)');
     const storageValues = {light: 'disabled', dark: 'enabled', system: 'system'};
     function readPreference() {

@@ -1,18 +1,19 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="{% if request.COOKIES.calamansense_language == 'fil' %}fil{% else %}en{% endif %}">
+<html lang="{% if request.COOKIES.calamansense_language == 'fil' %}fil{% else %}en{% endif %}" data-theme-policy="{% block theme_policy %}user{% endblock %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CalamanSense</title>
     <script src="{% static 'js/csrf-forms.js' %}" defer></script>
+    <script src="{% static 'js/mobile-logout.js' %}?v=1" defer></script>
     
     <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
     
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     <link rel="stylesheet" href="{% static 'css/branding.css' %}?v=1">
     
-    <script src="{% static 'js/theme.js' %}?v=device-theme-2"></script>
+    <script src="{% static 'js/theme.js' %}?v=opening-light-3"></script>
     {% block extra_css %}{% endblock %}
     <link rel="stylesheet" href="{% static 'css/theme.css' %}?v=charcoal-2">
 </head>

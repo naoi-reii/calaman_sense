@@ -7,7 +7,7 @@
  function animate(element, frames){if(!motion.matches&&element.animate)return element.animate(frames,{duration:330,easing:'cubic-bezier(.22,1,.36,1)'});}
  document.querySelectorAll('.result-figure[data-image-id]').forEach((figure,imageIndex)=>{
   const data=figure.querySelectorAll('script[type="application/json"]');
-  const group={figure, image:figure.querySelector('img'), boxes:JSON.parse(data[0].textContent), corrections:JSON.parse(data[1].textContent), number:imageIndex+1};
+  const group={figure, image:figure.querySelector('img'), boxes:JSON.parse(data[0].textContent)||[], corrections:JSON.parse(data[1].textContent)||{}, number:imageIndex+1};
 
   figure.querySelectorAll('[data-fruit-index]').forEach(button=>{
    const index=Number(button.dataset.fruitIndex), fruit={group,index,button,box:group.boxes[index]};

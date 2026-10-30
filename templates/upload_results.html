@@ -1,28 +1,28 @@
-{% extends 'base.html' %}
-{% load static %}
-{% block body_class %}overview-page result-page{% endblock %}
-{% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2">
-<link rel="stylesheet" href="{% static 'css/report_detail.css' %}?v=upload-gallery-12">
-<link rel="stylesheet" href="{% static 'css/upload_results.css' %}?v=1">
+{% extends 'report_detail.html' %}
+{% load static ui_language %}
+{% block extra_css %}{{ block.super }}<link rel="stylesheet" href="{% static 'css/group_slider.css' %}?v=1">{% endblock %}
+{% block result_view_switch %}
+<nav class="result-mode-switch" aria-label="Result view"><a href="{% url 'upload_results' upload_group %}" aria-current="page"><span class="material-symbols-outlined" aria-hidden="true">collections</span>{% ui 'Multiple Results' 'Mga Resulta' %}</a><a id="group-individual-result" href="{% url 'report_detail' scan.id %}?group={{ upload_group|urlencode }}"><span class="material-symbols-outlined" aria-hidden="true">image</span>{% ui 'Individual Result' 'Isang Resulta' %}</a></nav>
 {% endblock %}
-{% block navigation %}{% include 'includes/overview_navigation.html' with active_page='reports' %}{% endblock %}
-{% block content %}
-<header class="upload-results-heading"><div><h1>Scan Results</h1><p>{{ upload_scans|length }} images analyzed. Each photo has its own counts and grade.</p></div><a class="upload-result-link" href="{% url 'upload' %}">Scan Another</a></header>
-<section class="upload-results-grid" aria-label="All uploaded image results">
-{% for scan in upload_scans %}
-    <article class="upload-result-card">
-        <h2>Image {{ forloop.counter }} <span>Scan #{{ scan.id }}</span></h2>
-        <a class="upload-result-preview" href="{% url 'report_detail' scan.id %}?group={{ upload_group|urlencode }}" aria-label="View individual result for image {{ forloop.counter }}">
-        {% for photo in scan.images.all %}
-            <div class="upload-result-photo"><img src="{{ photo.image.url }}" alt="Analyzed calamansi image {{ forloop.parentloop.counter }}">
-            {% for box in photo.mock_annotations %}<span class="bounding-box bbox-{{ box.css_class }}" style="top:{{ box.y }}%;left:{{ box.x }}%;width:{{ box.width }}%;height:{{ box.height }}%;" aria-hidden="true"></span>{% endfor %}
-            </div>
+{% block result_images %}
+<div id="group-image-slider">
+    <div class="group-image-carousel">
+        <div class="group-image-track" id="group-image-track" tabindex="0" role="region" aria-label="Uploaded images. Use left and right arrow keys.">
+        {% for card in result_cards %}
+            {% with scan_image=card.photo %}
+            <figure class="result-figure" data-scan-id="{{ card.scan.id }}" data-image-id="{{ scan_image.id }}" data-result-url="{% url 'report_detail' card.scan.id %}?group={{ upload_group|urlencode }}" data-caption="Image {{ forloop.counter }} · Scan #{{ card.scan.id }}">
+                {{ scan_image.mock_annotations|default_if_none:''|json_script }}{{ scan_image.label_corrections|default_if_none:''|json_script }}
+                <div class="result-image-stage">{% if scan_image %}<div class="image-viewer"><img src="{{ scan_image.image.url }}" alt="Calamansi scan {{ forloop.counter }} with detected fruit locations">
+                    {% for box in scan_image.mock_annotations %}<button type="button" aria-label="Inspect fruit {{ forloop.counter }}: {{ box.label|default:box.css_class }}" data-fruit-index="{{ forloop.counter0 }}" class="bounding-box bbox-{{ box.css_class }}" style="top:{{ box.y }}%;left:{{ box.x }}%;width:{{ box.width }}%;height:{{ box.height }}%;"><span class="bounding-box-label">{{ box.label|default:box.css_class }}</span></button>{% endfor %}
+                </div>{% else %}<p>No image is available for this scan.</p>{% endif %}</div>
+            </figure>
+            {% endwith %}
         {% endfor %}
-        </a>
-        <dl class="upload-result-stats"><div><dt>Fruits detected</dt><dd>{{ scan.fruit_count_total }}</dd></div><div><dt>Batch grade</dt><dd>{{ scan.quality_grade|default:'Not graded' }}</dd></div></dl>
-        <a class="upload-result-link" href="{% url 'report_detail' scan.id %}?group={{ upload_group|urlencode }}">View individual result <span aria-hidden="true">→</span></a>
-    </article>
-{% endfor %}
-</section>
+        </div>
+        <button type="button" id="group-image-prev" class="group-image-arrow group-image-prev" aria-label="Previous image" disabled><span class="material-symbols-outlined" aria-hidden="true">chevron_left</span></button><button type="button" id="group-image-next" class="group-image-arrow group-image-next" aria-label="Next image"><span class="material-symbols-outlined" aria-hidden="true">chevron_right</span></button>
+    </div>
+    <div class="group-image-caption"><span id="group-image-caption">Image 1</span><output id="group-image-position" aria-live="polite">1 / {{ result_cards|length }}</output></div>
+    <div class="group-image-thumbnails" aria-label="Choose image">{% for card in result_cards %}<button type="button" data-group-slide="{{ forloop.counter0 }}" aria-label="View image {{ forloop.counter }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}">{% if card.photo %}<img src="{{ card.photo.image.url }}" alt="">{% else %}{{ forloop.counter }}{% endif %}</button>{% endfor %}</div>
+</div>
 {% endblock %}
+{% block extra_result_scripts %}<script src="{% static 'js/group-slider.js' %}?v=1" defer></script>{% endblock %}

@@ -1,0 +1,42 @@
+/* Presentation for the existing mobile opening and onboarding templates. */
+.mobile-opening[hidden],.mobile-onboarding[hidden],.onboarding-slide[hidden] { display:none!important; }
+.mobile-opening,.mobile-onboarding { display:none; }
+@media(max-width:760px) {
+ body.opening-active { overflow:hidden; }
+ .opening-active .auth-card { visibility:hidden; }
+ .mobile-opening:not([hidden]),.mobile-onboarding:not([hidden]) { position:fixed; inset:0; z-index:1000; display:flex; flex-direction:column; min-height:100svh; overflow-y:auto; }
+ .mobile-opening { isolation:isolate; justify-content:center; padding:40px 26px max(30px,env(safe-area-inset-bottom)); background:#153e24; color:#fff; text-align:center; }
+ .mobile-opening-photo { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; z-index:-2; }
+ .mobile-opening::before { content:''; position:absolute; inset:0; z-index:-1; background:linear-gradient(180deg,#102d2040,#102d20a8 65%,#102d20e8); }
+ .mobile-opening-identity { margin:auto 0; padding:30px 0 120px; }
+ .mobile-opening-logo { display:block; width:100px; height:100px; margin:0 auto 18px; }
+ .mobile-opening-identity h1 { color:#fff; font-size:35px; letter-spacing:-1px; margin:0 0 10px; }
+ .mobile-opening-identity > p { font-size:18px; line-height:1.5; color:#f2f8ef; margin:0; }
+ .mobile-opening-footer { position:absolute; bottom:max(30px,env(safe-area-inset-bottom)); left:26px; right:26px; }
+ .mobile-opening-footer p { color:#ecf3e9; font-size:13px; line-height:1.7; margin:0 0 22px; }
+ #opening-continue { display:flex; align-items:center; justify-content:center; gap:16px; width:100%; min-height:50px; border:1px solid #ffffff55; border-radius:10px; background:#fff; color:#17633d; font-size:15px; font-weight:650; }
+ .opening-swipe-hint { display:block; margin-top:12px; color:#e3ecdf; font-size:11px; }
+ .mobile-onboarding { background:#fff; color:#19362a; padding:max(24px,env(safe-area-inset-top)) 24px max(24px,env(safe-area-inset-bottom)); }
+ .onboarding-brand { display:flex; align-items:center; gap:8px; color:#17633d; font-size:19px; }
+ .onboarding-slides { flex:1; min-height:0; display:flex; align-items:center; padding:26px 0; touch-action:pan-y; }
+ .onboarding-slide { width:100%; text-align:center; }
+ .onboarding-copy h2 { color:#19362a; font-size:29px; letter-spacing:-.8px; line-height:1.2; margin:24px 0 14px; }
+ .onboarding-copy p { color:#65736b; font-size:15px; line-height:1.7; margin:0; }
+ .onboarding-orchard { margin:26px auto 0; width:100%; height:clamp(160px,30svh,290px); overflow:hidden; border-radius:24px; }
+ .onboarding-orchard img { width:100%; height:100%; object-fit:cover; }
+ .onboarding-art { position:relative; display:flex; align-items:center; justify-content:center; height:clamp(160px,31svh,280px); }
+ .onboarding-art .art-halo { position:absolute; width:220px; height:220px; max-height:100%; background:#e9f4e6; border-radius:50%; }
+ .scan-phone { position:relative; width:125px; height:205px; padding:20px 8px 12px; border:5px solid #284c38; border-radius:22px; background:#fff; transform:rotate(-8deg); }
+ .scan-phone img { width:100%; height:100%; object-fit:cover; border-radius:6px; }
+ .phone-camera { position:absolute; top:6px; left:40%; width:20%; height:4px; background:#284c38; border-radius:4px; }
+ .scan-corners { position:absolute; inset:45px 14px 30px; border:2px solid #86b94e; border-radius:6px; }
+ .insights-chart { position:relative; display:flex; align-items:flex-end; gap:16px; padding:20px; width:200px; height:180px; border-radius:18px; background:#fff; border:1px solid #cddfca; }
+ .insights-chart i { flex:1; height:45%; background:#b2ce86; border-radius:7px 7px 0 0; }.insights-chart i:nth-child(2) { height:80%; background:#4f9468; }.insights-chart i:nth-child(3) { height:60%; background:#dfbd62; }
+ .onboarding-controls { text-align:center; }
+ .onboarding-swipe-hint { color:#7a877e; font-size:11px; margin:0 0 10px; }
+ .onboarding-dots { display:flex; justify-content:center; gap:7px; margin-bottom:20px; }
+ .onboarding-dots button { min-height:0; width:7px; height:7px; padding:0; border:0; border-radius:50%; background:#d7e2d6; box-shadow:none; }
+ .onboarding-dots button[aria-current] { width:24px; border-radius:5px; background:#3e8054; }
+ .onboarding-next { width:100%; min-height:48px; border:0; border-radius:9px; background:#176b45; color:#fff; font-size:15px; }
+ .onboarding-skip { margin-top:8px; padding:10px; border:0; background:transparent; color:#68796c; font-size:13px; box-shadow:none; }
+}

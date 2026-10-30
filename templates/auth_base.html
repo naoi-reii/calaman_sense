@@ -1,13 +1,15 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block theme_policy %}light{% endblock %}
 {% block body_class %}auth-page{% endblock %}
 {% block navigation %}{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'css/auth.css' %}?v=square-2">{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/auth.css' %}?v=square-2"><link rel="stylesheet" href="{% static 'css/mobile_opening.css' %}?v=entry-2">{% endblock %}
 {% block content %}
 <section class="auth-card">
 <aside class="auth-brand"><a href="{% url 'home' %}" class="auth-logo site-brand"><img class="site-brand-icon" src="{% static 'images/calamansense-logo-transparent.png' %}" alt="">CalamanSense</a><div class="auth-brand-copy"><p class="auth-eyebrow">SMART CALAMANSI ANALYTICS</p><h1>{% block brand_title %}Smarter scanning.<br>Better harvests.{% endblock %}</h1><span class="auth-rule"></span><p>Simple technology for farmers, vendors, and communities.</p></div><div class="auth-fruit-photo"><img src="{% static 'images/samples/green.jpg' %}" alt="Fresh green calamansi"></div><p class="auth-tagline">QUALITY TODAY.<br>BRIGHTER TOMORROW.</p></aside>
 <div class="auth-panel"><a class="auth-back" href="{% url 'home' %}"><span aria-hidden="true">&larr;</span> Back to Home</a>{% block auth_form %}{% endblock %}<p class="auth-switch">{% block auth_switch %}{% endblock %}</p></div>
 </section>
+{% block opening_screen %}{% endblock %}
 <script>
 document.querySelectorAll('[data-password]').forEach(button => button.addEventListener('click', () => {
  const input = document.getElementById(button.dataset.password), show = input.type === 'password';

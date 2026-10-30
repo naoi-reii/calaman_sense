@@ -2,6 +2,11 @@ import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+from dotenv import load_dotenv
+load_dotenv(BASE_DIR / '.env')
+
+SMS_API_KEY = os.environ.get('SEMAPHORE_API_KEY', '')
+SMS_SENDER_NAME = os.environ.get('SEMAPHORE_SENDER_NAME', '')
 
 SECRET_KEY = 'django-insecure-dummy-key-for-phase1'
 

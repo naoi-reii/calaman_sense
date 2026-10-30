@@ -14,6 +14,34 @@ from django.contrib.auth.forms import SetPasswordForm, UserCreationForm
 from services.analysis import get_analysis_provider
 from django.core import signing
 from django.http import Http404
+from uuid import uuid4
+from django.contrib.auth.views import LogoutView
+
+
+def _is_mobile_request(request):
+    agent = request.META.get('HTTP_USER_AGENT', '').lower()
+    return any(device in agent for device in ('android', 'iphone', 'ipad', 'ipod', 'mobile'))
+
+
+class DeviceLogoutView(LogoutView):
+    def get_default_redirect_url(self):
+        if _is_mobile_request(self.request):
+            return '/login/?logged_out=1'
+        return super().get_default_redirect_url()
+
+
+def _saved_group_tokens(scans, user):
+    group_ids = {scan.upload_group_id for scan in scans if scan.upload_group_id}
+    if not group_ids:
+        return {}
+    siblings = Scan.objects.filter(upload_group_id__in=group_ids).order_by('id')
+    if not user.is_superuser:
+        siblings = siblings.filter(created_by=user)
+    groups = {}
+    for group_id, scan_id in siblings.values_list('upload_group_id', 'id'):
+        groups.setdefault(group_id, []).append(scan_id)
+    return {group_id: signing.dumps(ids, salt='upload-results')
+            for group_id, ids in groups.items() if 2 <= len(ids) <= 5}
 
 
 def _upload_results(token, user):
@@ -34,13 +62,88 @@ def _upload_results(token, user):
 
 @login_required
 def upload_results_view(request, token):
-    return render(request, 'upload_results.html', {
-        'upload_scans': _upload_results(token, request.user), 'upload_group': token,
-    })
+    scans = _upload_results(token, request.user)
+    if request.method == 'POST':
+        image_id = request.POST.get('image_id', '')
+        image = next((photo for scan in scans for photo in scan.images.all() if str(photo.id) == image_id), None)
+        if image is None:
+            raise Http404('Image is not part of this upload.')
+        return report_detail_view(request, image.scan_id)
+    cards = []
+    for scan in scans:
+        images = list(scan.images.all())
+        photo = max(images, key=lambda image: image.id) if images else None
+        boxes = photo.mock_annotations if photo else []
+        rows = [
+            {'key': 'unripe', 'label': 'Unripe', 'pct': scan.ripeness_unripe_pct},
+            {'key': 'ripe', 'label': 'Ripe', 'pct': scan.ripeness_ripe_pct},
+            {'key': 'overripe', 'label': 'Overripe', 'pct': scan.ripeness_overripe_pct},
+        ]
+        for row in rows:
+            row['count'] = sum(box.get('css_class') == row['key'] for box in boxes)
+        cards.append({'scan': scan, 'photo': photo, 'rows': rows,
+                      'counts_available': bool(boxes) or scan.fruit_count_total == 0})
+    total = sum(scan.fruit_count_total for scan in scans)
+    counts_available = all(
+        card['counts_available'] and sum(row['count'] for row in card['rows']) == card['scan'].fruit_count_total
+        for card in cards
+    )
+    overall_rows = []
+    for index, key in enumerate(('unripe', 'ripe', 'overripe')):
+        count = sum(card['rows'][index]['count'] for card in cards)
+        # Older records may lack fruit boxes; weight their saved percentages by
+        # fruit count rather than giving small and large photos equal weight.
+        pct = (count * 100 / total if counts_available else
+               sum(card['rows'][index]['pct'] * card['scan'].fruit_count_total for card in cards) / total) if total else 0
+        overall_rows.append({'key': key, 'count': count if counts_available else None, 'pct': pct})
+    highest = max(row['pct'] for row in overall_rows)
+    leaders = [row['key'] for row in overall_rows if row['pct'] == highest]
+    dominant = leaders[0] if total and len(leaders) == 1 else 'mixed' if total else 'none'
+    from types import SimpleNamespace
+    photos = [card['photo'] for card in cards if card['photo']]
+    grades = list(dict.fromkeys(scan.quality_grade for scan in scans if scan.quality_grade))
+    # Match the real analysis provider's grading thresholds, applied to the
+    # combined fruit distribution rather than averaging image grade labels.
+    unripe_pct = overall_rows[0]['pct']
+    combined_grade = ('Best Quality' if unripe_pct >= 75 else
+                      'Good Quality' if unripe_pct >= 50 else 'Average') if total else None
+    for row in overall_rows:
+        row['label'] = row['key'].title()
+    summary_scan = SimpleNamespace(
+        id=scans[0].id, batch_name=scans[0].batch_name or f'{len(scans)} uploaded images',
+        created_at=scans[0].created_at, fruit_count_total=total,
+        quality_grade=combined_grade,
+        images=SimpleNamespace(all=lambda: photos, count=lambda: len(photos)),
+    )
+    notes = [f'Combined results from all {len(scans)} uploaded images. Each image keeps its own individual result.']
+    if total:
+        notes.append(f'Overall batch grade: {combined_grade}, based on {unripe_pct:.1f}% unripe fruits across all images '
+                     '(Best Quality: at least 75%; Good Quality: at least 50%; Average: below 50%).')
+    else:
+        notes.append('No fruits were detected across the uploaded images, so an overall batch grade is not available.')
+    if len(grades) > 1:
+        notes.append('Image grades differ: ' + ', '.join(grades) + '. Open an individual result to review its grade.')
+    if not counts_available:
+        notes.append('Some saved images have no complete fruit boxes. Ripeness percentages are weighted by the fruit count in each image.')
+    if any(scan.model_version.startswith('mock') for scan in scans):
+        notes.append('Some images use demo analysis; those results are simulated.')
+    context = {
+        'upload_scans': scans, 'upload_group': token, 'result_cards': cards,
+        'overall': {'total': total, 'rows': overall_rows, 'counts_available': counts_available,
+                    'dominant': dominant, 'quality_grade': combined_grade},
+        'scan': summary_scan, 'ripeness': overall_rows, 'counts_available': counts_available,
+        'result_notes': notes, 'combined_result': True,
+    }
+    if request.GET.get('download') == 'pdf':
+        from .pdf_export import scan_page_pdf
+        return scan_page_pdf(request, context, template_name='upload_results.html', filename='calamansense-combined-results.pdf')
+    return render(request, 'upload_results.html', context)
 
 def home(request):
     if request.user.is_authenticated:
         return redirect('dashboard')
+    if _is_mobile_request(request):
+        return redirect('/login/?opening=1')
     return render(request, 'home.html')
 
 
@@ -120,6 +223,7 @@ def upload_view(request):
                 return render(request, 'upload.html', {'upload_errors': ['Analysis is temporarily unavailable. Please try again.']})
             failed_images = []
             created_scans = []
+            upload_group_id = uuid4() if len(images) > 1 else None
             for img in images:
                 scan_img = ScanImage(scan=None, image=img)
                 try:
@@ -128,6 +232,7 @@ def upload_view(request):
                         scan = Scan.objects.create(
                             batch_name=batch_name,
                             created_by=request.user,
+                            upload_group_id=upload_group_id,
                         )
                         if not batch_name:
                             scan.batch_name = f'Scan #{scan.id}'
@@ -309,6 +414,8 @@ def report_detail_view(request, id):
         from .pdf_export import scan_page_pdf
         return scan_page_pdf(request, {'scan': scan, 'ripeness': ripeness, 'result_notes': notes, 'counts_available': counts_available})
     upload_group = request.GET.get('group', '')
+    if not upload_group and scan.upload_group_id:
+        upload_group = _saved_group_tokens([scan], request.user).get(scan.upload_group_id, '')
     upload_scans = _upload_results(upload_group, request.user) if upload_group else []
     if upload_scans and scan.id not in [item.id for item in upload_scans]:
         raise Http404('This scan is not part of this upload.')
