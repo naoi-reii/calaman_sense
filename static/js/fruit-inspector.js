@@ -33,7 +33,7 @@
  }));
  function refresh(){
   let matches=0;
-  fruits.forEach(f=>{const key=current(f), match=filter==='all'||key===filter;matches+=Number(match); f.button.classList.toggle('fruit-dimmed',!match); f.button.classList.toggle('fruit-highlighted',match&&filter!=='all');f.button.classList.remove('bbox-unripe','bbox-ripe','bbox-overripe');f.button.classList.add('bbox-'+key);f.button.setAttribute('aria-label',`Inspect image ${f.group.number}, fruit ${f.index+1}: ${labels[key]||key}`); f.button.querySelector('.bounding-box-label').textContent=f.group.corrections[String(f.index)] ? `${labels[key]} (reviewed)` : f.box.label||labels[key];});
+  fruits.forEach(f=>{const key=current(f), match=filter==='all'||key===filter;matches+=Number(match); f.button.classList.toggle('fruit-dimmed',!match); f.button.classList.toggle('fruit-highlighted',match&&filter!=='all');f.button.classList.remove('bbox-unripe','bbox-ripe','bbox-overripe');f.button.classList.add('bbox-'+key);f.button.setAttribute('aria-label',`Inspect image ${f.group.number}, fruit ${f.index+1}: ${labels[key]||key}`); f.button.querySelector('.bounding-box-label').textContent=f.group.corrections[String(f.index)] ? `${labels[key]} (reviewed)` : labels[key]||key;});
   document.getElementById('fruit-filter-status').textContent=fruits.length?`${matches} of ${fruits.length} fruits highlighted across all images.`:'No per-fruit detections are available for this scan.';
 
  }

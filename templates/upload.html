@@ -3,7 +3,7 @@
 {% block body_class %}overview-page upload-page{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2">
-<link rel="stylesheet" href="{% static 'css/upload.css' %}?v=five-images-9">
+<link rel="stylesheet" href="{% static 'css/upload.css' %}?v=cancel-modal-11">
 {% endblock %}
 {% block navigation %}{% include "includes/overview_navigation.html" with active_page="upload" %}{% endblock %}
 {% block content %}
@@ -46,6 +46,12 @@
 
 </form>
 {% include 'includes/camera.html' %}
+<dialog id="cancel-scan-dialog" aria-labelledby="cancel-scan-title" aria-describedby="cancel-scan-description">
+    <span class="material-symbols-outlined cancel-scan-icon" aria-hidden="true">help</span>
+    <h2 id="cancel-scan-title">Cancel this scan?</h2>
+    <p id="cancel-scan-description">Are you sure you want to cancel this scan?</p>
+    <div class="cancel-scan-actions"><button type="button" id="continue-scan" autofocus>Continue Scanning</button><button type="button" id="confirm-cancel-scan">Cancel Scan</button></div>
+</dialog>
 <section id="upload-loading" class="upload-loading" aria-labelledby="upload-loading-title" aria-describedby="upload-loading-description" tabindex="-1" hidden>
     <div class="upload-loading-content" role="status" aria-live="polite">
         <svg class="upload-loading-spinner" viewBox="0 0 52 52" aria-hidden="true"><circle class="upload-loading-track" cx="26" cy="26" r="23"/><circle class="upload-loading-arc" cx="26" cy="26" r="23"/></svg>
@@ -58,16 +64,6 @@
 <script>
     const uploadForm = document.getElementById('upload-form');
     const uploadLoading = document.getElementById('upload-loading');
-    uploadForm.addEventListener('submit', function(event) {
-        if (this.dataset.submitting) { event.preventDefault(); return; }
-        this.dataset.submitting = 'true';
-        this.setAttribute('aria-busy', 'true');
-        document.getElementById('submit-btn').disabled = true;
-        document.body.classList.add('upload-is-loading');
-        uploadLoading.hidden = false;
-        window.scrollTo(0, 0);
-        uploadLoading.focus();
-    });
     // Restore the form when returning through the browser's Back button.
     window.addEventListener('pageshow', () => {
         uploadLoading.hidden = true;
@@ -151,8 +147,9 @@
     });
 
 </script>
-<script src="{% static 'js/upload-previews.js' %}?v=remove-counter-9"></script>
-<script src="{% static 'js/camera.js' %}?v=camera-reference-6"></script>
+<script src="{% static 'js/upload-previews.js' %}?v=standard-preview-11"></script>
+<script src="{% static 'js/camera.js' %}?v=standard-camera-10"></script>
+<script src="{% static 'js/scan-loading-guard.js' %}?v=custom-modal-2"></script>
 {% endblock %}
 
 

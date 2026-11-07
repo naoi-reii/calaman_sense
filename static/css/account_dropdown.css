@@ -1,0 +1,9 @@
+.overview-account-dropdown { position:relative; }
+.overview-account-dropdown > summary { list-style:none; cursor:pointer; color:var(--black); border-radius:8px; padding:6px; }
+.overview-account-dropdown > summary::-webkit-details-marker { display:none; }
+.overview-account-dropdown > summary:focus-visible { outline:2px solid var(--green-dark); outline-offset:3px; }
+.account-dropdown-links { position:absolute; top:calc(100% + 10px); right:0; min-width:190px; padding:6px; border:1px solid var(--border); border-radius:10px; background:var(--white); box-shadow:0 10px 28px #0003; }
+.account-dropdown-links a,.account-dropdown-links button { display:flex; align-items:center; gap:10px; width:100%; padding:11px 12px; border:0; border-radius:6px; background:transparent; color:var(--black); font:inherit; font-size:13px; text-align:left; cursor:pointer; }
+.account-dropdown-links a:hover,.account-dropdown-links button:hover { background:var(--green-light); color:var(--green-dark); }
+.account-dropdown-links .material-symbols-outlined { font-size:20px; }
+.account-dropdown-links form { margin:4px 0 0; padding-top:4px; border-top:1px solid var(--border); }

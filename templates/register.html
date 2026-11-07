@@ -1,29 +1,37 @@
-{% extends 'auth_base.html' %}
-{% block brand_title %}Good Calamansi.<br>Brighter Communities.{% endblock %}
-{% block mobile_auth_back %}<a class="mobile-auth-back" href="{% url 'login' %}" aria-label="Back to sign in"><span class="material-symbols-outlined" aria-hidden="true">chevron_left</span></a>{% endblock %}
-{% block auth_form %}
-<header class="auth-heading"><h2>Create an Account</h2><p>Start your brighter harvest with CalamanSense</p></header>
-{% if form.errors %}<div class="auth-error" role="alert"><strong>Please correct the errors below.</strong>{% for field in form %}{% for error in field.errors %}<p>{{ field.label }}: {{ error }}</p>{% endfor %}{% endfor %}{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>{% endif %}
-<form method="post" action="{% url 'register' %}">
-    {% csrf_token %}
-    <div class="auth-field"><label for="id_username">Username</label><input type="text" name="username" id="id_username" value="{{ form.username.value|default_if_none:'' }}" placeholder="Choose a username" autocomplete="username" autocapitalize="none" maxlength="150" required autofocus></div>
-    <div class="auth-field"><label for="id_password1">Password</label><div class="auth-password"><input type="password" name="password1" id="id_password1" placeholder="Create a password" autocomplete="new-password" aria-describedby="password-help" required><button type="button" data-password="id_password1" aria-label="Show password" aria-pressed="false"><span class="material-symbols-outlined" aria-hidden="true">visibility</span></button></div><div id="password-help" class="auth-help">{{ form.password1.help_text|safe }}</div></div>
-    <div class="auth-field"><label for="id_password2">Confirm password</label><div class="auth-password"><input type="password" name="password2" id="id_password2" placeholder="Re-enter your password" autocomplete="new-password" aria-describedby="password-match" required><button type="button" data-password="id_password2" aria-label="Show password" aria-pressed="false"><span class="material-symbols-outlined" aria-hidden="true">visibility</span></button></div><p id="password-match" class="auth-help" role="status"></p></div>
-    <button class="auth-submit" type="submit">Create account</button>
-</form>
-<script>
-const firstPassword = document.getElementById('id_password1');
-const confirmation = document.getElementById('id_password2');
-function checkMatch() {
-    const mismatch = confirmation.value && firstPassword.value !== confirmation.value;
-    confirmation.setCustomValidity(mismatch ? 'Passwords do not match.' : '');
-    const message = document.getElementById('password-match');
-    message.textContent = confirmation.value ? (mismatch ? 'Passwords do not match' : 'Passwords match') : '';
-    message.style.color = mismatch ? '#b42318' : '#087443';
-}
-firstPassword.addEventListener('input', checkMatch);
-confirmation.addEventListener('input', checkMatch);
-</script>
+{% extends 'base.html' %}
+{% load static %}
+{% block theme_policy %}light{% endblock %}
+{% block body_class %}registration-page{% endblock %}
+{% block navigation %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/registration.css' %}?v=password-feedback-5">{% endblock %}
+{% block content %}
+<section class="registration-card" aria-label="Create your CalamanSense account" data-complete="{{ registration_complete|yesno:'true,false' }}">
+    <header class="registration-brand"><a href="{% url 'home' %}" class="site-brand"><img class="site-brand-icon" src="{% static 'images/calamansense-logo-transparent.png' %}" alt=""><span>CalamanSense<small>SMART CALAMANSI ANALYTICS</small></span></a><a class="registration-close" href="{% url 'home' %}" aria-label="Back to Home">&times;</a></header>
+    <div class="registration-content">
+        <ol class="registration-progress" aria-label="Registration progress"><li data-progress="0"><span>1</span>Personal info</li><li data-progress="1"><span>2</span>Account</li><li data-progress="2"><span>3</span>Review</li></ol>
+        {% if registration_complete %}
+        <div class="registration-success"><span class="success-check material-symbols-outlined" aria-hidden="true">check</span><h1>You're all set!</h1><p>Your CalamanSense account has been<br>successfully created.</p><a class="registration-primary" href="{% url 'dashboard' %}" target="_top">Go to Dashboard</a></div>
+        {% else %}
+        {% if form.errors %}<div class="registration-errors" role="alert"><strong>Please correct the following:</strong>{% for field in form %}{% for error in field.errors %}<p>{{ field.label }}: {{ error }}</p>{% endfor %}{% endfor %}{% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}</div>{% endif %}
+        <form method="post" action="{% url 'register' %}" id="registration-form">
+            {% csrf_token %}
+            <section data-step="0"><h1 tabindex="-1">Create Your Account</h1><p class="registration-intro">Let's start with your basic information.</p>
+                <label for="id_first_name">First Name</label><div class="registration-input"><span class="material-symbols-outlined" aria-hidden="true">person</span><input id="id_first_name" name="first_name" value="{{ form.first_name.value|default_if_none:'' }}" placeholder="Enter your first name" autocomplete="given-name" maxlength="150" required></div>
+                <label for="id_last_name">Last Name</label><div class="registration-input"><span class="material-symbols-outlined" aria-hidden="true">person</span><input id="id_last_name" name="last_name" value="{{ form.last_name.value|default_if_none:'' }}" placeholder="Enter your last name" autocomplete="family-name" maxlength="150" required></div>
+                <div class="registration-actions"><button type="button" class="registration-primary" data-next>Continue <span aria-hidden="true">&rarr;</span></button></div>
+            </section>
+            <section data-step="1" hidden><h1 tabindex="-1">Account Details</h1><p class="registration-intro">Choose your username and password.</p>
+                <label for="id_username">Username</label><div class="registration-input"><span class="material-symbols-outlined" aria-hidden="true">person</span><input id="id_username" name="username" value="{{ form.username.value|default_if_none:'' }}" placeholder="Enter your username" autocomplete="username" autocapitalize="none" maxlength="150" required></div>
+                <label for="id_password1">Password</label><p id="registration-password-error" class="registration-password-error" role="alert" hidden>Password must be 8–16 characters.</p><div class="registration-input"><span class="material-symbols-outlined" aria-hidden="true">lock</span><input id="id_password1" name="password1" type="password" placeholder="Enter your password" autocomplete="new-password" minlength="8" aria-describedby="registration-password-error" required><button type="button" data-password="id_password1" aria-label="Show password" aria-pressed="false"><span class="material-symbols-outlined" aria-hidden="true">visibility</span></button></div>
+                <label for="id_password2">Confirm Password</label><div class="registration-input"><span class="material-symbols-outlined" aria-hidden="true">lock</span><input id="id_password2" name="password2" type="password" placeholder="Confirm your password" autocomplete="new-password" required><button type="button" data-password="id_password2" aria-label="Show password" aria-pressed="false"><span class="material-symbols-outlined" aria-hidden="true">visibility</span></button></div>
+                <div class="registration-actions"><button type="button" class="registration-back" data-back>Back</button><button type="button" class="registration-primary" data-next>Continue <span aria-hidden="true">&rarr;</span></button></div>
+            </section>
+            <section data-step="2" hidden><h1 tabindex="-1">Review Your Details</h1><p class="registration-intro">Make sure everything looks right.</p><div class="registration-review"><div><strong>Full Name</strong><span id="review-name"></span><button type="button" data-edit="0" aria-label="Edit full name">Edit</button></div><div><strong>Username</strong><span id="review-username"></span><button type="button" data-edit="1" aria-label="Edit username">Edit</button></div></div><div class="registration-actions"><button type="button" class="registration-back" data-back>Back</button><button type="submit" class="registration-primary">Create Account</button></div></section>
+        </form>
+        <p class="registration-login-switch">Already have an account? <a href="{% url 'login' %}">Login</a></p>
+        <noscript><p>Enable JavaScript to complete the registration steps.</p></noscript>
+        {% endif %}
+    </div>
+</section>
+<script src="{% static 'js/registration.js' %}?v=password-feedback-2" defer></script>
 {% endblock %}
-{% block auth_switch %}Already have an account? <a href="{% url 'login' %}">Sign in</a>{% endblock %}
-

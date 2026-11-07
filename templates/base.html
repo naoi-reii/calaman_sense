@@ -7,6 +7,10 @@
     <title>CalamanSense</title>
     <script src="{% static 'js/csrf-forms.js' %}" defer></script>
     <script src="{% static 'js/mobile-logout.js' %}?v=1" defer></script>
+    <script src="{% static 'js/logout-confirmation.js' %}?v=1" defer></script>
+    <script src="{% static 'js/account-dropdown.js' %}?v=1" defer></script>
+    <link rel="stylesheet" href="{% static 'css/account_dropdown.css' %}?v=1">
+    <link rel="stylesheet" href="{% static 'css/logout_confirmation.css' %}?v=centered-icon-2">
     
     <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
     
@@ -49,6 +53,7 @@
     <main class="container">
         {% block content %}{% endblock %}
     </main>
+    {% if user.is_authenticated %}{% include 'includes/logout_confirmation.html' %}{% endif %}
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {

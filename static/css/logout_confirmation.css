@@ -1,0 +1,12 @@
+#logout-confirmation { position:fixed; inset:0; margin:auto; box-sizing:border-box; width:min(420px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); padding:30px 26px 24px; border:1px solid var(--border); border-radius:16px; background:var(--white); color:var(--black); box-shadow:0 20px 70px #0003; text-align:center; }
+#logout-confirmation::backdrop { background:#0c211b80; backdrop-filter:blur(5px); }
+#logout-confirmation .logout-confirmation-icon { display:flex; align-items:center; justify-content:center; width:58px; height:58px; margin:0 auto 18px; border-radius:50%; background:var(--green-light); color:var(--green-dark); }
+#logout-confirmation .logout-confirmation-icon > span { display:block; font-size:28px; line-height:1; }
+#logout-confirmation h2 { margin:0 0 10px; font-size:23px; }
+#logout-confirmation p { margin:0; color:var(--gray-dark); font-size:14px; line-height:1.6; }
+.logout-confirmation-actions { display:flex; gap:10px; margin-top:24px; }
+.logout-confirmation-actions button { flex:1; min-height:44px; padding:12px 10px; border:1px solid var(--border); border-radius:8px; font:inherit; font-size:13px; font-weight:600; cursor:pointer; outline:none; }
+.logout-confirmation-actions button:focus-visible { outline:2px solid var(--green-dark); outline-offset:3px; }
+#logout-stay { color:white; background:#176c46; border-color:#176c46; }
+#logout-confirm { color:var(--red); background:var(--white); }
+@media(max-width:380px) { .logout-confirmation-actions { flex-direction:column; } }

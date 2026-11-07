@@ -23,3 +23,5 @@ local_settings.py
 
 # Credentials
 .env
+
+.ai

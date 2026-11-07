@@ -4,6 +4,21 @@ from django.contrib.auth.models import User
 
 
 class HomePageTests(TestCase):
+    def test_popup_login_returns_destination_without_loading_dashboard(self):
+        User.objects.create_user(username='popup-user', password='HarvestPass123!')
+        response = self.client.post('/login/', {'username':'popup-user', 'password':'HarvestPass123!'},
+                                    HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {'redirect':'/dashboard/'})
+        self.assertIn('_auth_user_id', self.client.session)
+
+    def test_popup_login_error_keeps_user_signed_out(self):
+        response = self.client.post('/login/', {'username':'missing-user', 'password':'WrongPass!123'},
+                                    HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+        self.assertEqual(response.status_code, 400)
+        self.assertIn('errors', response.json())
+        self.assertNotIn('_auth_user_id', self.client.session)
+
     def test_opening_and_account_pages_always_use_light_theme(self):
         for url in ('/', '/login/', '/register/'):
             self.assertContains(self.client.get(url), 'data-theme-policy="light"')

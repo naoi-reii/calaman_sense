@@ -1,4 +1,4 @@
-﻿(() => {
+(() => {
  const tip=document.getElementById('report-chart-tooltip');
  function show(text,x,y){tip.textContent=text;tip.hidden=false;tip.style.left=Math.max(8,Math.min(x+12,innerWidth-260))+'px';tip.style.top=Math.max(8,Math.min(y+14,innerHeight-75))+'px';}
  function hide(){tip.hidden=true;}
@@ -15,19 +15,6 @@
   donut.addEventListener('focus',()=>{const r=donut.getBoundingClientRect();show(rows.map(row=>row.label+': '+row.pct+'%').join(' | '),r.left,r.top);});donut.addEventListener('blur',hide);
  }
  document.addEventListener('keydown',e=>{if(e.key==='Escape')hide();});window.addEventListener('scroll',hide,{passive:true});
-})();
-
-// Place each saved percentage at the midpoint of its donut segment.
-(() => {
- const donut=document.getElementById('interactive-donut');
- if(!donut)return;
- const rows=JSON.parse(document.getElementById('report-distribution-data').textContent);
- rows.filter(row=>row.pct>=4).forEach(row=>{
-  const angle=((row.start+row.end)/2)*Math.PI/50-Math.PI/2;
-  const label=document.createElement('span');label.className='report-donut-label';
-  label.textContent=row.pct.toFixed(1)+'%';label.setAttribute('aria-hidden','true');
-  label.style.left=(50+41*Math.cos(angle))+'%';label.style.top=(50+41*Math.sin(angle))+'%';donut.append(label);
- });
 })();
 
 // Swipe between report charts on mobile; dots also support keyboard navigation.

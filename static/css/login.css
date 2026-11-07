@@ -1,0 +1,28 @@
+﻿.login-page .container { max-width:640px; }
+.login-card .registration-brand { padding:20px 50px; }
+.login-card .registration-brand .site-brand { font-size:26px; }
+.login-card .registration-brand .site-brand-icon { width:58px; height:58px; }
+.login-card .registration-brand small { font-size:9px; }
+.login-card .registration-close { top:22px; }
+.login-card .registration-content { padding:34px 44px 28px; }
+.login-card h1 { font-size:36px; }
+.login-card .registration-intro { font-size:18px; margin-bottom:32px; }
+.login-card label { font-size:16px; margin-top:22px; }
+.login-card .registration-input input { padding:15px 0; font-size:17px; }
+.login-submit { width:100%; margin-top:32px; font-size:18px; padding:15px; }
+.login-switch { border-top:1px solid #d9dde5; padding-top:23px; margin:28px 0 0; text-align:center; color:#50576b; font-size:16px; }
+.login-switch a { color:#08653d; text-decoration:underline; font-weight:600; }
+.login-notice { font-size:13px; color:#50576b; margin-bottom:16px; }
+.login-page.registration-embedded .container { max-width:none; }
+@media(max-width:480px) { .login-card .registration-content { padding:28px 22px 24px; }.login-card h1 { font-size:30px; }.login-card .registration-intro { font-size:15px; }.login-card .registration-brand .site-brand { font-size:22px; }.login-card .registration-brand .site-brand-icon { width:46px; height:46px; }.login-switch { font-size:14px; } }
+.login-spinner { width:18px; height:18px; flex:0 0 18px; border:2px solid #ffffff66; border-top-color:white; border-radius:50%; animation:login-spin .8s linear infinite; }
+.login-spinner[hidden], #login-submit-arrow[hidden], .login-status[hidden] { display:none; }
+.login-submit:disabled { cursor:wait; opacity:.85; }
+.login-status { margin:12px 0 0; text-align:center; color:#50576b; font-size:13px; }
+@keyframes login-spin { to { transform:rotate(360deg); } }
+@media(prefers-reduced-motion:reduce) { .login-spinner { animation:none; } }
+.login-forgot { margin:12px 0 0; text-align:right; font-size:13px; }
+.login-forgot a { color:#08653d; text-decoration:underline; font-weight:600; }
+.login-recovery-note { color:#50576b; font-size:15px; line-height:1.65; }
+.login-recovery-note > .material-symbols-outlined { display:block; text-align:center; font-size:42px; color:#08653d; margin-bottom:16px; }
+.login-recovery-note p + p { margin-top:14px; }

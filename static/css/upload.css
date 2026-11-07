@@ -59,7 +59,7 @@
 .scan-fields input { width: 100%; }
 .scan-analyze { display: inline-flex; align-items: center; justify-content: center; gap: 16px; padding: 12px 22px; border: 0; border-radius: 6px; background: #086839; color: white; font: inherit; font-size: 14px; font-weight: 600; cursor: pointer; }
 .scan-analyze:hover { background: #07532e; }
-.scan-error { color: var(--red); font-size: 13px; }
+.scan-error { color: var(--red); font-size: 13px; text-align: center; }
 @media (max-width: 900px) { .scan-layout { grid-template-columns: 1fr; gap: 18px; } .scan-tips ul { display: flex; flex-wrap: wrap; gap: 12px 20px; } .scan-tips li { margin: 0; } .scan-sample { height: 110px; } }
 @media (max-width: 450px) { .scan-sample-grid { gap: 8px; } .scan-sample { height: 85px; } .scan-fields { grid-template-columns: 1fr; } .scan-analyze { width: 100%; } }
 
@@ -314,3 +314,13 @@
 .camera-modal .camera-zoom-control { margin:4px 14px; color:var(--gray-dark); }.camera-modal .camera-zoom-control button { min-width:38px; min-height:30px; padding:4px; color:var(--green-dark); }.camera-modal .camera-zoom-control input { accent-color:#087541; }
 #desktop-camera-slot .camera-viewfinder { aspect-ratio:1.6; }#desktop-camera-slot .camera-frame { inset:18% 9% 9%; }
 @media(max-width:760px) { .camera-modal { align-items:center; background:#000b; padding:10px; }.camera-modal .camera-screen { min-height:0; max-height:95svh; overflow:auto; }.camera-modal .camera-viewfinder { max-height:none; aspect-ratio:1; }.camera-top-controls { inset:12px 12px auto; }.camera-modal .camera-quality { max-width:88%; font-size:10px; }.camera-modal .camera-controls { padding:14px 4px 6px; gap:8px; }.camera-modal .camera-controls button:not(#capture-btn) { font-size:11px; padding:8px; } }
+#cancel-scan-dialog { position:fixed; inset:0; margin:auto; box-sizing:border-box; width:min(420px,calc(100vw - 32px)); max-height:calc(100dvh - 32px); padding:30px 26px 24px; border:1px solid var(--border); border-radius:16px; background:var(--white); color:var(--black); box-shadow:0 20px 70px #0003; text-align:center; }
+#cancel-scan-dialog::backdrop { background:#0c211b80; backdrop-filter:blur(5px); }
+.cancel-scan-icon { display:inline-grid; place-items:center; width:58px; height:58px; margin-bottom:16px; border-radius:50%; background:var(--green-light); color:var(--green-dark); font-size:32px; }
+#cancel-scan-dialog h2 { margin:0 0 10px; font-size:23px; }
+#cancel-scan-dialog p { margin:0; color:var(--gray-dark); font-size:14px; line-height:1.6; }
+.cancel-scan-actions { display:flex; gap:10px; margin-top:24px; }
+.cancel-scan-actions button { flex:1; padding:12px 10px; border:1px solid var(--border); border-radius:8px; font:inherit; font-size:13px; font-weight:600; cursor:pointer; }
+#continue-scan { color:white; background:#176c46; border-color:#176c46; }
+#confirm-cancel-scan { color:var(--red); background:var(--white); }
+@media(max-width:380px) { .cancel-scan-actions { flex-direction:column; } }

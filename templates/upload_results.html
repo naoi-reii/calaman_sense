@@ -13,7 +13,7 @@
             <figure class="result-figure" data-scan-id="{{ card.scan.id }}" data-image-id="{{ scan_image.id }}" data-result-url="{% url 'report_detail' card.scan.id %}?group={{ upload_group|urlencode }}" data-caption="Image {{ forloop.counter }} · Scan #{{ card.scan.id }}">
                 {{ scan_image.mock_annotations|default_if_none:''|json_script }}{{ scan_image.label_corrections|default_if_none:''|json_script }}
                 <div class="result-image-stage">{% if scan_image %}<div class="image-viewer"><img src="{{ scan_image.image.url }}" alt="Calamansi scan {{ forloop.counter }} with detected fruit locations">
-                    {% for box in scan_image.mock_annotations %}<button type="button" aria-label="Inspect fruit {{ forloop.counter }}: {{ box.label|default:box.css_class }}" data-fruit-index="{{ forloop.counter0 }}" class="bounding-box bbox-{{ box.css_class }}" style="top:{{ box.y }}%;left:{{ box.x }}%;width:{{ box.width }}%;height:{{ box.height }}%;"><span class="bounding-box-label">{{ box.label|default:box.css_class }}</span></button>{% endfor %}
+                    {% for box in scan_image.mock_annotations %}<button type="button" aria-label="Inspect fruit {{ forloop.counter }}: {{ box.css_class|capfirst }}" data-fruit-index="{{ forloop.counter0 }}" class="bounding-box bbox-{{ box.css_class }}" style="top:{{ box.y }}%;left:{{ box.x }}%;width:{{ box.width }}%;height:{{ box.height }}%;"><span class="bounding-box-label">{{ box.css_class|capfirst }}</span></button>{% endfor %}
                 </div>{% else %}<p>No image is available for this scan.</p>{% endif %}</div>
             </figure>
             {% endwith %}

@@ -4,7 +4,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/upload_results.css' %}?v=combined-3">
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2">
-<link rel="stylesheet" href="{% static 'css/report_detail.css' %}?v=result-count-aligned-11">
+<link rel="stylesheet" href="{% static 'css/report_detail.css' %}?v=shelf-life-removed-13">
 {% endblock %}
 {% block navigation %}{% include "includes/overview_navigation.html" with active_page="reports" %}{% endblock %}
 {% block content %}
@@ -42,8 +42,8 @@
             <div class="result-image-stage"><div class="image-viewer">
                 <img src="{{ scan_image.image.url }}" alt="Calamansi scan {{ forloop.counter }} with detected fruit locations">
                 {% for box in scan_image.mock_annotations %}
-                <button type="button" aria-label="Inspect fruit {{ forloop.counter }}: {{ box.label|default:box.css_class }}" data-fruit-index="{{ forloop.counter0 }}" class="bounding-box bbox-{{ box.css_class }}" style="top: {{ box.y }}%; left: {{ box.x }}%; width: {{ box.width }}%; height: {{ box.height }}%;">
-                    <span class="bounding-box-label">{{ box.label|default:box.css_class }}</span>
+                <button type="button" aria-label="Inspect fruit {{ forloop.counter }}: {{ box.css_class|capfirst }}" data-fruit-index="{{ forloop.counter0 }}" class="bounding-box bbox-{{ box.css_class }}" style="top: {{ box.y }}%; left: {{ box.x }}%; width: {{ box.width }}%; height: {{ box.height }}%;">
+                    <span class="bounding-box-label">{{ box.css_class|capfirst }}</span>
                 </button>
                 {% endfor %}
             </div></div>
@@ -97,7 +97,7 @@
     <footer class="inspector-footer"><p id="inspector-status" role="status"></p><div class="inspector-actions"><button type="button" id="fruit-reset"><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>Restore original</button><button type="button" id="fruit-save"><span class="material-symbols-outlined" aria-hidden="true">check</span>Save correction</button></div></footer>
     <form hidden>{% csrf_token %}</form>
 </dialog>
-<script src="{% static 'js/fruit-inspector.js' %}?v=group-gallery-11" defer></script>
+<script src="{% static 'js/fruit-inspector.js' %}?v=labels-no-percentage-12" defer></script>
 <script src="{% static 'js/result-reveal.js' %}" defer></script>
 <script src="{% static 'js/result-image-layout.js' %}" defer></script>
 <script>

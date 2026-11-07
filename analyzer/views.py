@@ -10,12 +10,15 @@ import sys
 # Ensure services is in path so we can import it
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from django.contrib.auth import update_session_auth_hash, login
-from django.contrib.auth.forms import SetPasswordForm, UserCreationForm
+from django.contrib.auth.forms import SetPasswordForm
+from .registration_forms import RegistrationForm
 from services.analysis import get_analysis_provider
 from django.core import signing
 from django.http import Http404
 from uuid import uuid4
 from django.contrib.auth.views import LogoutView
+from django.contrib.auth.views import LoginView
+from django.http import JsonResponse
 
 
 def _is_mobile_request(request):
@@ -28,6 +31,21 @@ class DeviceLogoutView(LogoutView):
         if _is_mobile_request(self.request):
             return '/login/?logged_out=1'
         return super().get_default_redirect_url()
+
+
+class AccountLoginView(LoginView):
+    template_name = 'login.html'
+
+    def form_valid(self, form):
+        response = super().form_valid(form)
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'redirect': response.url})
+        return response
+
+    def form_invalid(self, form):
+        if self.request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'errors': form.errors.get_json_data()}, status=400)
+        return super().form_invalid(form)
 
 
 def _saved_group_tokens(scans, user):
@@ -643,13 +661,13 @@ def register_view(request):
         return redirect('dashboard')
     
     if request.method == 'POST':
-        form = UserCreationForm(request.POST)
+        form = RegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            return redirect('dashboard')
+            return render(request, 'register.html', {'registration_complete': True})
     else:
-        form = UserCreationForm()
+        form = RegistrationForm()
         
     return render(request, 'register.html', {'form': form})
 

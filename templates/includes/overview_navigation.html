@@ -3,11 +3,18 @@
 <header class="overview-topbar">
     {% load static %}
     <a class="overview-brand site-brand" href="{% url 'dashboard' %}"><img class="site-brand-icon" src="{% static 'images/calamansense-logo-transparent.png' %}" alt=""> CalamanSense</a>
-    <a class="overview-account" href="{% url 'settings' %}">
+    <details class="overview-account-dropdown" id="account-dropdown">
+    <summary class="overview-account" aria-label="Account options">
         <span class="account-avatar" aria-hidden="true">{% if user.profile.photo %}<img src="{{ user.profile.photo.url }}" alt="">{% else %}{{ user.username|first|upper }}{% endif %}</span>
         <span><strong>{{ user.get_full_name|default:user.username }}</strong><small>{% if user.is_staff %}Administrator{% else %}Grower{% endif %}</small></span>
         <span class="material-symbols-outlined" aria-hidden="true">unfold_more</span>
-    </a>
+    </summary>
+    <nav class="account-dropdown-links" aria-label="Account navigation">
+        <a href="{% url 'settings' %}"><span class="material-symbols-outlined" aria-hidden="true">settings</span>{% ui 'Settings' 'Mga Setting' %}</a>
+        <a href="{% url 'profile' %}"><span class="material-symbols-outlined" aria-hidden="true">person</span>{% ui 'Profile' 'Profile' %}</a>
+        <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit"><span class="material-symbols-outlined" aria-hidden="true">logout</span>{% ui 'Log Out' 'Mag-log Out' %}</button></form>
+    </nav>
+    </details>
 </header>
 <aside class="overview-sidebar" aria-label="Main navigation">
     <nav>
