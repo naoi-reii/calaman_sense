@@ -520,3 +520,209 @@ body.fruit-inspector-open { overflow:hidden; }
     }
 }
 
+/* ==========================================================================
+   Shelf Life References Modal Dialog
+   ========================================================================== */
+.shelf-life-info-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid #cce5d4;
+    background: #eef6f0;
+    color: #1b6838;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.shelf-life-info-btn:hover {
+    background: #086839;
+    color: white;
+    border-color: #086839;
+}
+
+.shelf-life-info-btn .material-symbols-outlined {
+    font-size: 15px;
+}
+
+.shelf-life-modal {
+    width: min(560px, calc(100% - 32px));
+    max-height: 85vh;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--white);
+    color: var(--black);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    overflow: hidden;
+}
+
+.shelf-life-modal::backdrop {
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(2px);
+}
+
+.shelf-life-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 22px;
+    background: #f7faf8;
+    border-bottom: 1px solid var(--border);
+}
+
+.shelf-life-modal-title-wrap {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.shelf-life-modal-icon {
+    font-size: 26px;
+    color: #086839;
+}
+
+.shelf-life-modal-header h2 {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+    color: var(--black);
+}
+
+.shelf-life-modal-subtitle {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: var(--gray-dark);
+}
+
+.shelf-life-modal-close {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    border: 0;
+    background: transparent;
+    font-size: 22px;
+    color: var(--gray-dark);
+    cursor: pointer;
+}
+
+.shelf-life-modal-close:hover {
+    background: #e5ece7;
+    color: var(--black);
+}
+
+.shelf-life-modal-body {
+    padding: 22px;
+    overflow-y: auto;
+    max-height: calc(85vh - 75px);
+}
+
+.shelf-life-modal-intro {
+    font-size: 13px;
+    line-height: 1.55;
+    color: #3b4e43;
+    margin: 0 0 16px;
+}
+
+.shelf-life-ref-card {
+    padding: 16px;
+    border-radius: 10px;
+    background: #fdfefe;
+    border: 1px solid #d8e5dd;
+    margin-bottom: 16px;
+}
+
+.shelf-life-ref-tag {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background: #eef6f0;
+    color: #0d5f32;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 8px;
+}
+
+.shelf-life-ref-card h3 {
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.4;
+    color: #113421;
+    margin: 0 0 8px;
+}
+
+.shelf-life-ref-authors {
+    font-size: 12px;
+    color: var(--gray-dark);
+    margin: 0 0 4px;
+}
+
+.shelf-life-ref-source {
+    font-size: 12px;
+    color: #2b7448;
+    margin: 0 0 10px;
+}
+
+.shelf-life-ref-finding {
+    font-size: 12px;
+    line-height: 1.55;
+    color: #2a3c31;
+    padding: 10px 12px;
+    border-radius: 6px;
+    background: #f4f8f5;
+    margin: 0 0 14px;
+}
+
+.shelf-life-article-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 9px 15px;
+    border-radius: 7px;
+    background: #086839;
+    color: white !important;
+    font-size: 12px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: background 0.15s ease;
+}
+
+.shelf-life-article-link:hover {
+    background: #06532d;
+}
+
+.shelf-life-article-link .material-symbols-outlined {
+    font-size: 16px;
+}
+
+.shelf-life-climate-note {
+    padding: 14px 16px;
+    border-radius: 8px;
+    background: #f7f9f8;
+    border: 1px solid #e2ece5;
+}
+
+.shelf-life-climate-note h4 {
+    font-size: 13px;
+    font-weight: 700;
+    margin: 0 0 8px;
+    color: #113421;
+}
+
+.shelf-life-climate-note ul {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 12px;
+    color: #3b4e43;
+    line-height: 1.6;
+}
+
+

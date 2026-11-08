@@ -72,6 +72,9 @@
                 <div class="shelf-life-title-wrap">
                     <span class="material-symbols-outlined shelf-life-icon" aria-hidden="true">hourglass_top</span>
                     <h2 id="shelf-life-title">{% ui 'Estimated Shelf Life' 'Tantiyang Itatagal ng Sariwa' %}</h2>
+                    <button type="button" class="shelf-life-info-btn" id="shelf-life-info-btn" aria-label="About estimated shelf life and references" title="View reference & study">
+                        <span class="material-symbols-outlined" aria-hidden="true">help</span>
+                    </button>
                 </div>
                 <span class="shelf-life-badge{% if shelf_life.season.is_live %} shelf-life-badge-live{% endif %}" title="Outdoor / market storage ({{ shelf_life.season.temp_range }})">
                     {% if shelf_life.season.is_live %}<span class="material-symbols-outlined live-dot-icon" aria-hidden="true">location_on</span>{% endif %}
@@ -148,6 +151,46 @@
     <footer class="inspector-footer"><p id="inspector-status" role="status"></p><div class="inspector-actions"><button type="button" id="fruit-reset"><span class="material-symbols-outlined" aria-hidden="true">restart_alt</span>Restore original</button><button type="button" id="fruit-save"><span class="material-symbols-outlined" aria-hidden="true">check</span>Save correction</button></div></footer>
     <form hidden>{% csrf_token %}</form>
 </dialog>
+<dialog id="shelf-life-dialog" class="shelf-life-modal" aria-labelledby="shelf-life-modal-title">
+    <header class="shelf-life-modal-header">
+        <div class="shelf-life-modal-title-wrap">
+            <span class="material-symbols-outlined shelf-life-modal-icon" aria-hidden="true">menu_book</span>
+            <div>
+                <h2 id="shelf-life-modal-title">{% ui 'Estimated Shelf Life Reference' 'Batayan ng Tantiyang Itatagal' %}</h2>
+                <p class="shelf-life-modal-subtitle">{% ui 'Scientific basis & ambient storage research' 'Siyentipikong basehan at pag-aaral sa pag-imbak sa labas' %}</p>
+            </div>
+        </div>
+        <button type="button" id="shelf-life-modal-close" class="shelf-life-modal-close" aria-label="Close dialog">&times;</button>
+    </header>
+    <div class="shelf-life-modal-body">
+        <p class="shelf-life-modal-intro">
+            {% ui 'The shelf life estimates are based on vendor ambient storage (no refrigeration, shaded wet-market conditions) and postharvest physiology research in the Philippines.' 'Ang mga tantiyang ito ay nakabase sa kondisyon ng mga tindero sa palengke (walang refrigerator, nasa lilim) at sa mga pagsasaliksik sa Pilipinas.' %}
+        </p>
+
+        <section class="shelf-life-ref-card">
+            <span class="shelf-life-ref-tag">Primary Research Reference</span>
+            <h3>Color quality and pedicel abscission of calamansi (× Citrofortunella microcarpa) stored in CoolBot-equipped cold room</h3>
+            <p class="shelf-life-ref-authors">Emma Ruth V. Bayogan, Maria Victoria O. Pasilan, Leizel B. Secretaria, Michael Angela J. Urquiola, and Jenny H. Ekman</p>
+            <p class="shelf-life-ref-source"><em>Annals of Tropical Research</em>, Visayas State University (VSU), Vol. 47, No. 2 (2025)</p>
+            <p class="shelf-life-ref-finding">
+                <strong>Key Finding:</strong> Untreated fresh calamansi held under ambient room conditions (26°C–30°C) exhibits rapid peel yellowing, fruit softening, stem abscission, and moisture loss, reaching the end of marketable shelf life in <strong>4 to 7 days</strong> for green fruit, and <strong>1 to 2 days</strong> once fully yellow/orange.
+            </p>
+            <a href="https://atr.vsu.edu.ph/index.php/ATR/article/view/1022" target="_blank" rel="noopener noreferrer" class="shelf-life-article-link">
+                <span class="material-symbols-outlined" aria-hidden="true">open_in_new</span>
+                {% ui 'View Research Paper (ATR / VSU)' 'Buksan ang Artikulo sa Pananaliksik' %}
+            </a>
+        </section>
+
+        <section class="shelf-life-climate-note">
+            <h4>{% ui 'Temperature & Climate Factors' 'Temperatura at Panahon' %}</h4>
+            <ul>
+                <li><strong>Cool Dry Season (Nov–Feb / &lt;28°C):</strong> Slower respiration rate allows green fruit to hold 5–7 days.</li>
+                <li><strong>Hot Dry Season (Mar–May / &gt;30°C):</strong> High ambient heat accelerates water loss and yellowing (3–5 days for unripe, 1–2 days for ripe).</li>
+                <li><strong>Rainy Season (Jun–Oct):</strong> Elevated ambient humidity increases mold and postharvest rot risk.</li>
+            </ul>
+        </section>
+    </div>
+</dialog>
 <script src="{% static 'js/fruit-inspector.js' %}?v=labels-no-percentage-12" defer></script>
 <script src="{% static 'js/result-reveal.js' %}" defer></script>
 <script src="{% static 'js/result-image-layout.js' %}" defer></script>
@@ -158,6 +201,33 @@ if (labelsButton) {
         const shown = document.querySelector('.result-visual').classList.toggle('labels-visible');
         labelsButton.textContent = shown ? 'Hide labels' : 'Show labels';
         labelsButton.setAttribute('aria-pressed', String(shown));
+    });
+}
+
+// Shelf life references modal
+const shelfLifeBtn = document.getElementById('shelf-life-info-btn');
+const shelfLifeDialog = document.getElementById('shelf-life-dialog');
+const shelfLifeClose = document.getElementById('shelf-life-modal-close');
+
+if (shelfLifeBtn && shelfLifeDialog) {
+    shelfLifeBtn.addEventListener('click', () => {
+        shelfLifeDialog.showModal();
+    });
+    if (shelfLifeClose) {
+        shelfLifeClose.addEventListener('click', () => {
+            shelfLifeDialog.close();
+        });
+    }
+    shelfLifeDialog.addEventListener('click', (e) => {
+        const rect = shelfLifeDialog.getBoundingClientRect();
+        if (
+            e.clientX < rect.left ||
+            e.clientX > rect.right ||
+            e.clientY < rect.top ||
+            e.clientY > rect.bottom
+        ) {
+            shelfLifeDialog.close();
+        }
     });
 }
 </script>
