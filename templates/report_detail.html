@@ -4,7 +4,7 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/upload_results.css' %}?v=combined-3">
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2">
-<link rel="stylesheet" href="{% static 'css/report_detail.css' %}?v=shelf-life-removed-13">
+<link rel="stylesheet" href="{% static 'css/report_detail.css' %}?v=shelf-life-card-v1">
 {% endblock %}
 {% block navigation %}{% include "includes/overview_navigation.html" with active_page="reports" %}{% endblock %}
 {% block content %}
@@ -66,6 +66,57 @@
             {% if not counts_available %}<p class="result-score-help">Per-fruit detections are not available for this saved scan.</p>{% endif %}
         </section>
         <section class="result-grade-card"><h2>{% ui 'Batch Grade' 'Kalidad ng Kalamansi' %}</h2><strong class="result-grade {% if scan.quality_grade == 'Rejected' %}result-grade-rejected{% elif scan.quality_grade == 'Average' %}result-grade-average{% endif %}">{{ scan.quality_grade|default:"Not graded" }}</strong><p>{% if combined_result %}{% ui 'Based on overall ripeness across all images' 'Base sa pinagsamang pagkahinog sa lahat ng litrato' %}{% else %}{% ui 'Based on the scan analysis' 'Base sa resulta ng scan' %}{% endif %}</p></section>
+        {% if shelf_life %}
+        <section class="result-count-card result-shelf-life-card" aria-labelledby="shelf-life-title">
+            <div class="shelf-life-header">
+                <div class="shelf-life-title-wrap">
+                    <span class="material-symbols-outlined shelf-life-icon" aria-hidden="true">hourglass_top</span>
+                    <h2 id="shelf-life-title">{% ui 'Estimated Shelf Life' 'Tantiyang Itatagal ng Sariwa' %}</h2>
+                </div>
+                <span class="shelf-life-badge{% if shelf_life.season.is_live %} shelf-life-badge-live{% endif %}" title="Outdoor / market storage ({{ shelf_life.season.temp_range }})">
+                    {% if shelf_life.season.is_live %}<span class="material-symbols-outlined live-dot-icon" aria-hidden="true">location_on</span>{% endif %}
+                    {{ shelf_life.season.badge }}
+                </span>
+            </div>
+            <table class="result-ripeness shelf-life-table">
+                <caption>{% ui 'Estimated outdoor shelf life per ripeness stage' 'Tantiyang itatagal sa labas/palengke ayon sa pagkahinog' %}</caption>
+                <tbody>
+                    {% for row in shelf_life.estimates %}
+                    <tr>
+                        <th scope="row">
+                            <i class="result-dot {{ row.key }}"></i>
+                            <span class="shelf-life-row-label">{% if LANGUAGE_CODE == 'tl' %}{{ row.label_tagalog }}{% else %}{{ row.label }}{% endif %}</span>
+                        </th>
+                        <td class="shelf-life-fruit-count">
+                            {% if counts_available and row.count is not None %}
+                                <strong data-count="{{ row.count }}">{{ row.count }}</strong> <span class="result-count-unit">fruit{{ row.count|pluralize }}</span>
+                            {% else %}
+                                &mdash;
+                            {% endif %}
+                        </td>
+                        <td class="shelf-life-tag-cell">
+                            <span class="shelf-life-pill {{ row.status_class }}">
+                                {% if row.key == 'overripe' and LANGUAGE_CODE == 'tl' %}
+                                    {{ row.shelf_life_tagalog }}
+                                {% else %}
+                                    {{ row.shelf_life }}
+                                {% endif %}
+                            </span>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="shelf-life-notice" role="note">
+                <div class="shelf-life-notice-headline">
+                    <span class="material-symbols-outlined" aria-hidden="true">wb_sunny</span>
+                    <strong>{% ui shelf_life.ambient_storage_note shelf_life.ambient_storage_note_tagalog %}</strong>
+                </div>
+                <p class="shelf-life-advisory">{% ui shelf_life.advisory shelf_life.advisory_tagalog %}</p>
+                <p class="shelf-life-disclaimer">{% ui shelf_life.disclaimer shelf_life.disclaimer_tagalog %}</p>
+            </div>
+        </section>
+        {% endif %}
         <div class="result-saved"><span class="material-symbols-outlined" aria-hidden="true">check_circle</span>{% ui 'Saved to your scan history' 'Naka-save na sa Mga Na-scan' %}</div>
     </aside>
 </div>

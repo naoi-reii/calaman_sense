@@ -48,11 +48,20 @@ def export_pdf(title, lines, filename, images=()):
     return response
 
 
-def scan_pdf(scan, ripeness, notes):
+def scan_pdf(scan, ripeness, notes, shelf_life=None):
     images=list(scan.images.all())
     lines=[f'Scan #{scan.id} | {timezone.localtime(scan.created_at):%Y-%m-%d %H:%M}',
            f'Total fruits: {scan.fruit_count_total}', f'Original batch grade: {scan.quality_grade or "Not graded"}', '', 'ORIGINAL RIPENESS']
     lines += [f'{r["label"]}: {r["pct"]:.1f}%' for r in ripeness]
+    if shelf_life:
+        season = shelf_life.get('season', {})
+        lines += ['', f'ESTIMATED OUTDOOR SHELF LIFE ({season.get("badge", "Ambient / Shaded Market")})']
+        lines += [f'Ambient temp range: {season.get("temp_range", "Ambient")}']
+        for est in shelf_life.get('estimates', []):
+            count_str = f" ({est['count']} fruits)" if est.get('count') is not None else ""
+            lines.append(f"{est['label']}{count_str}: {est['shelf_life']}")
+        lines.append(f"Storage note: {shelf_life.get('ambient_storage_note', '')}")
+        lines.append(f"Advisory: {shelf_life.get('advisory', '')}")
     lines += ['', 'NOTES']+notes
     for image in images:
         if image.label_corrections:

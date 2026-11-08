@@ -44,6 +44,10 @@ class Scan(models.Model):
     model_version = models.CharField(max_length=50, default="mock-v0")
     created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
 
+    # Ambient weather / location (Optional hybrid fields)
+    location_name = models.CharField(max_length=255, blank=True, null=True)
+    ambient_temp = models.FloatField(blank=True, null=True)
+
     def __str__(self):
         return f"Scan {self.id} - {self.created_at.strftime('%Y-%m-%d %H:%M')}"
 

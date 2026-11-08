@@ -15,6 +15,8 @@
     data-format-error="{% ui 'Please choose JPG or PNG images no larger than 10MB each.' 'Pumili ng JPG o PNG na litrato. Dapat 10MB pababa ang bawat isa.' %}">
     <p class="upload-limit-help">{% ui 'Choose 1–5 images. Swipe or use the arrows to preview each photo inside the upload box.' 'Pumili ng 1–5 litrato. I-swipe o pindutin ang mga arrow para makita ang bawat kuha.' %}</p>
     {% csrf_token %}
+    <input type="hidden" name="location_name" id="scan-location-name" value="">
+    <input type="hidden" name="ambient_temp" id="scan-ambient-temp" value="">
     <div class="scan-layout">
         <div class="scan-upload-panel">
             <div class="scan-source-actions">
@@ -150,6 +152,7 @@
 <script src="{% static 'js/upload-previews.js' %}?v=standard-preview-11"></script>
 <script src="{% static 'js/camera.js' %}?v=standard-camera-10"></script>
 <script src="{% static 'js/scan-loading-guard.js' %}?v=custom-modal-2"></script>
+<script src="{% static 'js/scan-weather.js' %}?v=1"></script>
 {% endblock %}
 
 

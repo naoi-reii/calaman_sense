@@ -145,12 +145,22 @@ def upload_results_view(request, token):
         notes.append('Some saved images have no complete fruit boxes. Ripeness percentages are weighted by the fruit count in each image.')
     if any(scan.model_version.startswith('mock') for scan in scans):
         notes.append('Some images use demo analysis; those results are simulated.')
+    from .shelf_life import get_shelf_life_estimates
+    # For multi-image groups, use the first scan's location / temperature if captured
+    first_scan = scans[0] if scans else None
+    shelf_life_data = get_shelf_life_estimates(
+        created_at=summary_scan.created_at,
+        ripeness_rows=overall_rows,
+        ambient_temp=getattr(first_scan, 'ambient_temp', None),
+        location_name=getattr(first_scan, 'location_name', None),
+    )
     context = {
         'upload_scans': scans, 'upload_group': token, 'result_cards': cards,
         'overall': {'total': total, 'rows': overall_rows, 'counts_available': counts_available,
                     'dominant': dominant, 'quality_grade': combined_grade},
         'scan': summary_scan, 'ripeness': overall_rows, 'counts_available': counts_available,
         'result_notes': notes, 'combined_result': True,
+        'shelf_life': shelf_life_data,
     }
     if request.GET.get('download') == 'pdf':
         from .pdf_export import scan_page_pdf
@@ -242,6 +252,17 @@ def upload_view(request):
             failed_images = []
             created_scans = []
             upload_group_id = uuid4() if len(images) > 1 else None
+
+            # Optional client-side geolocation / weather values
+            location_name = request.POST.get('location_name', '').strip() or None
+            raw_temp = request.POST.get('ambient_temp', '').strip()
+            ambient_temp = None
+            if raw_temp:
+                try:
+                    ambient_temp = round(float(raw_temp), 1)
+                except ValueError:
+                    ambient_temp = None
+
             for img in images:
                 scan_img = ScanImage(scan=None, image=img)
                 try:
@@ -251,6 +272,8 @@ def upload_view(request):
                             batch_name=batch_name,
                             created_by=request.user,
                             upload_group_id=upload_group_id,
+                            location_name=location_name,
+                            ambient_temp=ambient_temp,
                         )
                         if not batch_name:
                             scan.batch_name = f'Scan #{scan.id}'
@@ -428,9 +451,19 @@ def report_detail_view(request, id):
         notes.append('The saved totals, ripeness, and grade apply to the last uploaded image. All batch images are shown here.')
     if scan.model_version.startswith('mock'):
         notes.append('This scan uses demo analysis; the results are simulated.')
+    from .shelf_life import get_shelf_life_estimates
+    shelf_life_data = get_shelf_life_estimates(
+        created_at=scan.created_at,
+        ripeness_rows=ripeness,
+        ambient_temp=getattr(scan, 'ambient_temp', None),
+        location_name=getattr(scan, 'location_name', None),
+    )
     if request.GET.get('download') == 'pdf':
         from .pdf_export import scan_page_pdf
-        return scan_page_pdf(request, {'scan': scan, 'ripeness': ripeness, 'result_notes': notes, 'counts_available': counts_available})
+        return scan_page_pdf(request, {
+            'scan': scan, 'ripeness': ripeness, 'result_notes': notes,
+            'counts_available': counts_available, 'shelf_life': shelf_life_data,
+        })
     upload_group = request.GET.get('group', '')
     if not upload_group and scan.upload_group_id:
         upload_group = _saved_group_tokens([scan], request.user).get(scan.upload_group_id, '')
@@ -441,6 +474,7 @@ def report_detail_view(request, id):
         'scan': scan, 'ripeness': ripeness, 'result_notes': notes,
         'counts_available': counts_available,
         'upload_scans': upload_scans, 'upload_group': upload_group,
+        'shelf_life': shelf_life_data,
     })
 
 @login_required
