@@ -39,9 +39,13 @@
       return;
     }
 
-    // Always keep visible if not already standalone
+    // Always keep visible if not already standalone (hidden from sidebar on desktop view)
     if (sidebarBtn) {
-      sidebarBtn.style.display = 'flex';
+      if (window.matchMedia('(min-width: 761px)').matches) {
+        sidebarBtn.style.display = 'none';
+      } else {
+        sidebarBtn.style.display = 'flex';
+      }
     }
     if (settingsCard) {
       settingsCard.style.display = 'block';
@@ -161,6 +165,13 @@
   // 7. Bind click listeners once DOM is loaded
   document.addEventListener('DOMContentLoaded', () => {
     updateInstallUI();
+
+    const desktopQuery = window.matchMedia('(min-width: 761px)');
+    if (desktopQuery.addEventListener) {
+      desktopQuery.addEventListener('change', updateInstallUI);
+    } else if (desktopQuery.addListener) {
+      desktopQuery.addListener(updateInstallUI);
+    }
 
     const { sidebarBtn, settingsBtn, settingsRow } = getElements();
 

@@ -54,9 +54,14 @@
   background: #064e2b;
 }
 
-/* Hide the settings card on desktop view so install button only lives in the sidebar */
+/* Hide the settings card and sidebar install button on desktop view */
 @media (min-width: 761px) {
   .pwa-mobile-install-card {
+    display: none !important;
+  }
+
+  /* Hide install app button from sidebar on desktop view */
+  .overview-sidebar-bottom .sidebar-install-btn {
     display: none !important;
   }
 }
