@@ -22,5 +22,7 @@ urlpatterns = [
     path('settings/appearance/', views.settings_appearance, name='settings_appearance'),
     path('settings/<slug:page>/', views.settings_guide, name='settings_guide'),
     path('profile/', views.profile_view, name='profile'),
+    path('sw.js', views.service_worker, name='service_worker'),
+    path('manifest.json', views.manifest_view, name='manifest_view'),
 ]
 

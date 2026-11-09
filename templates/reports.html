@@ -3,7 +3,7 @@
 {% block body_class %}overview-page history-page{% endblock %}
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/dashboard.css' %}?v=nav-fixed-2">
-<link rel="stylesheet" href="{% static 'css/history.css' %}?v=upload-groups-4">
+<link rel="stylesheet" href="{% static 'css/history.css' %}?v=pagination-1">
 {% endblock %}
 {% block navigation %}{% include "includes/overview_navigation.html" with active_page="history" %}{% endblock %}
 {% block content %}
@@ -11,11 +11,11 @@
     <div><h1>Scan History</h1><p>View and manage your past scans.</p></div>
     <div class="history-toolbar">
         <div class="history-view-toggle" role="group" aria-label="History view"><button type="button" data-history-view="table" aria-pressed="true"><span class="material-symbols-outlined" aria-hidden="true">table_rows</span>Table View</button><button type="button" data-history-view="gallery" aria-pressed="false"><span class="material-symbols-outlined" aria-hidden="true">grid_view</span>Gallery View</button></div>
-        <label class="history-search"><span class="material-symbols-outlined" aria-hidden="true">search</span><input id="history-search" type="search" placeholder="Search by scan #, batch name, or date..." aria-label="Search scans"></label>
-        <button type="button" id="mobile-history-filter-toggle" aria-label="Show grade filters" aria-expanded="false" aria-controls="history-filter-form"><span class="material-symbols-outlined" aria-hidden="true">filter_alt</span></button><form method="get" class="history-filters" id="history-filter-form"><select name="period" aria-label="Filter by date"><option value="all" {% if selected_period == 'all' %}selected{% endif %}>All time</option><option value="today" {% if selected_period == 'today' %}selected{% endif %}>Today</option><option value="7" {% if selected_period == '7' %}selected{% endif %}>Last 7 days</option><option value="30" {% if selected_period == '30' %}selected{% endif %}>Last 30 days</option><option value="90" {% if selected_period == '90' %}selected{% endif %}>Last 90 days</option></select><select name="grade" aria-label="Filter by batch grade"><option value="">All grades</option>{% for value,label in grade_choices %}<option value="{{ value }}" {% if selected_grade == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></form>
+        <label class="history-search"><span class="material-symbols-outlined" aria-hidden="true">search</span><input id="history-search" type="search" name="q" form="history-filter-form" value="{{ search_query }}" placeholder="Search by scan #, batch name, or date..." aria-label="Search scans"></label>
+        <button type="button" id="mobile-history-filter-toggle" aria-label="Show grade filters" aria-expanded="false" aria-controls="history-filter-form"><span class="material-symbols-outlined" aria-hidden="true">filter_alt</span></button><form method="get" class="history-filters" id="history-filter-form">{% if per_page != 25 %}<input type="hidden" name="per_page" value="{{ per_page }}">{% endif %}<select name="period" aria-label="Filter by date"><option value="all" {% if selected_period == 'all' %}selected{% endif %}>All time</option><option value="today" {% if selected_period == 'today' %}selected{% endif %}>Today</option><option value="7" {% if selected_period == '7' %}selected{% endif %}>Last 7 days</option><option value="30" {% if selected_period == '30' %}selected{% endif %}>Last 30 days</option><option value="90" {% if selected_period == '90' %}selected{% endif %}>Last 90 days</option></select><select name="grade" aria-label="Filter by batch grade"><option value="">All grades</option>{% for value,label in grade_choices %}<option value="{{ value }}" {% if selected_grade == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select></form>
     </div>
 </header>
-<nav class="mobile-history-periods" aria-label="Scan history period"><a href="?period=all&amp;grade={{ selected_grade|urlencode }}" {% if selected_period == 'all' %}aria-current="page"{% endif %}>All</a><a href="?period=today&amp;grade={{ selected_grade|urlencode }}" {% if selected_period == 'today' %}aria-current="page"{% endif %}>Today</a><a href="?period=7&amp;grade={{ selected_grade|urlencode }}" {% if selected_period == '7' %}aria-current="page"{% endif %}>7 Days</a><a href="?period=30&amp;grade={{ selected_grade|urlencode }}" {% if selected_period == '30' %}aria-current="page"{% endif %}>30 Days</a></nav><form method="post" id="mobile-delete-form">{% csrf_token %}<input type="hidden" name="action" value="delete"><div class="mobile-history-selection"><span id="mobile-selection-count" role="status">0 selected</span><button type="button" id="mobile-selection-start">Select</button><button type="button" id="mobile-selection-cancel" hidden>Cancel</button><button type="submit" id="mobile-selection-delete" hidden disabled>Delete</button></div></form><div class="history-export-controls"><span id="selection-status" role="status">0 scans selected</span><button type="button" id="compare-scans-btn" style="background-color: #0c744a;">Compare 2 Scans</button><button type="button" data-export="pdf" style="background-color: #0c744a;">Export PDF</button><button type="button" data-export="csv" style="background-color: #0c744a;">Export CSV</button><button type="submit" form="deleteForm" id="deleteBtn" name="action" value="delete" disabled class="delete-selected-btn"><span class="material-symbols-outlined" aria-hidden="true">delete</span>Delete selected</button><p id="export-status" role="status"></p></div><section class="mobile-history-list" aria-label="Scan history">
+<nav class="mobile-history-periods" aria-label="Scan history period"><a href="?period=all&amp;grade={{ selected_grade|urlencode }}{% if search_query %}&amp;q={{ search_query|urlencode }}{% endif %}{% if per_page != 25 %}&amp;per_page={{ per_page }}{% endif %}" {% if selected_period == 'all' %}aria-current="page"{% endif %}>All</a><a href="?period=today&amp;grade={{ selected_grade|urlencode }}{% if search_query %}&amp;q={{ search_query|urlencode }}{% endif %}{% if per_page != 25 %}&amp;per_page={{ per_page }}{% endif %}" {% if selected_period == 'today' %}aria-current="page"{% endif %}>Today</a><a href="?period=7&amp;grade={{ selected_grade|urlencode }}{% if search_query %}&amp;q={{ search_query|urlencode }}{% endif %}{% if per_page != 25 %}&amp;per_page={{ per_page }}{% endif %}" {% if selected_period == '7' %}aria-current="page"{% endif %}>7 Days</a><a href="?period=30&amp;grade={{ selected_grade|urlencode }}{% if search_query %}&amp;q={{ search_query|urlencode }}{% endif %}{% if per_page != 25 %}&amp;per_page={{ per_page }}{% endif %}" {% if selected_period == '30' %}aria-current="page"{% endif %}>30 Days</a></nav><form method="post" id="mobile-delete-form">{% csrf_token %}<input type="hidden" name="action" value="delete"><div class="mobile-history-selection"><span id="mobile-selection-count" role="status">0 selected</span><button type="button" id="mobile-selection-start">Select</button><button type="button" id="mobile-selection-cancel" hidden>Cancel</button><button type="submit" id="mobile-selection-delete" hidden disabled>Delete</button></div></form><div class="history-export-controls"><span id="selection-status" role="status">0 scans selected</span><button type="button" id="compare-scans-btn" style="background-color: #0c744a;">Compare 2 Scans</button><button type="button" data-export="pdf" style="background-color: #0c744a;">Export PDF</button><button type="button" data-export="csv" style="background-color: #0c744a;">Export CSV</button><button type="submit" form="deleteForm" id="deleteBtn" name="action" value="delete" disabled class="delete-selected-btn"><span class="material-symbols-outlined" aria-hidden="true">delete</span>Delete selected</button><p id="export-status" role="status"></p></div><section class="mobile-history-list" aria-label="Scan history">
 {% for scan in scans %}
 <div class="mobile-history-item"><a class="mobile-history-card" href="{% url 'report_detail' scan.id %}" aria-label="View scan from {{ scan.created_at|date:'M j, Y h:i A' }}, {{ scan.quality_grade|default:'Pending' }}">
  {% with scan_image=scan.images.last %}<div class="mobile-history-photo">{% if scan_image %}<img src="{{ scan_image.image.url }}" alt="Calamansi scan" loading="lazy">{% else %}<span class="material-symbols-outlined" aria-hidden="true">image_not_supported</span>{% endif %}</div>{% endwith %}
@@ -78,9 +78,61 @@ document.querySelectorAll('[data-export]').forEach(button => button.addEventList
 {{ history_data|json_script:"history-data" }}
 <section id="history-gallery" class="history-gallery" aria-label="Scan gallery" hidden></section>
 <p id="history-search-empty" class="history-empty" hidden>No scans match your search.</p>
+{% if page_obj.paginator.count > 0 %}
+<nav class="history-pagination" aria-label="Scan history pagination">
+    <div class="pagination-info">
+        Showing <strong>{{ page_obj.start_index }}–{{ page_obj.end_index }}</strong> of <strong>{{ page_obj.paginator.count }}</strong> scans
+    </div>
+    <div class="pagination-per-page">
+        <label for="per-page-select">Per page:</label>
+        <select id="per-page-select" aria-label="Rows per page">
+            <option value="10" {% if per_page == 10 %}selected{% endif %}>10</option>
+            <option value="25" {% if per_page == 25 %}selected{% endif %}>25</option>
+            <option value="50" {% if per_page == 50 %}selected{% endif %}>50</option>
+            <option value="100" {% if per_page == 100 %}selected{% endif %}>100</option>
+        </select>
+    </div>
+    {% if page_obj.paginator.num_pages > 1 %}
+    <ul class="pagination-controls">
+        {% if page_obj.has_previous %}
+        <li><a href="?page={{ page_obj.previous_page_number }}{{ extra_querystring }}" class="pagination-btn pagination-nav" aria-label="Previous page"><span class="material-symbols-outlined" aria-hidden="true">chevron_left</span> Prev</a></li>
+        {% else %}
+        <li><span class="pagination-btn pagination-nav is-disabled" aria-disabled="true"><span class="material-symbols-outlined" aria-hidden="true">chevron_left</span> Prev</span></li>
+        {% endif %}
+
+        {% for p in page_range %}
+            {% if p == page_obj.number %}
+                <li><span class="pagination-btn is-active" aria-current="page">{{ p }}</span></li>
+            {% elif p == '…' or p == page_obj.paginator.ELLIPSIS %}
+                <li><span class="pagination-ellipsis">&hellip;</span></li>
+            {% else %}
+                <li><a href="?page={{ p }}{{ extra_querystring }}" class="pagination-btn">{{ p }}</a></li>
+            {% endif %}
+        {% endfor %}
+
+        {% if page_obj.has_next %}
+        <li><a href="?page={{ page_obj.next_page_number }}{{ extra_querystring }}" class="pagination-btn pagination-nav" aria-label="Next page">Next <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span></a></li>
+        {% else %}
+        <li><span class="pagination-btn pagination-nav is-disabled" aria-disabled="true">Next <span class="material-symbols-outlined" aria-hidden="true">chevron_right</span></span></li>
+        {% endif %}
+    </ul>
+    {% endif %}
+</nav>
+{% endif %}
 <aside id="history-preview" class="history-preview" aria-label="Scan preview" hidden><button type="button" class="history-dismiss" aria-label="Close preview">&times;</button><div id="history-preview-content"></div></aside>
 <dialog id="history-compare" aria-labelledby="history-compare-title"><header><div><h2 id="history-compare-title">Compare Scans</h2><p>Compare the ripeness results of two selected scans.</p></div><button type="button" class="history-dismiss" aria-label="Close comparison">&times;</button></header><div id="history-compare-content" class="history-compare-grid"></div></dialog>
-<script src="{% static 'js/history-workspace.js' %}?v=groups-3" defer></script>{% endblock %}
+<script>
+const perPageSelect = document.getElementById('per-page-select');
+if (perPageSelect) {
+    perPageSelect.addEventListener('change', () => {
+        const url = new URL(window.location.href);
+        url.searchParams.set('per_page', perPageSelect.value);
+        url.searchParams.set('page', '1');
+        window.location.href = url.toString();
+    });
+}
+</script>
+<script src="{% static 'js/history-workspace.js' %}?v=groups-4" defer></script>{% endblock %}
 
 
 

@@ -82,7 +82,7 @@
 /* Mobile home and shared bottom navigation. */
 .mobile-home, .mobile-bottom-nav { display: none; }
 @media (max-width: 760px) {
-    .overview-page { --topbar-height: 64px; padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
+    .overview-page { --topbar-height: 64px; padding-bottom: calc(76px + env(safe-area-inset-bottom)); overscroll-behavior-y: none; overscroll-behavior: none; }
     .overview-sidebar { display: none; }
     .overview-page .container { margin-left: 0; width: 100%; padding: 24px 16px; }
     .overview-topbar { padding: 0 16px; }

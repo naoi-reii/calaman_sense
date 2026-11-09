@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.db.models import Avg, Count
+from django.db.models import Avg, Count, Q
+from django.core.paginator import Paginator
 from django.utils import timezone
 from datetime import timedelta
 from django.contrib.auth.decorators import login_required
@@ -18,7 +19,8 @@ from django.http import Http404
 from uuid import uuid4
 from django.contrib.auth.views import LogoutView
 from django.contrib.auth.views import LoginView
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse, Http404
+from django.conf import settings
 
 
 def _is_mobile_request(request):
@@ -351,6 +353,15 @@ def reports_view(request):
     else:
         scans = Scan.objects.filter(created_by=request.user).prefetch_related('images').order_by('-created_at')
     
+    # Search filter
+    search_query = request.GET.get('q', '').strip()
+    if search_query:
+        q_filter = Q(batch_name__icontains=search_query)
+        clean_id = search_query.lstrip('#')
+        if clean_id.isdigit():
+            q_filter |= Q(id=int(clean_id))
+        scans = scans.filter(q_filter)
+
     # Simple filtering
     grade = request.GET.get('grade')
     if grade:
@@ -363,10 +374,40 @@ def reports_view(request):
         scans = scans.filter(created_at__gte=timezone.now() - timedelta(days=int(period)))
     else:
         period = 'all'
-    context = {'scans': scans, 'selected_grade': grade or '', 'selected_period': period,
-               'grade_choices': Scan.QUALITY_CHOICES}
+
+    # Pagination: default 25 rows per page, allowed: 10, 25, 50, 100
+    try:
+        per_page = int(request.GET.get('per_page', 25))
+        if per_page not in (10, 25, 50, 100):
+            per_page = 25
+    except (ValueError, TypeError):
+        per_page = 25
+
+    paginator = Paginator(scans, per_page)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    page_range = list(paginator.get_elided_page_range(page_obj.number, on_each_side=1, on_ends=1))
+
+    # Build querystring excluding 'page' to keep filters intact across page clicks
+    query_params = request.GET.copy()
+    query_params.pop('page', None)
+    extra_querystring = query_params.urlencode()
+    if extra_querystring:
+        extra_querystring = '&' + extra_querystring
+
+    context = {
+        'scans': page_obj,
+        'page_obj': page_obj,
+        'page_range': page_range,
+        'per_page': per_page,
+        'extra_querystring': extra_querystring,
+        'search_query': search_query,
+        'selected_grade': grade or '',
+        'selected_period': period,
+        'grade_choices': Scan.QUALITY_CHOICES,
+    }
     history_data = []
-    for scan in scans:
+    for scan in page_obj:
         images = list(scan.images.all())
         photo = max(images, key=lambda image: image.id) if images else None
         boxes = photo.mock_annotations if photo else []
@@ -740,3 +781,27 @@ def compare_scans(request):
 @login_required
 def settings_appearance(request):
     return render(request, 'settings_appearance.html')
+
+
+def service_worker(request):
+    sw_path = os.path.join(settings.BASE_DIR, 'static', 'js', 'sw.js')
+    if os.path.exists(sw_path):
+        with open(sw_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        response = HttpResponse(content, content_type='application/javascript')
+        response['Service-Worker-Allowed'] = '/'
+        response['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        return response
+    raise Http404("Service worker not found")
+
+
+def manifest_view(request):
+    manifest_path = os.path.join(settings.BASE_DIR, 'static', 'manifest.json')
+    if os.path.exists(manifest_path):
+        with open(manifest_path, 'r', encoding='utf-8') as f:
+            content = f.read()
+        response = HttpResponse(content, content_type='application/manifest+json')
+        response['Cache-Control'] = 'public, max-age=3600'
+        return response
+    raise Http404("Manifest not found")
+

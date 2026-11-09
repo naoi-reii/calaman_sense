@@ -27,6 +27,10 @@
         {# <a href="{% url 'training' %}"><span class="material-symbols-outlined" aria-hidden="true">model_training</span>Model Training</a> #}
     </nav>
     <div class="overview-sidebar-bottom">
+        <button type="button" class="sidebar-install-btn pwa-install-btn" id="sidebarInstallBtn" title="Install CalamanSense App">
+            <span class="material-symbols-outlined" aria-hidden="true">install_desktop</span>
+            <span>{% ui 'Install App' 'I-install ang App' %}</span>
+        </button>
         <a {% if active_page == "settings" %}class="is-active" aria-current="page"{% endif %} href="{% url 'settings' %}"><span class="material-symbols-outlined" aria-hidden="true">settings</span>{% ui 'Settings' 'Mga Setting' %}</a>
         <form method="post" action="{% url 'logout' %}">{% csrf_token %}<button type="submit"><span class="material-symbols-outlined" aria-hidden="true">logout</span>{% ui 'Log Out' 'Mag-log Out' %}</button></form>
     </div>

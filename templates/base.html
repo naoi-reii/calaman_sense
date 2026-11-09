@@ -5,16 +5,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CalamanSense</title>
+
+    <!-- PWA Settings -->
+    <link rel="manifest" href="{% url 'manifest_view' %}">
+    <meta name="theme-color" content="#086839">
+    <link rel="apple-touch-icon" href="{% static 'images/apple-touch-icon.png' %}">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="CalamanSense">
+
     <script src="{% static 'js/csrf-forms.js' %}" defer></script>
     <script src="{% static 'js/mobile-logout.js' %}?v=1" defer></script>
     <script src="{% static 'js/logout-confirmation.js' %}?v=1" defer></script>
     <script src="{% static 'js/account-dropdown.js' %}?v=1" defer></script>
+    <script src="{% static 'js/pwa-install.js' %}?v=1" defer></script>
     <link rel="stylesheet" href="{% static 'css/account_dropdown.css' %}?v=1">
     <link rel="stylesheet" href="{% static 'css/logout_confirmation.css' %}?v=centered-icon-2">
+    <link rel="stylesheet" href="{% static 'css/pwa.css' %}?v=1">
     
     <link rel="stylesheet" href="{% static 'css/fonts.css' %}">
     
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=nobounce-1">
     <link rel="stylesheet" href="{% static 'css/branding.css' %}?v=1">
     
     <script src="{% static 'js/theme.js' %}?v=opening-light-3"></script>
