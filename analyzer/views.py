@@ -683,7 +683,7 @@ def reports_overview(request):
         return response
     if request.GET.get('download') == 'pdf':
         from .pdf_export import scan_page_pdf
-        context['recent_activity'] = sorted(scans, key=lambda scan: (scan.created_at, scan.pk), reverse=True)
+        context['recent_activity'] = []
         context['pdf_export'] = True
         return scan_page_pdf(request, context, template_name='reports_overview.html', filename='calamansense-reports.pdf')
     return render(request, 'reports_overview.html', context)
