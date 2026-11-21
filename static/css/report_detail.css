@@ -52,6 +52,7 @@
 .result-grade { display: block; margin-top: 10px; color: var(--green-dark); font-size: 28px; }
 .result-grade-rejected { color: var(--red); }
 .result-grade-average { color: #a26706; }
+.result-grade-none { color: var(--gray); }
 .result-grade-card p { margin: 7px 0 0; color: var(--gray-dark); font-size: 12px; }
 .result-saved { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 14px; color: var(--gray); font-size: 11px; }
 .result-saved span { color: var(--green); font-size: 16px; }

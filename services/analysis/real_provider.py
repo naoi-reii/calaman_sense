@@ -356,13 +356,16 @@ class RealAnalysisProvider(AnalysisProvider):
                 'css_class': css_class
             })
 
-        green_ratio = unripe_count / total_fruits if total_fruits > 0 else 0
-        if green_ratio >= 0.75:
-            grade = 'Best Quality'
-        elif green_ratio >= 0.50:
-            grade = 'Good Quality'
+        if total_fruits == 0:
+            grade = 'None'
         else:
-            grade = 'Average'
+            green_ratio = unripe_count / total_fruits
+            if green_ratio >= 0.75:
+                grade = 'Best Quality'
+            elif green_ratio >= 0.50:
+                grade = 'Good Quality'
+            else:
+                grade = 'Average'
 
         def safe_pct(count):
             return round((count / total_fruits) * 100, 2) if total_fruits > 0 else 0.0

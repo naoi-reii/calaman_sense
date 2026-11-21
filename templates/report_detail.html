@@ -65,7 +65,7 @@
             </tbody></table>
             {% if not counts_available %}<p class="result-score-help">Per-fruit detections are not available for this saved scan.</p>{% endif %}
         </section>
-        <section class="result-grade-card"><h2>{% ui 'Batch Grade' 'Kalidad ng Kalamansi' %}</h2><strong class="result-grade {% if scan.quality_grade == 'Rejected' %}result-grade-rejected{% elif scan.quality_grade == 'Average' %}result-grade-average{% endif %}">{{ scan.quality_grade|default:"Not graded" }}</strong><p>{% if combined_result %}{% ui 'Based on overall ripeness across all images' 'Base sa pinagsamang pagkahinog sa lahat ng litrato' %}{% else %}{% ui 'Based on the scan analysis' 'Base sa resulta ng scan' %}{% endif %}</p></section>
+        <section class="result-grade-card"><h2>{% ui 'Batch Grade' 'Kalidad ng Kalamansi' %}</h2><strong class="result-grade {% if scan.quality_grade == 'Rejected' %}result-grade-rejected{% elif scan.quality_grade == 'Average' %}result-grade-average{% elif scan.quality_grade == 'None' or not scan.fruit_count_total %}result-grade-none{% endif %}">{{ scan.quality_grade|default:"Not graded" }}</strong><p>{% if scan.quality_grade == 'None' or not scan.fruit_count_total %}{% ui 'Not a calamansi' 'Hindi kalamansi' %}{% elif combined_result %}{% ui 'Based on overall ripeness across all images' 'Base sa pinagsamang pagkahinog sa lahat ng litrato' %}{% else %}{% ui 'Based on the scan analysis' 'Base sa resulta ng scan' %}{% endif %}</p></section>
         {% if shelf_life %}
         <section class="result-count-card result-shelf-life-card" aria-labelledby="shelf-life-title">
             <div class="shelf-life-header">

@@ -9,14 +9,17 @@ class MockAnalysisProvider(AnalysisProvider):
         defective = random.randint(0, total)
         good = total - defective
         
-        # Calculate grade based on defective ratio
-        ratio = defective / total if total > 0 else 0
-        if ratio < 0.1:
-            grade = 'Best Quality'
-        elif ratio < 0.25:
-            grade = 'Good Quality'
+        if total == 0:
+            grade = 'None'
         else:
-            grade = 'Average'
+            # Calculate grade based on defective ratio
+            ratio = defective / total
+            if ratio < 0.1:
+                grade = 'Best Quality'
+            elif ratio < 0.25:
+                grade = 'Good Quality'
+            else:
+                grade = 'Average'
 
         # Generate some mock bounding boxes
         num_boxes = random.randint(2, 6)
@@ -41,7 +44,7 @@ class MockAnalysisProvider(AnalysisProvider):
         defects = _random_distribution(6)
 
         return ScanAnalysisResult(
-            grade_letter=grade,
+            quality_grade=grade,
             fruit_count_total=total,
             fruit_count_good=good,
             fruit_count_defective=defective,

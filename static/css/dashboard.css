@@ -44,6 +44,7 @@
 .grade-green { background: var(--green-light); color: var(--green-dark); }
 .grade-amber { background: var(--yellow-light); color: #a26706; }
 .grade-red { background: var(--red-light); color: var(--red); }
+.grade-none { background: var(--gray-light); color: var(--gray); }
 .overview-view { display: inline-block; min-width: 76px; padding: 5px 16px; border: 1px solid var(--border); border-radius: 5px; background: var(--white); color: var(--blue); font-weight: 600; }
 .overview-view:hover { border-color: var(--blue); background: var(--blue-light); }
 .overview-empty { padding: 40px 12px; text-align: center; }

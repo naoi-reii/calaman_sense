@@ -126,7 +126,7 @@ def upload_results_view(request, token):
     # combined fruit distribution rather than averaging image grade labels.
     unripe_pct = overall_rows[0]['pct']
     combined_grade = ('Best Quality' if unripe_pct >= 75 else
-                      'Good Quality' if unripe_pct >= 50 else 'Average') if total else None
+                      'Good Quality' if unripe_pct >= 50 else 'Average') if total else 'None'
     for row in overall_rows:
         row['label'] = row['key'].title()
     summary_scan = SimpleNamespace(

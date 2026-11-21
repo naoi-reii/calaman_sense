@@ -8,6 +8,7 @@ class Scan(models.Model):
         ('Good Quality', 'Good Quality'),
         ('Average', 'Average'),
         ('Rejected', 'Rejected'),
+        ('None', 'None'),
     ]
 
     id = models.AutoField(primary_key=True)

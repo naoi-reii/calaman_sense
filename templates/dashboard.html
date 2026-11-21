@@ -21,7 +21,7 @@
                     <td>{% with scan_image=scan.images.last %}<a class="recent-scan-thumbnail" href="{% url 'report_detail' scan.id %}" aria-label="View image for scan {{ scan.id }}">{% if scan_image %}<img src="{{ scan_image.image.url }}" alt="Calamansi scan {{ scan.id }}" loading="lazy">{% else %}<span class="material-symbols-outlined" aria-hidden="true">image_not_supported</span>{% endif %}</a>{% endwith %}</td>
                     <td>{{ scan.created_at|date:"M j, Y" }} <span class="scan-time">{{ scan.created_at|date:"h:i A" }}</span></td>
                     <td>{{ scan.fruit_count_total }}</td>
-                    <td><span class="overview-grade {% if scan.quality_grade == 'Best Quality' or scan.quality_grade == 'Good Quality' %}grade-green{% elif scan.quality_grade == 'Average' %}grade-amber{% elif scan.quality_grade == 'Rejected' %}grade-red{% endif %}">{{ scan.quality_grade|default:"Pending" }}</span></td>
+                    <td><span class="overview-grade {% if scan.quality_grade == 'Best Quality' or scan.quality_grade == 'Good Quality' %}grade-green{% elif scan.quality_grade == 'Average' %}grade-amber{% elif scan.quality_grade == 'Rejected' %}grade-red{% elif scan.quality_grade == 'None' %}grade-none{% endif %}">{{ scan.quality_grade|default:"Pending" }}</span></td>
                     <td><a class="overview-view" href="{% url 'report_detail' scan.id %}" aria-label="View scan {{ scan.id }}">View</a></td>
                 </tr>
             {% empty %}
