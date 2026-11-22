@@ -245,72 +245,8 @@ class RealAnalysisProvider(AnalysisProvider):
 
         img_height, img_width = img.shape[:2]
 
-        raw_boxes = self._detect_boxes(img)
-
-        # 2. Fallback to OpenCV Watershed if YOLO found no candidates
-        if len(raw_boxes) == 0:
-            # Convert to Grayscale
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-            # Thresholding (Inverted because background is white, objects are darker)
-            _, thresh = cv2.threshold(gray, 0, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
-
-            # Noise removal
-            kernel = np.ones((3,3), np.uint8)
-            opening = cv2.morphologyEx(thresh, cv2.MORPH_OPEN, kernel, iterations=2)
-
-            # Sure background area
-            sure_bg = cv2.dilate(opening, kernel, iterations=3)
-
-            # Finding sure foreground area using Distance Transform
-            dist_transform = cv2.distanceTransform(opening, cv2.DIST_L2, 5)
-
-            # The multiplier (0.3) dictates how strictly it separates touching objects
-            _, sure_fg = cv2.threshold(dist_transform, 0.3 * dist_transform.max(), 255, 0)
-            sure_fg = np.uint8(sure_fg)
-
-            # Finding unknown region
-            unknown = cv2.subtract(sure_bg, sure_fg)
-
-            # Marker labelling
-            ret, markers = cv2.connectedComponents(sure_fg)
-
-            # Add one to all labels so that sure background is not 0, but 1
-            markers = markers + 1
-
-            # Now, mark the region of unknown with zero
-            markers[unknown == 255] = 0
-
-            # Apply watershed
-            markers = cv2.watershed(img, markers)
-
-            # Extract bounding boxes for each distinct component
-            for label in range(2, ret + 1):
-                component_mask = np.zeros(gray.shape, dtype=np.uint8)
-                component_mask[markers == label] = 255
-
-                contours, _ = cv2.findContours(component_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-                if contours:
-                    c = max(contours, key=cv2.contourArea)
-                    x, y, w, h = cv2.boundingRect(c)
-
-                    # Filter out tiny artifacts (must be at least 20x20 pixels)
-                    if w > 20 and h > 20:
-                        raw_boxes.append(np.array([x, y, x+w, y+h]))
-
-        # 3. Filter boxes using Fruit Crop Validation
-        valid_boxes = []
-        for box in raw_boxes:
-            x1, y1, x2, y2 = int(box[0]), int(box[1]), int(box[2]), int(box[3])
-            # Clamp coordinates
-            x1, y1 = max(0, x1), max(0, y1)
-            x2, y2 = min(img_width, x2), min(img_height, y2)
-
-            crop = img[y1:y2, x1:x2]
-            if self._is_valid_fruit_crop(crop, x1, y1, x2, y2, img_width, img_height):
-                valid_boxes.append(np.array([x1, y1, x2, y2]))
-
-        final_boxes = self._merge_boxes(valid_boxes)
+        # Start from validated model detections before recovering nearby regions.
+        final_boxes = self._merge_boxes(self._detect_boxes(img))
         final_boxes = self._merge_boxes(final_boxes + self._recover_visible_regions(img, final_boxes))
 
         total_fruits = len(final_boxes)
@@ -392,5 +328,5 @@ class RealAnalysisProvider(AnalysisProvider):
             defect_foreign_matter_pct=0.0,
 
             mock_annotations=annotations,
-            model_version='yolov8s-visible-regions-v3'
+            model_version='yolov8s-visible-regions-v4'
         )

@@ -56,6 +56,20 @@ class CountingTests(unittest.TestCase):
         self.assertEqual(first, second)
         self.assertEqual(self.provider.model.call_count, 38)
 
+    def test_green_region_without_model_detection_is_not_counted(self):
+        img = np.full((140, 140, 3), 255, dtype=np.uint8)
+        cv2.rectangle(img, (40, 50), (95, 85), (30, 160, 50), -1)
+        self.provider.model = Mock(return_value=[Mock(boxes=[])])
+
+        with tempfile.TemporaryDirectory() as directory:
+            path = os.path.join(directory, 'green-object.png')
+            cv2.imwrite(path, img)
+            result = self.provider.analyze(path)
+
+        self.assertEqual(result.fruit_count_total, 0)
+        self.assertEqual(result.mock_annotations, [])
+        self.assertEqual(result.quality_grade, 'None')
+
     def test_nested_stem_box_and_cluster_are_not_extra_fruit(self):
         boxes = [np.array(b) for b in [(20, 20, 70, 70), (80, 20, 130, 70),
                                       (20, 0, 70, 70), (10, 10, 140, 80)]]

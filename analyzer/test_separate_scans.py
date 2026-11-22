@@ -136,11 +136,13 @@ class SeparateImageScanTests(TestCase):
         owner = User.objects.get(username='grower')
         scans = [Scan.objects.create(created_by=owner) for _ in range(3)]
         token = signing.dumps([scan.id for scan in scans], salt='upload-results')
-        overall = self.client.get(reverse('upload_results', args=[token])).context['overall']
+        response = self.client.get(reverse('upload_results', args=[token]))
+        overall = response.context['overall']
         self.assertEqual(overall['total'], 0)
         self.assertEqual([row['pct'] for row in overall['rows']], [0, 0, 0])
         self.assertEqual(overall['dominant'], 'none')
-        self.assertIsNone(overall['quality_grade'])
+        self.assertEqual(overall['quality_grade'], 'None')
+        self.assertContains(response, 'No fruits were detected across the uploaded images')
 
     def test_combined_grade_uses_all_fruits_and_exact_thresholds(self):
         owner = User.objects.get(username='grower')
